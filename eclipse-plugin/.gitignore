@@ -1,0 +1,28 @@
+*.class
+
+# vim
+*.swp
+
+# eclipse
+.project
+.settings
+
+# idea
+.idea
+*.iml
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+build.log
+bin/
+dependency-reduced-pom.xml

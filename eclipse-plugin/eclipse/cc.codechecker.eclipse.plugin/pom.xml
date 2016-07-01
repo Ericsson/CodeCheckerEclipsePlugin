@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Link to the parent pom -->
+    <parent>
+        <artifactId>cc.codechecker.eclipse.parent</artifactId>
+        <groupId>cc.codechecker.eclipse</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../cc.codechecker.eclipse.parent</relativePath>
+    </parent>
+
+    <groupId>cc.codechecker.eclipse</groupId>
+    <artifactId>cc.codechecker.eclipse.plugin</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>eclipse-plugin</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>

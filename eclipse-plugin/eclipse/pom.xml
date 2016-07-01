@@ -1,0 +1,20 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cc.codechecker.eclipse</groupId>
+    <artifactId>aggregator</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+
+    <modules>
+        <module>cc.codechecker.eclipse.plugin</module>
+        <module>cc.codechecker.eclipse.feature</module>
+        <module>cc.codechecker.eclipse.repository</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <luna-repo.url>http://download.eclipse.org/releases/mars</luna-repo.url>
+    </properties>
+
+</project> 

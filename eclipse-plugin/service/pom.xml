@@ -1,0 +1,75 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cc.service.aggregator</groupId>
+    <artifactId>aggregator</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+
+    <modules>
+        <module>cc.service.scl</module>
+        <module>cc.service.scl.thrift</module>
+        <module>cc.codechecker.service.api</module>
+        <module>cc.codechecker.service.thrift</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <luna-repo.url>http://download.eclipse.org/releases/mars</luna-repo.url>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>luna</id>
+            <url>${luna-repo.url}</url>
+            <layout>p2</layout>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.reficio</groupId>
+                <artifactId>p2-maven-plugin</artifactId>
+                <version>1.2.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+
+                        <phase>package</phase>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+
+                        <configuration>
+                            <!-- TODO: doesn't work :( -->
+                            <!--<destinationDirectory>${project.basedir}/../repository/</destinationDirectory>-->
+                            <artifacts>
+                                <artifact>
+                                    <id>cc.service.scl:scl:0.0.1-SNAPSHOT</id>
+                                </artifact>
+                                <artifact>
+                                    <id>cc.service.scl.thrift:scl-thrift:0.0.1-SNAPSHOT</id>
+                                </artifact>
+                                <artifact>
+                                    <id>cc.codechecker.service.api:cc-api:0.0.1-SNAPSHOT</id>
+                                </artifact>
+                                <artifact>
+                                    <id>cc.codechecker.service.thrift:cc-thrift:0.0.1-SNAPSHOT</id>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>reficio</id>
+            <url>http://repo.reficio.org/maven/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project> 

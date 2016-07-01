@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+    <extension
+            point="org.eclipse.ui.commands">
+        <command
+                defaultHandler="cc.codechecker.plugin.command.AddProjectNature"
+                id="cc.codechecker.plugin.addCcNatureCommand"
+                name="AddCodeCheckerNature">
+        </command>
+    </extension>
+    <extension point="org.eclipse.ui.propertyPages">
+        <page
+                class="cc.codechecker.plugin.config.project.CcProperties"
+                id="cc.codechecker.plugin.config.ccProperties"
+                name="CodeChecker">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject">
+                    <test property="org.eclipse.core.resources.projectNature"
+                          value="cc.codechecker.plugin.CodeCheckerNature"/>
+                </adapt>
+            </enabledWhen>
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution
+                locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+            <command
+                    commandId="cc.codechecker.plugin.addCcNatureCommand"
+                    label="Add CodeChecker Nature"
+                    style="push">
+                <visibleWhen>
+                    <not>
+                        <iterate operator="and">
+                            <test property="org.eclipse.core.resources.projectNature"
+                                  value="cc.codechecker.plugin.CodeCheckerNature">
+                            </test>
+                        </iterate>
+                    </not>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+    </extension>
+
+    <extension
+            id="cc.codechecker.markers.problemmarker"
+            name="CodeChecker Problems"
+            point="org.eclipse.core.resources.markers">
+        <super
+                type="org.eclipse.core.resources.problemmarker">
+        </super>
+        <persistent
+                value="true">
+        </persistent>
+    </extension>
+
+    <extension
+            point="org.eclipse.ui.views">
+        <category
+                name="CodeChecker"
+                id="cc.codechecker.plugin.CodeChecker">
+        </category>
+        <view
+                name="ReportList"
+                icon="icons/sample.gif"
+                category="cc.codechecker.plugin.CodeChecker"
+                class="cc.codechecker.plugin.views.report.list.ReportListView"
+                id="cc.codechecker.plugin.views.ReportList">
+        </view>
+        <view
+                name="BugPathList"
+                icon="icons/sample.gif"
+                category="cc.codechecker.plugin.CodeChecker"
+                class="cc.codechecker.plugin.views.report.details.BugPathListView"
+                id="cc.codechecker.plugin.views.BugPathList">
+        </view>
+    </extension>
+    <extension
+            point="org.eclipse.help.contexts">
+        <contexts
+                file="contexts.xml">
+        </contexts>
+    </extension>
+    <extension
+            point="org.eclipse.ui.perspectives">
+        <perspective
+                class="cc.codechecker.plugin.perspective.CodeCheckerPerspectiveFactory"
+                id="cc.codechecker.eclipse.plugin.checkerPerspective"
+                name="CodeChecker">
+        </perspective>
+    </extension>
+    <extension
+            id="cc.codechecker.plugin.CodeCheckerNature"
+            point="org.eclipse.core.resources.natures">
+        <runtime>
+            <run
+                    class="cc.codechecker.plugin.CodeCheckerNature">
+            </run>
+        </runtime>
+    </extension>
+    <!-- TODO: remove this dependency!!! -->
+    <extension
+            point="org.eclipse.ui.startup">
+        <startup
+                class="cc.codechecker.plugin.Activator">
+        </startup>
+    </extension>
+
+</plugin>
