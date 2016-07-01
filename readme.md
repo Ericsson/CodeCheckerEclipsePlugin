@@ -6,7 +6,7 @@ This is an Eclipse plugin for the Ericsson Codechecker Project - it's capable of
 
 ## Requirements
 
-* Recent CodeChecker
+* Recent CodeChecker (see https://github.com/Ericsson/codechecker)
 * Eclipse: the plugin is currently tested with Eclipse Mars, but any recent Eclipse version should work
 * Eclipse CDT
 * Java 1.7
