@@ -104,7 +104,7 @@ public class CodeCheckerContext {
 
         if (activeEditor == null) return;
 
-        CodeCheckerContext.getInstance().setActiveEditorPart(activeEditor);
+        CodeCheckerContext.getInstance().setActiveEditorPart(activeEditor,true);
     }
 
     public void cleanCache(IProject project) {
@@ -112,12 +112,14 @@ public class CodeCheckerContext {
         System.out.println("CLEARING CACHE");
     }
 
-    public void setActiveEditorPart(IEditorPart partRef) {
+    public void setActiveEditorPart(IEditorPart partRef,boolean refresh) {
 
         if (!(partRef.getEditorInput() instanceof IFileEditorInput)) {
             return;
         }
-
+        if (partRef == activeEditorPart && !refresh) {
+            return;
+        }
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
         IProject project = file.getProject();
@@ -155,6 +157,10 @@ public class CodeCheckerContext {
                     if (rlv.linkedToEditor()) {
                         rlv.onEditorChanged(project, filename);
                     }
+                }
+                if (vp.getId().equals(BugPathListView.ID)) {
+                    BugPathListView bplv = (BugPathListView) vp.getView(true);
+                    bplv.clear();
                 }
             }
         }

@@ -2,8 +2,10 @@ package cc.codechecker.plugin.views.report.details;
 
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.part.*;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.*;
@@ -17,7 +19,7 @@ public class BugPathListView extends ViewPart {
 
     public static final String ID = "cc.codechecker.plugin.views.BugPathList";
 
-    ListViewer viewer;
+    ListViewer viewer = null;
 
     Optional<ProblemInfo> bugPath;
 
@@ -72,6 +74,15 @@ public class BugPathListView extends ViewPart {
 
     public void setName(String value) {
         setPartName(value);
+    }
+
+    public void clear() {
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                viewer.setInput(null);
+                viewer.refresh();
+            }
+        });
     }
 
 }
