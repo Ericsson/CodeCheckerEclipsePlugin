@@ -26,8 +26,8 @@ This is an Eclipse plugin for the Ericsson Codechecker Project - it's capable of
 
 ## Installing
 
-* Copy the `cc.codechecker.eclipse.plugin.<XXX>.jar`:
-    * From: the plugins subdirectory of the repository
+* Copy the `cc.codechecker.eclipse.plugin-0.0.1-SNAPSHOT.jar`:
+    * From: ./eclipse-plugin/eclipse/cc.codechecker.eclipse.plugin/target/
     * To: the dropins directory of Eclipse
 
 ## Troubleshooting
