@@ -65,16 +65,8 @@ public class JumpToBugItem implements IDoubleClickListener {
             try {
                 marker = fileinfo.createMarker(IMarker.TEXT);
                 marker.setAttributes(map);
-                if(active != page.getActiveEditor()) {	
-                	IDE.openEditor(page, fileinfo);
-                }
-                if(active != null) {
-                	IDE.gotoMarker(active, marker);
-                	System.out.println("FOLLOW> Show Editor!");
-                } else {
-                	IDE.openEditor(page, fileinfo);
-                	IDE.gotoMarker(page.getActiveEditor(), marker);
-                }
+            	IDE.openEditor(page, fileinfo);
+            	IDE.gotoMarker(page.getActiveEditor(), marker);
                 System.out.println("FOLLOW> opened editor");
                 marker.delete();
             } catch (CoreException e) {
