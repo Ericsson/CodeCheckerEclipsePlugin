@@ -160,7 +160,7 @@ public class CodeCheckerContext {
                 }
                 if (vp.getId().equals(BugPathListView.ID)) {
                     BugPathListView bplv = (BugPathListView) vp.getView(true);
-                    bplv.clear();
+                    bplv.clear(partRef);
                 }
             }
         }

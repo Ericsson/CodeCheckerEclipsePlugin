@@ -4,14 +4,18 @@ package cc.codechecker.plugin.views.report.details;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.part.*;
-
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.*;
 
 import com.google.common.base.Optional;
 
+import cc.codechecker.api.action.BugPathItem;
 import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.plugin.views.report.details.action.JumpToBugItem;
 
@@ -76,13 +80,25 @@ public class BugPathListView extends ViewPart {
         setPartName(value);
     }
 
-    public void clear() {
-        Display.getDefault().asyncExec(new Runnable() {
-            public void run() {
-                viewer.setInput(null);
-                viewer.refresh();
-            }
-        });
+    public void clear(IEditorPart partref) {
+    	boolean refresh = false;
+    	if(bugPath != null && bugPath.isPresent()) {
+	    	for(BugPathItem bpi : bugPath.get().getItems()) {
+	            Path path = new Path(bpi.getFile());
+	            IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+	    		if(file.getName().equals(partref.getEditorInput().getName())) {
+	    			refresh = true;
+	    		}
+	    	}
+    	}
+    	if(!refresh) {
+	    	Display.getDefault().asyncExec(new Runnable() {
+	            public void run() {
+	                viewer.setInput(null);
+	                viewer.refresh();
+	            }
+	        });
+    	}
     }
 
 }
