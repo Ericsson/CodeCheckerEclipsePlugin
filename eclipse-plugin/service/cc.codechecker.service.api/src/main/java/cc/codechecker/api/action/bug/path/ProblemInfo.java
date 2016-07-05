@@ -5,8 +5,6 @@ import cc.codechecker.api.action.BugPathItem;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -14,19 +12,13 @@ import java.util.Objects;
  */
 public class ProblemInfo {
 
-    private final List<BugPathItem> items;
+    private final ImmutableList<BugPathItem> items;
 
-    public ProblemInfo(List<BugPathItem> items) {
-        List<BugPathItem> result = new ArrayList<>();
-        for(BugPathItem bpi : items) {
-            if(bpi.getMessage() != "") {
-                result.add(bpi);
-            }
-        }
-        this.items = result;
+    public ProblemInfo(ImmutableList<BugPathItem> items) {
+        this.items = items;
     }
 
-    public List<BugPathItem> getItems() {
+    public ImmutableList<BugPathItem> getItems() {
         return items;
     }
 

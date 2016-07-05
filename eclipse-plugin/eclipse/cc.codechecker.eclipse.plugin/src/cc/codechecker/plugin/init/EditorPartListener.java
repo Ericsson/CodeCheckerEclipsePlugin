@@ -15,7 +15,7 @@ public class EditorPartListener implements IPartListener {
             return;
         }
         System.out.println("Editor changed");
-        CodeCheckerContext.getInstance().setActiveEditorPart((IEditorPart) partRef);
+        CodeCheckerContext.getInstance().setActiveEditorPart((IEditorPart) partRef, false);
     }
 
     @Override
