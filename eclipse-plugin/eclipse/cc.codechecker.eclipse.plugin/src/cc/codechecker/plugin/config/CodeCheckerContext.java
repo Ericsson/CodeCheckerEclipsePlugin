@@ -158,10 +158,10 @@ public class CodeCheckerContext {
                         rlv.onEditorChanged(project, filename);
                     }
                 }
-                /*if (vp.getId().equals(BugPathListView.ID)) {
+                if (vp.getId().equals(BugPathListView.ID)) {
                     BugPathListView bplv = (BugPathListView) vp.getView(true);
-                    bplv.clear();
-                }*/
+                    bplv.clear(partRef);
+                }
             }
         }
     }
