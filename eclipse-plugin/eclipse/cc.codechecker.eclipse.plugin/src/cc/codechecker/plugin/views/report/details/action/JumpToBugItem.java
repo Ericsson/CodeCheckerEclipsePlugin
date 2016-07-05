@@ -11,7 +11,6 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
@@ -54,15 +53,28 @@ public class JumpToBugItem implements IDoubleClickListener {
             map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
             map.put(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
             IMarker marker;
-            IEditorPart ieditorpart = page.getActiveEditor();
-            IEditorInput ieditorinput = ieditorpart.getEditorInput();
-            String ieditorinputname = ieditorinput.getName();
-            System.out.println("FOLLOW> IEditorInput Name: " + ieditorinputname);
+			IEditorPart active = null;
+            for(IEditorPart ieditorpart : page.getEditors()) {
+            	String ieditorinputname = ieditorpart.getEditorInput().getName();
+            	System.out.println("FOLLOW> ieditorinputname: " + ieditorinputname);
+            	System.out.println("FOLLOW> fileinfo name: " + fileinfo.getName());
+            	if(ieditorinputname.equals(fileinfo.getName())) {
+            		active = ieditorpart;
+            	}
+            }
             try {
                 marker = fileinfo.createMarker(IMarker.TEXT);
                 marker.setAttributes(map);
-                //IDE.openEditor(page, marker);
-                IDE.gotoMarker(ieditorpart, marker);
+                if(active != page.getActiveEditor()) {	
+                	IDE.openEditor(page, fileinfo);
+                }
+                if(active != null) {
+                	IDE.gotoMarker(active, marker);
+                	System.out.println("FOLLOW> Show Editor!");
+                } else {
+                	IDE.openEditor(page, fileinfo);
+                	IDE.gotoMarker(page.getActiveEditor(), marker);
+                }
                 System.out.println("FOLLOW> opened editor");
                 marker.delete();
             } catch (CoreException e) {
