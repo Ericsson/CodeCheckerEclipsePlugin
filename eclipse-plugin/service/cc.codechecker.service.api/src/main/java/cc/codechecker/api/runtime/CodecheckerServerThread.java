@@ -11,7 +11,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class CodecheckerServerThread {
 
-    public final int serverPort = (new Random()).nextInt(10000) + 15000;
+	private static Random random = new Random();
+    public final int serverPort = random.nextInt(10000) + 15000;
     final BlockingQueue<String> processingQueue = new LinkedBlockingDeque<>();
     final Set currentlyRunning = Collections.synchronizedSet(new HashSet());
     CodeCheckEnvironmentChecker ccec = null;

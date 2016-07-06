@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
@@ -45,8 +46,13 @@ public class CodeCheckEnvironmentChecker {
 
         Optional<String> ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
                 workspaceName + " -n dummy -b env | grep =");
-
-        if (!ccEnvOutput.isPresent()) {
+        double test = 1;
+        do {
+        	ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
+                    workspaceName + " -n dummy -b env | grep =", Math.pow( 2.0 , test ) * 1000);
+        	++test;
+        } while(!ccEnvOutput.isPresent() && test <= 2);
+        if (!ccEnvOutput.isPresent() && test > 2) {
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
         }
