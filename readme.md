@@ -1,10 +1,10 @@
 # About
 
 This is an Eclipse plugin for the [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker).  
-It's capable of connecting to a remote CodeChecker server for a readonly view, or running one locally.
 
 # Requirements
 
+* Linux operating system
 * Recent [CodeChecker](https://github.com/Ericsson/codechecker)
 * [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
 * Eclipse CDT
