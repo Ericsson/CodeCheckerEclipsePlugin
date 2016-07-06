@@ -7,7 +7,7 @@ This is an Eclipse plugin for the Ericsson Codechecker Project - it's capable of
 ## Requirements
 
 * Recent CodeChecker (see https://github.com/Ericsson/codechecker)
-* Eclipse: the plugin is currently tested with Eclipse Mars, but any recent Eclipse version should work
+* Eclipse: the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
 * Eclipse CDT
 * Java 1.7
 * Thrift 0.9.1 or later
@@ -26,8 +26,8 @@ This is an Eclipse plugin for the Ericsson Codechecker Project - it's capable of
 
 ## Installing
 
-* Copy the `cc.codechecker.eclipse.plugin.<XXX>.jar`:
-    * From: the plugins subdirectory of the repository
+* Copy the `cc.codechecker.eclipse.plugin-0.0.1-SNAPSHOT.jar`:
+    * From: ./eclipse-plugin/eclipse/cc.codechecker.eclipse.plugin/target/
     * To: the dropins directory of Eclipse
 
 ## Troubleshooting
@@ -55,12 +55,20 @@ Currently the plugin is usable with a CDT project.
 In Eclipse, select Window, Perspectives, and activate the CodeChecker perspective.
 Alternatively, you can manually add the two windows under the CodeChecker category into any perspective, using the Window - Views menu.
 
+![Window->Perspective->Open Perspective->Other](docs/allperspective.png)
+
 The plugin is activated on a per project basis, first you have to add the CodeChecker Nature to a CDT project using it's context menu in the project explorer.
 
+![CodeChecker Nature Add](docs/nature.png)
+
 After that, the settings can be customized in the project preferences window under the CodeChecker panel. For the plugin to work correctly, it is mandatory to add the correct path to the root of the CodeChecker package.
+
+![CodeChecker Configure](docs/config.png)
 
 After the plugin is successfully configured for a project, it'll listen to build events, and automatically rechecks the project with CodeChecker when needed.
 
 By default it displays the problems related to the currently selected file on the problems view, and the details for a selected bugpath in the Details view. Selecting a problem or jumping to a details item is possible with double clicking on it.
 
 The problems view can be customized: it supports custom search options with a filter editor, where saving or loading filters is also possible.
+
+![CodeChecker Runtime Example](docs/example.png)

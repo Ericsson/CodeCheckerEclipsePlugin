@@ -72,8 +72,6 @@ public class BugPathActionThriftImpl extends ThriftActionImpl<ProblemInfoRequest
             System.out.println("Event: " + bpe.getStartLine() + " - " + bpe.getStartCol() + " - "
                     + bpe.getMsg());
         }
-
-        Collections.sort(listBuilder);
         ImmutableList.Builder<BugPathItem> builder = new ImmutableList.Builder<>();
         builder.addAll(listBuilder);
         return new ActionResult<>(new ProblemInfo(builder.build()));
