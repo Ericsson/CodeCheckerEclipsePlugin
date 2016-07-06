@@ -15,7 +15,7 @@ It's capable of connecting to a remote CodeChecker server for a readonly view, o
 ##### install:
 using a package manager provided by your OS:  
 Ubuntu:  
-```sudo apt-get install -y thrift```
+```sudo apt-get install -y thrift-compiler```
 
 ##### build from source:
 ~~~~~~~~.sh
