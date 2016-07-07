@@ -22,7 +22,7 @@ public class ReportInfo implements Comparable<ReportInfo> {
     private final boolean suppressed;
     private final String file;
     private final BugPathItem lastBugPathItem;
-    private Optional<ProblemInfo> bugPath;
+    private Optional<ProblemInfo> bugPath =  null;
     
     public ReportInfo(String checkerId, String bugHash, String checkedFile, String checkerMsg,
                       long reportId, boolean suppressed, String file, BugPathItem lastBugPathItem) {

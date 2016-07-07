@@ -18,6 +18,7 @@ import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.job.ProblemInfoJob;
 import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class TreeCheckerContentProvider implements ITreeContentProvider {
@@ -95,8 +96,11 @@ public class TreeCheckerContentProvider implements ITreeContentProvider {
         	ReportInfo ri = (ReportInfo) parentElement;
         	@SuppressWarnings("unchecked") Optional<ProblemInfo> bp = ri.getBugPath();
         	if(bp == null) {
-            	System.out.println("Probléma van!!!");
-            }
+	        	CodeCheckerContext.getInstance().displayBugPath( ri,
+	        			reportListView.getReportList().get().getBugPathJobFor(ri, 1, Optional.of((new Instant()).plus(120))),
+	        			reportListView.getCurrentProject());
+	        	bp = ri.getBugPath();
+        	}
         	if (bp != null && bp.isPresent()) {
                 ArrayList<BugPathItem> result = new ArrayList<>(bp.get().getItems());
                 Iterables.removeIf(result, new Predicate<BugPathItem>() {

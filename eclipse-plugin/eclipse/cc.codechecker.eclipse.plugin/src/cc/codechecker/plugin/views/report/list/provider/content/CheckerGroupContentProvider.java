@@ -1,11 +1,21 @@
 package cc.codechecker.plugin.views.report.list.provider.content;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.joda.time.Instant;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
+import cc.codechecker.api.action.BugPathItem;
+import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class CheckerGroupContentProvider implements ITreeContentProvider {
@@ -57,7 +67,24 @@ public class CheckerGroupContentProvider implements ITreeContentProvider {
         }
 
         if (parentElement instanceof ReportInfo) {
-            // no children
+        	ReportInfo ri = (ReportInfo) parentElement;
+        	@SuppressWarnings("unchecked") Optional<ProblemInfo> bp = ri.getBugPath();
+        	if(bp == null) {
+	        	CodeCheckerContext.getInstance().displayBugPath( ri,
+	        			reportListView.getReportList().get().getBugPathJobFor(ri, 1, Optional.of((new Instant()).plus(120))),
+	        			reportListView.getCurrentProject());
+	        	bp = ri.getBugPath();
+        	}
+        	if (bp != null && bp.isPresent()) {
+                ArrayList<BugPathItem> result = new ArrayList<>(bp.get().getItems());
+                Iterables.removeIf(result, new Predicate<BugPathItem>() {
+                    @Override
+                    public boolean apply(BugPathItem pi) {
+                        return "".equals(pi.getMessage());
+                    }
+                });
+                return result.toArray();
+            }
         }
 
         return ArrayUtils.toArray();

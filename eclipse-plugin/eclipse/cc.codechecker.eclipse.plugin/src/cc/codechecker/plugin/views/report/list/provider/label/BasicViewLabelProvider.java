@@ -45,7 +45,7 @@ public class BasicViewLabelProvider extends LabelProvider {
 
     public Image getImage(Object obj) {
         String imageKey = ISharedImages.IMG_OBJ_ELEMENT;
-        if (obj instanceof String || obj instanceof SearchList) // TODO: provide better images
+        if (obj instanceof String || obj instanceof SearchList || obj instanceof ReportInfo) // TODO: provide better images
             imageKey = ISharedImages.IMG_OBJ_FOLDER;
         return PlatformUI.getWorkbench().getSharedImages().getImage(imageKey);
     }

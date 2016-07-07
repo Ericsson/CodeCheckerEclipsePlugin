@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 
 import cc.codechecker.api.action.BugPathItem;
 import cc.codechecker.api.action.bug.path.ProblemInfo;
+import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.action.run.RunInfo;
 import cc.codechecker.api.action.run.list.RunList;
 import cc.codechecker.api.job.report.list.SearchList;
@@ -34,14 +35,10 @@ import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.filter.Filter;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 import cc.codechecker.plugin.config.project.CcConfiguration;
-import cc.codechecker.plugin.views.report.details.BugPathListView;
 import cc.codechecker.plugin.views.report.list.action.AnalyzeAllAction;
 import cc.codechecker.plugin.views.report.list.action.LinkToEditorAction;
 import cc.codechecker.plugin.views.report.list.action.NewInstanceAction;
 import cc.codechecker.plugin.views.report.list.action.ShowFilterConfigurationDialog;
-import cc.codechecker.plugin.views.report.list.action.ShowInBugPathViewAction;
-import cc.codechecker.plugin.views.report.list.action.bugpath.BugPathMenuProvider;
-import cc.codechecker.plugin.views.report.list.action.bugpath.NewBugPathView;
 import cc.codechecker.plugin.views.report.list.action.rerun.RefreshAction;
 import cc.codechecker.plugin.views.report.list.action.rerun.RerunAllAction;
 import cc.codechecker.plugin.views.report.list.action.rerun.RerunSelectedAction;
@@ -59,7 +56,6 @@ public class ReportListView extends ViewPart {
     Optional<SearchList> reportList = Optional.<SearchList>absent();
     private TreeViewer viewer;
     private LinkToEditorAction linkToEditorAction;
-    private ShowInBugPathViewAction defaultShowAction;
     private AnalyzeAllAction analyzeAllAction;
     private Composite parent;
     private String currentFilename;
@@ -87,7 +83,6 @@ public class ReportListView extends ViewPart {
         viewer.getControl().setLayoutData(treeGridData);
 
         linkToEditorAction = new LinkToEditorAction(this, true);
-        defaultShowAction = new ShowInBugPathViewAction(this); // TODO
         analyzeAllAction = new AnalyzeAllAction(this);
 
 
@@ -153,14 +148,12 @@ public class ReportListView extends ViewPart {
     private void fillContextMenu(IMenuManager manager) {
         //manager.add(new RerunSelectedAction(this));
         manager.add(linkToEditorAction);
-        manager.add(defaultShowAction);
         manager.add(new Separator());
         // Other plug-ins can contribute there actions here
         manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
-        manager.add(defaultShowAction);
         manager.add(linkToEditorAction);
         manager.add(analyzeAllAction);
         manager.add(new Separator());
@@ -176,19 +169,17 @@ public class ReportListView extends ViewPart {
                 }
 
                 final Object sel = selection.getFirstElement();
+                
                 if(sel instanceof BugPathItem) {
                 	BugPathItem bpi = (BugPathItem) sel;
                     jumpToBugPosition(bpi);
                     return;
                 }
+                
                 final ITreeContentProvider provider =
                         (ITreeContentProvider) viewer.getContentProvider();
 
                 if (!provider.hasChildren(sel)) {
-                    if (defaultShowAction.isEnabled()) {
-                        defaultShowAction.run();
-                    }
-
                     return;
                 }
 
@@ -197,24 +188,19 @@ public class ReportListView extends ViewPart {
                 } else {
                     viewer.expandToLevel(sel, 1);
                 }
+                
             }
         });
     }
     
     private void jumpToBugPosition(BugPathItem bpi) {
-        IProject prj = currentProject;
-        CcConfiguration config = new CcConfiguration(prj);
-
+        CcConfiguration config = new CcConfiguration(currentProject);
         String relName = config.convertFilenameFromServer(bpi.getFile());
-
-        System.out.println("FOLLOW> " + relName);
-        IFile fileinfo = prj.getFile(relName);
+        IFile fileinfo = currentProject.getFile(relName);
 
         if (fileinfo != null && fileinfo.exists()) {
-            System.out.println("FOLLOW> fileinfo found");
             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getActivePage();
-
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
             map.put(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
@@ -222,8 +208,6 @@ public class ReportListView extends ViewPart {
 			IEditorPart active = null;
             for(IEditorPart ieditorpart : page.getEditors()) {
             	String ieditorinputname = ieditorpart.getEditorInput().getName();
-            	System.out.println("FOLLOW> ieditorinputname: " + ieditorinputname);
-            	System.out.println("FOLLOW> fileinfo name: " + fileinfo.getName());
             	if(ieditorinputname.equals(fileinfo.getName())) {
             		active = ieditorpart;
             	}
@@ -233,7 +217,6 @@ public class ReportListView extends ViewPart {
                 marker.setAttributes(map);
             	IDE.openEditor(page, fileinfo);
             	IDE.gotoMarker(page.getActiveEditor(), marker);
-                System.out.println("FOLLOW> opened editor");
                 marker.delete();
             } catch (CoreException e) {
                 e.printStackTrace();
