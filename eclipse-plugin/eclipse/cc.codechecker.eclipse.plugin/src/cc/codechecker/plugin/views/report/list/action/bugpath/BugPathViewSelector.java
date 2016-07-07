@@ -18,14 +18,14 @@ public class BugPathViewSelector extends TreeAwareAction {
         super(listView, "View: " + vp.getPartName(), IAction.AS_RADIO_BUTTON);
         this.viewRef = vp;
 
-        if (Objects.equals(vp, listView.getDefaultBugPathView())) {
+        /*if (Objects.equals(vp, listView.getDefaultBugPathView())) {
             setChecked(true);
-        }
+        }*/
     }
 
     @Override
     public void run() {
-        listView.setDefaultBugPathView(viewRef);
+        //listView.setDefaultBugPathView(viewRef);
     }
 
 }

@@ -1,5 +1,6 @@
 package cc.codechecker.plugin.views.report.list;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.eclipse.swt.events.SelectionEvent;
@@ -13,13 +14,19 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
+import cc.codechecker.api.action.BugPathItem;
+import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.api.action.run.RunInfo;
 import cc.codechecker.api.action.run.list.RunList;
 import cc.codechecker.api.job.report.list.SearchList;
@@ -58,7 +65,7 @@ public class ReportListView extends ViewPart {
     private String currentFilename;
     private IProject currentProject;
     private ImmutableList<RunInfo> runList;
-
+    
     public ReportListView() {
     }
 
@@ -80,7 +87,7 @@ public class ReportListView extends ViewPart {
         viewer.getControl().setLayoutData(treeGridData);
 
         linkToEditorAction = new LinkToEditorAction(this, true);
-        defaultShowAction = new ShowInBugPathViewAction(this, null); // TODO
+        defaultShowAction = new ShowInBugPathViewAction(this); // TODO
         analyzeAllAction = new AnalyzeAllAction(this);
 
 
@@ -169,6 +176,11 @@ public class ReportListView extends ViewPart {
                 }
 
                 final Object sel = selection.getFirstElement();
+                if(sel instanceof BugPathItem) {
+                	BugPathItem bpi = (BugPathItem) sel;
+                    jumpToBugPosition(bpi);
+                    return;
+                }
                 final ITreeContentProvider provider =
                         (ITreeContentProvider) viewer.getContentProvider();
 
@@ -188,11 +200,51 @@ public class ReportListView extends ViewPart {
             }
         });
     }
+    
+    private void jumpToBugPosition(BugPathItem bpi) {
+        IProject prj = currentProject;
+        CcConfiguration config = new CcConfiguration(prj);
+
+        String relName = config.convertFilenameFromServer(bpi.getFile());
+
+        System.out.println("FOLLOW> " + relName);
+        IFile fileinfo = prj.getFile(relName);
+
+        if (fileinfo != null && fileinfo.exists()) {
+            System.out.println("FOLLOW> fileinfo found");
+            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                    .getActivePage();
+
+            HashMap<String, Object> map = new HashMap<String, Object>();
+            map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
+            map.put(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
+            IMarker marker;
+			IEditorPart active = null;
+            for(IEditorPart ieditorpart : page.getEditors()) {
+            	String ieditorinputname = ieditorpart.getEditorInput().getName();
+            	System.out.println("FOLLOW> ieditorinputname: " + ieditorinputname);
+            	System.out.println("FOLLOW> fileinfo name: " + fileinfo.getName());
+            	if(ieditorinputname.equals(fileinfo.getName())) {
+            		active = ieditorpart;
+            	}
+            }
+            try {
+                marker = fileinfo.createMarker(IMarker.TEXT);
+                marker.setAttributes(map);
+            	IDE.openEditor(page, fileinfo);
+            	IDE.gotoMarker(page.getActiveEditor(), marker);
+                System.out.println("FOLLOW> opened editor");
+                marker.delete();
+            } catch (CoreException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void showMessage(String message) {
         MessageDialog.openInformation(viewer.getControl().getShell(), "ReportList", message);
     }
-
+    
     /**
      * Passing the focus request to the viewer's control.
      */
@@ -231,14 +283,6 @@ public class ReportListView extends ViewPart {
 
     public boolean linkedToEditor() {
         return linkToEditorAction.isChecked();
-    }
-
-    public BugPathListView getDefaultBugPathView() {
-        return defaultShowAction.getTargetView();
-    }
-
-    public void setDefaultBugPathView(BugPathListView viewRef) {
-        defaultShowAction.setTargetView(viewRef);
     }
 
     private void redoJob() {

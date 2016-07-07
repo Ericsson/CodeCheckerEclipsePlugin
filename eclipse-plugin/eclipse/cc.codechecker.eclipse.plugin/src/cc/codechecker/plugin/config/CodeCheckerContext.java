@@ -210,8 +210,7 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
-    public void displayBugPath(final BugPathListView targetView,
-            final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
+    public void displayBugPath( final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
             final IProject project) {
         problemInfoJobFor.addListener(new JobListener<ProblemInfoJob>() {
 
@@ -233,14 +232,15 @@ public class CodeCheckerContext {
 
                     @Override
                     public void run() {
-                        targetView.changeModel(project, arg0.getResult());
+                    	ri.addBugPath(arg0.getResult());
+                        //targetView.changeModel(project, arg0.getResult());
 
-                        JumpToBugItem jtbi = new JumpToBugItem(targetView);
+                        //JumpToBugItem jtbi = new JumpToBugItem(targetView);
                         // The last BugPathItem in a ReportInfo is the main position of the bug that
                         //     was reported.
-                        BugPathItem lastBpiInRi = ri.getLastBugPathItem();
+                        //BugPathItem lastBpiInRi = ri.getLastBugPathItem();
 
-                        jtbi.jumpToBugPosition(lastBpiInRi);
+                        //jtbi.jumpToBugPosition(lastBpiInRi);
                     }
                 });
             }
