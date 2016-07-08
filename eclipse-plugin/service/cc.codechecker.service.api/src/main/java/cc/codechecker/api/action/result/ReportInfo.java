@@ -36,11 +36,11 @@ public class ReportInfo implements Comparable<ReportInfo> {
         this.lastBugPathItem = lastBugPathItem;
     }
     
-    public void addBugPath(Optional<ProblemInfo> optional) {
+    public void addChildren(Optional<ProblemInfo> optional) {
     	this.bugPath = optional;
     }
     
-    public Optional<ProblemInfo> getBugPath() {
+    public Optional<ProblemInfo> getChildren() {
     	return this.bugPath;
     }
     

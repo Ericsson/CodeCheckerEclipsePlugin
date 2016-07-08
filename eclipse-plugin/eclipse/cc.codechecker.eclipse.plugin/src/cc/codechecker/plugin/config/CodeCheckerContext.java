@@ -196,7 +196,7 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
-    public void displayBugPath( final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
+    public void reportInfoAddChildren( final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
             final IProject project) {
         problemInfoJobFor.addListener(new JobListener<ProblemInfoJob>() {
 
@@ -218,7 +218,7 @@ public class CodeCheckerContext {
 
                     @Override
                     public void run() {
-                    	ri.addBugPath(arg0.getResult());
+                    	ri.addChildren(arg0.getResult());
                     }
                 });
             }

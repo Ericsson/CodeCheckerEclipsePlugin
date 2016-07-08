@@ -94,12 +94,12 @@ public class TreeCheckerContentProvider implements ITreeContentProvider {
 
         if (parentElement instanceof ReportInfo) {
         	ReportInfo ri = (ReportInfo) parentElement;
-        	@SuppressWarnings("unchecked") Optional<ProblemInfo> bp = ri.getBugPath();
+        	@SuppressWarnings("unchecked") Optional<ProblemInfo> bp = ri.getChildren();
         	if(bp == null) {
-	        	CodeCheckerContext.getInstance().displayBugPath( ri,
+	        	CodeCheckerContext.getInstance().reportInfoAddChildren( ri,
 	        			reportListView.getReportList().get().getBugPathJobFor(ri, 1, Optional.of((new Instant()).plus(120))),
 	        			reportListView.getCurrentProject());
-	        	bp = ri.getBugPath();
+	        	bp = ri.getChildren();
         	}
         	if (bp != null && bp.isPresent()) {
                 ArrayList<BugPathItem> result = new ArrayList<>(bp.get().getItems());
@@ -123,7 +123,10 @@ public class TreeCheckerContentProvider implements ITreeContentProvider {
 
     @Override
     public boolean hasChildren(Object element) {
-        return getChildren(element).length > 0;
+    	if(element instanceof ReportInfo || element instanceof SearchList || element instanceof String) {
+        	return true;
+        }
+        return false;
     }
 
 }
