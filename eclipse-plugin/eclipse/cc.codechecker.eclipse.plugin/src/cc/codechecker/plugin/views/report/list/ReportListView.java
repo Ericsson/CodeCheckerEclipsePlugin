@@ -3,11 +3,8 @@ package cc.codechecker.plugin.views.report.list;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
 import org.eclipse.jface.viewers.*;
@@ -26,10 +23,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.action.bug.path.ProblemInfo;
-import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.action.run.RunInfo;
-import cc.codechecker.api.action.run.list.RunList;
 import cc.codechecker.api.job.report.list.SearchList;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.filter.Filter;
@@ -39,9 +33,6 @@ import cc.codechecker.plugin.views.report.list.action.AnalyzeAllAction;
 import cc.codechecker.plugin.views.report.list.action.LinkToEditorAction;
 import cc.codechecker.plugin.views.report.list.action.NewInstanceAction;
 import cc.codechecker.plugin.views.report.list.action.ShowFilterConfigurationDialog;
-import cc.codechecker.plugin.views.report.list.action.rerun.RefreshAction;
-import cc.codechecker.plugin.views.report.list.action.rerun.RerunAllAction;
-import cc.codechecker.plugin.views.report.list.action.rerun.RerunSelectedAction;
 import cc.codechecker.plugin.views.report.list.action.showas.CheckerGroupAction;
 import cc.codechecker.plugin.views.report.list.action.showas.CheckerTreeAction;
 import cc.codechecker.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
@@ -138,7 +129,7 @@ public class ReportListView extends ViewPart {
 		manager.add(bugPathMenu);
 		*/
         manager.add(linkToEditorAction);
-
+        manager.add(new NewInstanceAction(new ReportListView()));
         MenuManager displayTypeMenu = new MenuManager("Show as", null);
         displayTypeMenu.add(new CheckerGroupAction(this, false));
         displayTypeMenu.add(new CheckerTreeAction(this, true));
@@ -148,6 +139,7 @@ public class ReportListView extends ViewPart {
     private void fillContextMenu(IMenuManager manager) {
         //manager.add(new RerunSelectedAction(this));
         manager.add(linkToEditorAction);
+        manager.add(new NewInstanceAction(new ReportListView()));
         manager.add(new Separator());
         // Other plug-ins can contribute there actions here
         manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -155,6 +147,7 @@ public class ReportListView extends ViewPart {
 
     private void fillLocalToolBar(IToolBarManager manager) {
         manager.add(linkToEditorAction);
+        manager.add(new NewInstanceAction(new ReportListView()));
         manager.add(analyzeAllAction);
         manager.add(new Separator());
     }
@@ -205,13 +198,6 @@ public class ReportListView extends ViewPart {
             map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
             map.put(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
             IMarker marker;
-			IEditorPart active = null;
-            for(IEditorPart ieditorpart : page.getEditors()) {
-            	String ieditorinputname = ieditorpart.getEditorInput().getName();
-            	if(ieditorinputname.equals(fileinfo.getName())) {
-            		active = ieditorpart;
-            	}
-            }
             try {
                 marker = fileinfo.createMarker(IMarker.TEXT);
                 marker.setAttributes(map);

@@ -1,6 +1,7 @@
 package cc.codechecker.api.thrift.result.list;
 
 import cc.codechecker.api.action.BugPathItem;
+import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.api.action.file.info.FileInfoAction;
 import cc.codechecker.api.action.file.info.FileInfoRequest;
 import cc.codechecker.api.action.result.ReportInfo;
@@ -18,6 +19,7 @@ import cc.ecl.action.InnerRunner;
 import cc.ecl.action.thrift.ThriftActionImpl;
 import cc.ecl.action.thrift.ThriftCommunicationInterface;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 import org.apache.thrift.TException;
@@ -89,11 +91,50 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
                     new BugPathItem.Position(rd.getLastBugPosition().getEndLine(), rd
                             .getLastBugPosition().getEndCol()), rd.getLastBugPosition().getMsg(),
                     fiaBug.getResult().get().getFilePath());
+            
+            // BugPathItems
+            ReportDetails reportdetails = client.getReportDetails(rd.getReportId());
+            LinkedList<BugPathItem> listBuilder = new LinkedList<BugPathItem>();
+            for (BugPathPos bpp : reportdetails.getExecutionPath()) {
 
+                FileInfoAction fileinfoaction = new FileInfoAction(new FileInfoRequest(action.getRequest()
+                        .getServer(), bpp.getFileId()));
+                fileinfoaction = innerRunner.requireResult(fileinfoaction);
+                if (fileinfoaction.getStatus() != ActionStatus.SUCCEEDED) {
+                    throw new RuntimeException("Bad status for inner action: " + fileinfoaction);
+                }
 
+                System.out.println(" - " + bpp.getStartLine() + " - " + bpp.getStartCol());
+                listBuilder.add(new BugPathItem(new BugPathItem.Position(bpp.getStartLine(), bpp
+                        .getStartCol()), new BugPathItem.Position(bpp.getEndLine(), bpp.getEndCol()),
+                        "", fileinfoaction.getResult().get().getFilePath()));
+            }
+
+            for (BugPathEvent bpe : reportdetails.getPathEvents()) {
+
+                FileInfoAction fileinfoaction = new FileInfoAction(new FileInfoRequest(action.getRequest()
+                        .getServer(), bpe.getFileId()));
+                fileinfoaction = innerRunner.requireResult(fileinfoaction);
+                if (fileinfoaction.getStatus() != ActionStatus.SUCCEEDED) {
+                    throw new RuntimeException("Bad status for inner action: " + fileinfoaction);
+                }
+
+                listBuilder.add(new BugPathItem(new BugPathItem.Position(bpe.getStartLine(), bpe
+                        .getStartCol()), new BugPathItem.Position(bpe.getEndLine(), bpe.getEndCol()),
+                        bpe.getMsg(), fileinfoaction.getResult().get().getFilePath()));
+
+                System.out.println("Event: " + bpe.getStartLine() + " - " + bpe.getStartCol() + " - "
+                        + bpe.getMsg());
+            }
+            ImmutableList.Builder<BugPathItem> bugpathitems = new ImmutableList.Builder<>();
+            bugpathitems.addAll(listBuilder);
+            //Bug path items!!
+            Optional<ProblemInfo> probleminfo = new ActionResult<>(
+            		new ProblemInfo(bugpathitems.build())).getResult();
+            
             builder.add(new ReportInfo(rd.getCheckerId(), rd.getBugHash(), rd.getCheckedFile(),
                     rd.getCheckerMsg(), rd.getReportId(), rd.isSuppressed(), fiaResult.getResult
-                    ().get().getFilePath(), lastBugItem));
+                    ().get().getFilePath(), lastBugItem, probleminfo));
         }
 
         return new ActionResult<>(new ResultList(builder.build()));

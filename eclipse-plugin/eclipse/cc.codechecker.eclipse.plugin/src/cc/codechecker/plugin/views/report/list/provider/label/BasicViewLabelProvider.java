@@ -24,8 +24,9 @@ public class BasicViewLabelProvider extends LabelProvider {
     public String getText(Object obj) {
         if (obj instanceof ReportInfo) {
             ReportInfo ri = (ReportInfo) obj;
-
-            return "#" + ri.getReportId() + ": " + ri.getCheckedFile() + " [" + ri
+            Path path = new Path(ri.getCheckedFile());
+            IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+            return "#" + ri.getReportId() + ": " + file.getName() + " [" + ri
                     .getLastBugPathItem().getStartPosition().getLine() + ":" + ri
                     .getLastBugPathItem().getStartPosition().getColumn() + "]";
         }

@@ -196,37 +196,6 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
-    public void reportInfoAddChildren( final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
-            final IProject project) {
-        problemInfoJobFor.addListener(new JobListener<ProblemInfoJob>() {
-
-            @Override
-            public void onJobTimeout(ProblemInfoJob arg0) {
-            }
-
-            @Override
-            public void onJobStart(ProblemInfoJob arg0) {
-            }
-
-            @Override
-            public void onJobInternalError(ProblemInfoJob arg0, RuntimeException arg1) {
-            }
-
-            @Override
-            public void onJobComplete(final ProblemInfoJob arg0) {
-                Display.getDefault().syncExec(new Runnable() {
-
-                    @Override
-                    public void run() {
-                    	ri.addChildren(arg0.getResult());
-                    }
-                });
-            }
-        });
-
-        jobRunner.addJob(problemInfoJobFor);
-    }
-
     public void runAnalyzeJob(ReportListView target) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
