@@ -38,7 +38,11 @@ public class ShellExecutorHelper {
      * Returns the full output.
      */
     public Optional<String> quickReturnOutput(String script) {
-        Executor ec = build(1000);
+    	return this.quickReturnOutput(script, 1000);
+    }
+    
+    public Optional<String> quickReturnOutput(String script, double timeOut) {
+        Executor ec = build(new Double(timeOut).longValue());
         try {
             AllLineReader olr = new AllLineReader();
             ec.setStreamHandler(new PumpStreamHandler(olr));

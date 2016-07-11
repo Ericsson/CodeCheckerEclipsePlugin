@@ -8,6 +8,7 @@ import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -23,7 +24,7 @@ import cc.codechecker.api.runtime.EnvironmentDifference.ModificationAction;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
-import java.nio.file.Files;
+import java.io.File;
 
 public class CcConfiguration {
 
@@ -139,9 +140,13 @@ public class CcConfiguration {
 
         String location = getCodecheckerDirectory();
         try {
-            System.out.println(project.getLocation());
+            File dir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
+                	+ "/.codechecker/");
+            if(!dir.exists()) {
+            	dir.mkdir();
+            }
             CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getPythonEnv(),
-                    location, project.getLocation() + "/cc_Workspace");
+                    location, dir + "/" + project.getName());
 
             server.setCodecheckerEnvironment(ccec);
 
