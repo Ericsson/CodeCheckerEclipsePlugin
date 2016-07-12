@@ -68,13 +68,6 @@
                 class="cc.codechecker.plugin.views.report.list.ReportListView"
                 id="cc.codechecker.plugin.views.ReportList">
         </view>
-        <view
-                name="BugPathList"
-                icon="icons/sample.gif"
-                category="cc.codechecker.plugin.CodeChecker"
-                class="cc.codechecker.plugin.views.report.details.BugPathListView"
-                id="cc.codechecker.plugin.views.BugPathList">
-        </view>
     </extension>
     <extension
             point="org.eclipse.help.contexts">

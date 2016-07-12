@@ -14,7 +14,6 @@ import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
 import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
-import cc.codechecker.plugin.views.report.details.BugPathListView;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
 import cc.ecl.action.ActionImplementationRegistry;
@@ -28,7 +27,6 @@ import cc.ecl.job.SimpleJobRunner;
 
 import cc.codechecker.api.action.BugPathItem;
 import cc.codechecker.api.action.result.ReportInfo;
-import cc.codechecker.plugin.views.report.details.action.JumpToBugItem;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -135,14 +133,6 @@ public class CodeCheckerContext {
 
         System.out.println("Changed to: " + filename);
 
-        // for editor locked views...
-
-        //ReportListJob rlj = new ReportListJob(1, Optional.of(new Instant().plus(500)), new
-        // ReportListRequest("http://192.168.100.128:11444", Optional.<Long>absent(),
-        // ImmutableList.<ResultFilter>of()));
-        //rlj.addListener(new ReportListViewListener());
-        //jobRunner.addJob(rlj);
-
         IWorkbench iwork = PlatformUI.getWorkbench();
         IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
         IWorkbenchPage[] pages = windows[0].getPages();
@@ -157,10 +147,6 @@ public class CodeCheckerContext {
                     if (rlv.linkedToEditor()) {
                         rlv.onEditorChanged(project, filename);
                     }
-                }
-                if (vp.getId().equals(BugPathListView.ID)) {
-                    BugPathListView bplv = (BugPathListView) vp.getView(true);
-                    bplv.clear(partRef);
                 }
             }
         }
@@ -208,45 +194,6 @@ public class CodeCheckerContext {
             }
         });
         jobRunner.addJob(rlj);
-    }
-
-    public void displayBugPath(final BugPathListView targetView,
-            final ReportInfo ri, ProblemInfoJob problemInfoJobFor,
-            final IProject project) {
-        problemInfoJobFor.addListener(new JobListener<ProblemInfoJob>() {
-
-            @Override
-            public void onJobTimeout(ProblemInfoJob arg0) {
-            }
-
-            @Override
-            public void onJobStart(ProblemInfoJob arg0) {
-            }
-
-            @Override
-            public void onJobInternalError(ProblemInfoJob arg0, RuntimeException arg1) {
-            }
-
-            @Override
-            public void onJobComplete(final ProblemInfoJob arg0) {
-                Display.getDefault().syncExec(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        targetView.changeModel(project, arg0.getResult());
-
-                        JumpToBugItem jtbi = new JumpToBugItem(targetView);
-                        // The last BugPathItem in a ReportInfo is the main position of the bug that
-                        //     was reported.
-                        BugPathItem lastBpiInRi = ri.getLastBugPathItem();
-
-                        jtbi.jumpToBugPosition(lastBpiInRi);
-                    }
-                });
-            }
-        });
-
-        jobRunner.addJob(problemInfoJobFor);
     }
 
     public void runAnalyzeJob(ReportListView target) {

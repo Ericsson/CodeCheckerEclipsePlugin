@@ -3,8 +3,8 @@ package cc.codechecker.plugin.perspective;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+import org.eclipse.ui.console.IConsoleConstants;
 
-import cc.codechecker.plugin.views.report.details.BugPathListView;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class CodeCheckerPerspectiveFactory implements IPerspectiveFactory {
@@ -30,18 +30,12 @@ public class CodeCheckerPerspectiveFactory implements IPerspectiveFactory {
         IFolderLayout middleLeft = layout.createFolder("middleLeft", IPageLayout.BOTTOM, (float)
                 0.33, "left");
         middleLeft.addView(ReportListView.ID);
-
-        IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, (float)
-                0.4, "middleLeft");
-        bottomLeft.addView(BugPathListView.ID);
-
+        
         IFolderLayout right = layout.createFolder("right", IPageLayout.RIGHT, (float) 0.8,
                 editorArea);
+        right.addView(IConsoleConstants.ID_CONSOLE_VIEW);
+        right.addView(IPageLayout.ID_OUTLINE);
         right.addView(IPageLayout.ID_TASK_LIST);
-
-        IFolderLayout rightBottom = layout.createFolder("rightBottom", IPageLayout.BOTTOM,
-                (float) 0.3, "right");
-        rightBottom.addView(IPageLayout.ID_OUTLINE);
 
         IFolderLayout bottom = layout.createFolder("bottom", IPageLayout.BOTTOM, (float) 0.8,
                 editorArea);

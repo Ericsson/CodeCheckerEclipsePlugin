@@ -1,8 +1,10 @@
 package cc.codechecker.api.action.result;
 
 import cc.codechecker.api.action.BugPathItem;
+import cc.codechecker.api.action.bug.path.ProblemInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 
 import java.util.Objects;
@@ -20,9 +22,11 @@ public class ReportInfo implements Comparable<ReportInfo> {
     private final boolean suppressed;
     private final String file;
     private final BugPathItem lastBugPathItem;
-
+    private final Optional<ProblemInfo> bugPath;
+    
     public ReportInfo(String checkerId, String bugHash, String checkedFile, String checkerMsg,
-                      long reportId, boolean suppressed, String file, BugPathItem lastBugPathItem) {
+                      long reportId, boolean suppressed, String file, BugPathItem lastBugPathItem,
+                      Optional<ProblemInfo> bugPath) {
         this.checkerId = checkerId;
         this.bugHash = bugHash;
         this.checkedFile = checkedFile;
@@ -31,8 +35,13 @@ public class ReportInfo implements Comparable<ReportInfo> {
         this.suppressed = suppressed;
         this.file = file;
         this.lastBugPathItem = lastBugPathItem;
+        this.bugPath = bugPath;
     }
-
+    
+    public Optional<ProblemInfo> getChildren() {
+    	return this.bugPath;
+    }
+    
     public String getCheckerId() {
         return checkerId;
     }

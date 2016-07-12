@@ -9,7 +9,6 @@ import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.project.CcConfiguration;
-import cc.codechecker.plugin.views.report.details.BugPathListView;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.action.showas.TreeAwareAction;
 
