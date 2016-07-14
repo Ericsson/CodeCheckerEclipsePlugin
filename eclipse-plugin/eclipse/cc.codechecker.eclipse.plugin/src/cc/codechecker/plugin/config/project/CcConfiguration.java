@@ -26,8 +26,15 @@ import cc.codechecker.plugin.config.CodeCheckerContext;
 
 import java.io.File;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class CcConfiguration {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(CcConfiguration.class);
+	
     public static String CODECHECKER_DIRECTORY_KEY = "server_url";
     public static String PYTHON_ENV_KEY = "location_prefix";
     static CodecheckerServerThread ct = null;
@@ -145,6 +152,7 @@ public class CcConfiguration {
             if(!dir.exists()) {
             	dir.mkdir();
             }
+            logger.log(Level.INFO, "SERVER_GUI_MSG >> Workdir : " + dir);
             CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getPythonEnv(),
                     location, dir + "/" + project.getName());
 

@@ -28,9 +28,17 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
+
 public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, ResultList,
         CodeCheckerDBAccess.Iface> {
-    @Override
+	
+	//Logger
+	private static final Logger logger = LogManager.getLogger(ResultListActionThriftImpl.class);
+
+	@Override
     protected String getProtocolUrlEnd(SearchRequest request) {
         return "codeCheckerDBAccess";
     }
@@ -110,6 +118,7 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
                         "", fileinfoaction.getResult().get().getFilePath()));
             }
 
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportData : " + rd.toString());
             for (BugPathEvent bpe : reportdetails.getPathEvents()) {
 
                 FileInfoAction fileinfoaction = new FileInfoAction(new FileInfoRequest(action.getRequest()
@@ -122,9 +131,8 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
                 listBuilder.add(new BugPathItem(new BugPathItem.Position(bpe.getStartLine(), bpe
                         .getStartCol()), new BugPathItem.Position(bpe.getEndLine(), bpe.getEndCol()),
                         bpe.getMsg(), fileinfoaction.getResult().get().getFilePath()));
-
-                System.out.println("Event: " + bpe.getStartLine() + " - " + bpe.getStartCol() + " - "
-                        + bpe.getMsg());
+                logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : BugPathItem : " + bpe.getStartLine() + " - " + 
+                        bpe.getStartCol() + " - " + bpe.getMsg() + " - " + fileinfoaction.getResult().get().getFilePath());
             }
             ImmutableList.Builder<BugPathItem> bugpathitems = new ImmutableList.Builder<>();
             bugpathitems.addAll(listBuilder);
