@@ -103,21 +103,6 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             // BugPathItems
             ReportDetails reportdetails = client.getReportDetails(rd.getReportId());
             LinkedList<BugPathItem> listBuilder = new LinkedList<BugPathItem>();
-            for (BugPathPos bpp : reportdetails.getExecutionPath()) {
-
-                FileInfoAction fileinfoaction = new FileInfoAction(new FileInfoRequest(action.getRequest()
-                        .getServer(), bpp.getFileId()));
-                fileinfoaction = innerRunner.requireResult(fileinfoaction);
-                if (fileinfoaction.getStatus() != ActionStatus.SUCCEEDED) {
-                    throw new RuntimeException("Bad status for inner action: " + fileinfoaction);
-                }
-
-                System.out.println(" - " + bpp.getStartLine() + " - " + bpp.getStartCol());
-                listBuilder.add(new BugPathItem(new BugPathItem.Position(bpp.getStartLine(), bpp
-                        .getStartCol()), new BugPathItem.Position(bpp.getEndLine(), bpp.getEndCol()),
-                        "", fileinfoaction.getResult().get().getFilePath()));
-            }
-
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportData : " + rd.toString());
             for (BugPathEvent bpe : reportdetails.getPathEvents()) {
 
