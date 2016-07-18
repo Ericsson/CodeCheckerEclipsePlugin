@@ -4,10 +4,12 @@ import cc.codechecker.api.thrift.CodecheckerActionInitializer;
 import cc.codechecker.api.action.analyze.AnalyzeRequest;
 import cc.codechecker.api.action.result.ResultFilter;
 import cc.codechecker.api.action.run.list.ListRunsRequest;
+import cc.codechecker.api.job.ProblemInfoJob;
 import cc.codechecker.api.job.RunListJob;
 import cc.codechecker.api.job.analyze.AnalyzeJob;
 import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchRequest;
+import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
 import cc.codechecker.plugin.config.project.CcConfiguration;
@@ -24,6 +26,9 @@ import cc.ecl.job.JobListener;
 import cc.ecl.job.JobRunner;
 import cc.ecl.job.SimpleJobRunner;
 
+import cc.codechecker.api.action.BugPathItem;
+import cc.codechecker.api.action.result.ReportInfo;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -31,6 +36,7 @@ import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -114,9 +120,23 @@ public class CodeCheckerContext {
         if (!(partRef.getEditorInput() instanceof IFileEditorInput)) {
             return;
         }
+        
+        IWorkbench iwork = PlatformUI.getWorkbench();
+        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
+        IWorkbenchPage[] pages = windows[0].getPages();
+        
         if (partRef == activeEditorPart && !refresh) {
-            return;
+        	for(IWorkbenchPage page : pages) {
+                for (IViewReference vp : page.getViewReferences()) {
+                    if (vp.getId().equals(ReportListView.ID)) {
+                        ReportListView rlv = (ReportListView) vp.getView(true);
+                        rlv.setViewerRefresh(true);
+                    }
+                }
+            }
+        	return;
         }
+        
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
         IProject project = file.getProject();
@@ -132,10 +152,6 @@ public class CodeCheckerContext {
 
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Changed to: " + filename);
 
-        IWorkbench iwork = PlatformUI.getWorkbench();
-        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
-        IWorkbenchPage[] pages = windows[0].getPages();
-
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Windows Length : " + windows.length);
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Pages length : " + pages.length);
 
@@ -143,13 +159,16 @@ public class CodeCheckerContext {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListView.ID)) {
                     ReportListView rlv = (ReportListView) vp.getView(true);
-                    if (rlv.linkedToEditor()) {
+                    if (rlv.getViewerRefresh()) {
                         rlv.onEditorChanged(project, filename);
+                    } else {
+                    	rlv.setViewerRefresh(true);
                     }
                 }
+
                 if(vp.getId().equals(ReportListViewProject.ID)) {
                 	ReportListViewProject rlvp = (ReportListViewProject) vp.getView(true);
-                	if (rlvp.linkedToEditor() && project != activeProject) {
+                	if (project != activeProject) {
                 		this.activeProject = project;
                 		rlvp.onEditorChanged(project, filename);
                     }
