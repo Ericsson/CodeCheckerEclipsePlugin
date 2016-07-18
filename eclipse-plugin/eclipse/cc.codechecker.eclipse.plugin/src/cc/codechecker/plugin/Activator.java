@@ -11,11 +11,21 @@ import org.osgi.framework.BundleContext;
 
 import cc.codechecker.plugin.init.StartupJob;
 
+import java.util.Properties;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 /**
  * The activator class controls the plug-in life cycle
  */
 public class Activator extends AbstractUIPlugin implements IStartup {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(Activator.class);
+	
     // The plug-in ID
     public static final String PLUGIN_ID = "cc.codechecker.eclipse.plugin"; //$NON-NLS-1$
 
@@ -28,7 +38,12 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      * The constructor
      */
     public Activator() {
-        System.out.println("activator created");
+    	Properties props = new Properties();
+    	try {
+    		props.load(getClass().getResourceAsStream("log4j.properties"));
+    	} catch(Exception e) {}
+    	PropertyConfigurator.configure(props);
+    	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator Created");
     }
 
     public static IPath getPreferencesPath() {
@@ -59,7 +74,7 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
      */
     public void start(BundleContext context) throws Exception {
-        System.out.println("activator started");
+    	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator started");
         super.start(context);
 
 

@@ -1,7 +1,6 @@
 package cc.codechecker.plugin.config.project;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -13,8 +12,15 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class CcProperties extends PropertyPage implements IWorkbenchPropertyPage {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(CcProperties.class);
+	
     IProject project;
     private Text codeCheckerDirectoryField;
     private Text pythonEnvField;
@@ -71,7 +77,7 @@ public class CcProperties extends PropertyPage implements IWorkbenchPropertyPage
 
     @Override
     public boolean performOk() {
-        System.out.println("Saving!");
+    	logger.log(Level.INFO, "SERVER_GUI_MSG >> Saving!");
         save();
         return super.performOk();
     }

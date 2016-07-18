@@ -2,8 +2,15 @@ package cc.codechecker.plugin.config.filter;
 
 import cc.codechecker.api.action.result.list.SearchRequest.Severity;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class Filter {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(Filter.class);
+	
     private String filepath = "";
     private String checkerMsg = "";
     private Severity severity = Severity.ANY;
@@ -23,6 +30,9 @@ public class Filter {
         this.checkerId = checkerId;
         this.buildTarget = buildTarget;
         this.showSuppressedErrors = showSuppressedErrors;
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> filePath : " + filepath + " checkerMsg: " + checkerMsg + 
+    			" severity: " + severity + " checkerId: " + checkerId + " buildTarget: " + buildTarget + 
+    			" showSuppressedErrors: " + showSuppressedErrors);
     }
 
     public Filter dup() {

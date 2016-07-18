@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.joda.time.Instant;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -15,7 +14,6 @@ import cc.codechecker.api.action.BugPathItem;
 import cc.codechecker.api.action.bug.path.ProblemInfo;
 import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.job.report.list.SearchList;
-import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class CheckerGroupContentProvider implements ITreeContentProvider {

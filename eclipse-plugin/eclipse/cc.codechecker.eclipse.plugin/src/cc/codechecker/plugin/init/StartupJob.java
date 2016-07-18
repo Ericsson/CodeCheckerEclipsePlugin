@@ -1,9 +1,7 @@
 package cc.codechecker.plugin.init;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 
-import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -24,7 +22,14 @@ import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class StartupJob extends Job {
+
+	//Logger
+	private static final Logger logger = LogManager.getLogger(StartupJob.class);	
 
     EditorPartListener partListener;
 
@@ -45,8 +50,6 @@ public class StartupJob extends Job {
 
     public IStatus runInUIThread(IProgressMonitor monitor) {
 
-        System.out.println("Initializing CodeChecker plugin");
-
         IWorkbench wb = PlatformUI.getWorkbench();
 
         try { // TODO: find a better solution...
@@ -60,10 +63,10 @@ public class StartupJob extends Job {
 
             @Override
             public void resourceChanged(IResourceChangeEvent event) {
-                System.out.println(event);
+            	logger.log(Level.DEBUG, event);
                 switch (event.getType()) {
                     case IResourceChangeEvent.POST_BUILD: {
-                        System.out.println("Project was built!");
+                    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
                         try {
                             final HashSet<IProject> changedProjects = new HashSet<>();
                             event.getDelta().accept(new IResourceDeltaVisitor() {
@@ -114,7 +117,6 @@ public class StartupJob extends Job {
 
         // check all open windows
         for (IWorkbenchWindow win : wb.getWorkbenchWindows()) {
-            System.out.println("stuff!");
             addListenerToWorkbenchWindow(win);
         }
 
@@ -124,7 +126,7 @@ public class StartupJob extends Job {
 
     private void onProjectBuilt(IProject project) {
         if (project == null) return;
-        System.out.println("Project changed event!!!");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project changed event!");
         try {
             if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
                 return;
@@ -136,7 +138,7 @@ public class StartupJob extends Job {
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
         if (project.isOpen()) {
-            System.out.println("Project built event!!! - goot natured!");
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project built event! - good natured!");
             if (!server.isRunning()) server.start(); // ensure started!
             server.recheck();
         }
@@ -144,7 +146,7 @@ public class StartupJob extends Job {
 
     private void projectOpened(IProject project) {
         if (project == null) return;
-        System.out.println("Project changed event!!!");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project changed event!");
         try {
             if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
                 return;
@@ -153,7 +155,7 @@ public class StartupJob extends Job {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        System.out.println("Project changed event!!! - goot natured!");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Good Natured!");
         try {
             CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject
                     (project);

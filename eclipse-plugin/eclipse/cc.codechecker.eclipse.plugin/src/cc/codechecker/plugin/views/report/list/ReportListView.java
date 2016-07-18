@@ -14,6 +14,8 @@ import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -30,7 +32,6 @@ import cc.codechecker.plugin.config.filter.Filter;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.views.report.list.action.AnalyzeAllAction;
-import cc.codechecker.plugin.views.report.list.action.LinkToEditorAction;
 import cc.codechecker.plugin.views.report.list.action.NewInstanceAction;
 import cc.codechecker.plugin.views.report.list.action.ShowFilterConfigurationDialog;
 import cc.codechecker.plugin.views.report.list.action.showas.CheckerGroupAction;
@@ -38,15 +39,22 @@ import cc.codechecker.plugin.views.report.list.action.showas.CheckerTreeAction;
 import cc.codechecker.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
 import cc.codechecker.plugin.views.report.list.provider.label.BasicViewLabelProvider;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class ReportListView extends ViewPart {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(ReportListView.class);
+	
     public static final String ID = "cc.codechecker.plugin.views.ReportList";
     FilterConfiguration activeConfiguration = new FilterConfiguration();
 
     ;
     Optional<SearchList> reportList = Optional.<SearchList>absent();
     private TreeViewer viewer;
-    private LinkToEditorAction linkToEditorAction;
+    private boolean viewerRefresh;
     private AnalyzeAllAction analyzeAllAction;
     private Composite parent;
     private String currentFilename;
@@ -66,6 +74,23 @@ public class ReportListView extends ViewPart {
         viewer.setContentProvider(new TreeCheckerContentProvider(this));
         viewer.setLabelProvider(new BasicViewLabelProvider(this));
         viewer.setInput(new EmptyModel());
+        viewer.getTree().addMouseListener(new MouseListener() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				// TODO Auto-generated method stub
+				setViewerRefresh(false);
+			}
+
+			@Override
+			public void mouseDown(MouseEvent e) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void mouseUp(MouseEvent e) {
+				// TODO Auto-generated method stub
+			}
+        });
         GridData treeGridData = new GridData();
         treeGridData.grabExcessHorizontalSpace = true;
         treeGridData.grabExcessVerticalSpace = true;
@@ -73,7 +98,7 @@ public class ReportListView extends ViewPart {
         treeGridData.horizontalAlignment = GridData.FILL;
         viewer.getControl().setLayoutData(treeGridData);
 
-        linkToEditorAction = new LinkToEditorAction(this, true);
+        this.viewerRefresh = true;
         analyzeAllAction = new AnalyzeAllAction(this);
 
 
@@ -128,7 +153,6 @@ public class ReportListView extends ViewPart {
 		bugPathMenu.addMenuListener(new BugPathMenuProvider(this));
 		manager.add(bugPathMenu);
 		*/
-        manager.add(linkToEditorAction);
         manager.add(new NewInstanceAction(new ReportListView()));
         MenuManager displayTypeMenu = new MenuManager("Show as", null);
         displayTypeMenu.add(new CheckerGroupAction(this, false));
@@ -138,7 +162,6 @@ public class ReportListView extends ViewPart {
 
     private void fillContextMenu(IMenuManager manager) {
         //manager.add(new RerunSelectedAction(this));
-        manager.add(linkToEditorAction);
         manager.add(new NewInstanceAction(new ReportListView()));
         manager.add(new Separator());
         // Other plug-ins can contribute there actions here
@@ -146,7 +169,6 @@ public class ReportListView extends ViewPart {
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
-        manager.add(linkToEditorAction);
         manager.add(new NewInstanceAction(new ReportListView()));
         manager.add(analyzeAllAction);
         manager.add(new Separator());
@@ -250,14 +272,10 @@ public class ReportListView extends ViewPart {
         return viewer;
     }
 
-    public boolean linkedToEditor() {
-        return linkToEditorAction.isChecked();
-    }
-
     private void redoJob() {
         FilterConfiguration sent = activeConfiguration.dup();
 
-        if (linkedToEditor()) {
+        if (getViewerRefresh()) {
             if (sent.getFilters().isEmpty()) {
                 LinkedList<Filter> filters = new LinkedList<>();
                 filters.add(new Filter());
@@ -278,11 +296,11 @@ public class ReportListView extends ViewPart {
 
     public void onEditorChanged(IProject project, String filename) {
         if (project != currentProject) {
-            System.out.println("PreChanging runList!");
+        	logger.log(Level.INFO, "SERVER_GUI_MSG >> PreChanging runList!");
             this.currentProject = project;
             //CodeCheckerContext.getInstance().runRunListJob(this);
         }
-        if (!linkedToEditor()) {
+        if (!getViewerRefresh()) {
             this.currentFilename = "";
         }
 
@@ -298,13 +316,21 @@ public class ReportListView extends ViewPart {
     public void setActiveConfiguration(FilterConfiguration activeConfiguration) {
         this.activeConfiguration = activeConfiguration;
 
-        linkToEditorAction.setChecked(activeConfiguration.isLinkToCurrentEditorByDefalt());
+        setViewerRefresh(activeConfiguration.isLinkToCurrentEditorByDefalt());
 
         redoJob();
     }
 
     public IProject getCurrentProject() {
         return currentProject;
+    }
+    
+    public boolean getViewerRefresh() {
+    	return this.viewerRefresh;
+    }
+    
+    public void setViewerRefresh(boolean viewerRefresh) {
+    	this.viewerRefresh = viewerRefresh;
     }
 
     static class EmptyModel {

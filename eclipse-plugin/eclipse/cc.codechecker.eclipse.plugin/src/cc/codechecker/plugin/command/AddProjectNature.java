@@ -15,12 +15,19 @@ import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.plugin.CodeCheckerNature;
 
-public class AddProjectNature extends AbstractHandler {
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 
+public class AddProjectNature extends AbstractHandler {
+	
+	//Logger
+	private static final Logger logger = LogManager.getLogger(AddProjectNature.class);
+	
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         // TODO Auto-generated method stub
-        System.out.println("Adding project nature...");
+    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Adding project nature.");
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null) {
@@ -31,15 +38,15 @@ public class AddProjectNature extends AbstractHandler {
                 IProject project = (IProject) ((IAdaptable) firstElement).getAdapter(IProject
                         .class);
                 if (project == null) {
-                    System.out.println("Not a project :(");
+                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Not a project.");
                     return null;
                 }
                 IPath path = project.getFullPath();
-                System.out.println(path);
+                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + path);
 
                 try {
                     if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                        System.out.println("Project already has nature");
+                    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project already has nature.");
                         return null;
                     }
 
@@ -52,8 +59,8 @@ public class AddProjectNature extends AbstractHandler {
 
                     IProgressMonitor monitor = null;
                     project.setDescription(description, monitor);
-
-                    System.out.println("Project nature added!");
+                    
+                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project nature added!");
 
                 } catch (CoreException e) {
                     // TODO Auto-generated catch block

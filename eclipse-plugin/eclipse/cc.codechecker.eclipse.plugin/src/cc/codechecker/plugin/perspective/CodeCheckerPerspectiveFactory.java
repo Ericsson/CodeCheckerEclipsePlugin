@@ -6,6 +6,7 @@ import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.console.IConsoleConstants;
 
 import cc.codechecker.plugin.views.report.list.ReportListView;
+import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 
 public class CodeCheckerPerspectiveFactory implements IPerspectiveFactory {
 
@@ -30,6 +31,7 @@ public class CodeCheckerPerspectiveFactory implements IPerspectiveFactory {
         IFolderLayout middleLeft = layout.createFolder("middleLeft", IPageLayout.BOTTOM, (float)
                 0.33, "left");
         middleLeft.addView(ReportListView.ID);
+        middleLeft.addView(ReportListViewProject.ID);
         
         IFolderLayout right = layout.createFolder("right", IPageLayout.RIGHT, (float) 0.8,
                 editorArea);

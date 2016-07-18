@@ -4,6 +4,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -11,6 +15,8 @@ import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
+	private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
+	
     public final Optional<String> pythonEnvironment;
     public final String codeCheckerParameter; // as specified by the user
     public final String codeCheckerCommand; // used by us
@@ -44,6 +50,8 @@ public class CodeCheckEnvironmentChecker {
             String workspaceName) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + codeCheckerCommand + " check -w " +
+                workspaceName + " -n dummy -b env | grep =");
         Optional<String> ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
                 workspaceName + " -n dummy -b env | grep =");
         double test = 1;
@@ -133,6 +141,8 @@ public class CodeCheckEnvironmentChecker {
     public String processLog(String fileName) { // returns the log
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ codeCheckerCommand + " check -n javarunner -w " 
+        		+ workspaceName + " -l " + fileName);
         String cmd = codeCheckerCommand + " check -n javarunner -w " + workspaceName + " -l " +
                 fileName;
 
@@ -152,6 +162,7 @@ public class CodeCheckEnvironmentChecker {
         ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
         for (String key : checkerEnvironment.keySet()) {
             if (key.equals("CC_LOGGER_FILE")) {
+            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> modifyLogfileName >> " + key + " " + checkerEnvironment.get(key) + ".javarunner");
                 builder.put(key, checkerEnvironment.get(key) + ".javarunner");
             } else {
                 builder.put(key, checkerEnvironment.get(key));
@@ -164,16 +175,19 @@ public class CodeCheckEnvironmentChecker {
             String codeCheckerParameter) {
         ShellExecutorHelper she = new ShellExecutorHelper(pythonEnvironment);
 
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> getCodeCheckerCommand >> " + codeCheckerParameter + "/bin/CodeChecker");
         String codeCheckerPath = codeCheckerParameter + "/bin/CodeChecker";
         CodeCheckerLocator locator = null;
 
         try {
             locator = new CodeCheckerLocator(she, Optional.of(codeCheckerPath));
         } catch (IOException e) {
+        	logger.log(Level.ERROR, "Error wile locating CodeChecker!");
             throw new RuntimeException("Error while locating CodeChecker!");
         }
 
         if (!locator.getRunnerCommand().isPresent()) {
+        	logger.log(Level.ERROR, "CodeChecker not found: " + codeCheckerParameter);
             throw new IllegalArgumentException("CodeChecker not found: " + codeCheckerParameter);
         }
 

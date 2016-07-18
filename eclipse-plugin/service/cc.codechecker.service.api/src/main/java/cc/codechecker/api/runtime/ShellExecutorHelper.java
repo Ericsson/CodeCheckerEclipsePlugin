@@ -7,8 +7,14 @@ import org.apache.commons.exec.*;
 import java.io.*;
 import java.util.Map;
 
-public class ShellExecutorHelper {
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
 
+public class ShellExecutorHelper {
+	
+	private static final Logger logger = LogManager.getLogger(ShellExecutorHelper.class.getName());
+	
     final Map<String, String> environment;
 
     public ShellExecutorHelper(Map<String, String> environment) {
@@ -135,7 +141,7 @@ public class ShellExecutorHelper {
         }
 
         public void kill() {
-            System.out.println("Killing PID " + this.pidObject.pid);
+        	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Killing PID " + this.pidObject.pid);
             if (pidObject.pid > 1000) {
                 // Slightly less AWFUL BASH MAGIC, which gets the pids of the pidObject process and
                 //     all its descendant processes and kills them.
@@ -205,13 +211,13 @@ public class ShellExecutorHelper {
                 String[] a = s.split(" ");
                 if (pidObject != null) {
                     pidObject.pid = Integer.parseInt(a[a.length - 1]);
-                    System.out.println("Server PID: " + pidObject.pid);
+                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> Server PID: " + pidObject.pid);
                 }
                 firstLine = false;
             }
 
             // TODO: log to file!
-            System.out.println("SERVER> " + s);
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + s);
         }
     }
 }

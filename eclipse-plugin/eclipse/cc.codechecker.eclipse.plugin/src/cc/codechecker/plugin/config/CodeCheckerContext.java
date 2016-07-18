@@ -16,6 +16,7 @@ import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
+import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 import cc.ecl.action.ActionImplementationRegistry;
 import cc.ecl.action.PerServerActionRunner;
 import cc.ecl.action.PerServerSimpleActionRunner;
@@ -45,12 +46,20 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.joda.time.Instant;
 
-public class CodeCheckerContext {
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 
+public class CodeCheckerContext {
+	
+	//Logger
+	private static final Logger logger = LogManager.getLogger(CodeCheckerContext.class);
+	
     static CodeCheckerContext instance;
     JobRunner jobRunner;
     IEditorPart activeEditorPart;
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
+    private IProject activeProject = null;
 
     private CodeCheckerContext() {
         PerServerActionRunner<ThriftCommunicationInterface> actionRunner;
@@ -90,10 +99,6 @@ public class CodeCheckerContext {
         IWorkbench iwork = PlatformUI.getWorkbench();
         IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
         IWorkbenchPage[] pages = windows[0].getPages();
-
-        System.out.println("Windows Length : " + windows.length);
-        System.out.println("Pages length : " + pages.length);
-
         IWorkbenchPage activePage = pages[0];
 
         if (activePage == null) return;
@@ -107,7 +112,7 @@ public class CodeCheckerContext {
 
     public void cleanCache(IProject project) {
         jobRunner.getActionCacheFilter().removeAll();
-        System.out.println("CLEARING CACHE");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CLEARING CACHE");
     }
 
     public void setActiveEditorPart(IEditorPart partRef,boolean refresh) {
@@ -115,9 +120,23 @@ public class CodeCheckerContext {
         if (!(partRef.getEditorInput() instanceof IFileEditorInput)) {
             return;
         }
+        
+        IWorkbench iwork = PlatformUI.getWorkbench();
+        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
+        IWorkbenchPage[] pages = windows[0].getPages();
+        
         if (partRef == activeEditorPart && !refresh) {
-            return;
+        	for(IWorkbenchPage page : pages) {
+                for (IViewReference vp : page.getViewReferences()) {
+                    if (vp.getId().equals(ReportListView.ID)) {
+                        ReportListView rlv = (ReportListView) vp.getView(true);
+                        rlv.setViewerRefresh(true);
+                    }
+                }
+            }
+        	return;
         }
+        
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
         IProject project = file.getProject();
@@ -131,21 +150,27 @@ public class CodeCheckerContext {
 
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
 
-        System.out.println("Changed to: " + filename);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Changed to: " + filename);
 
-        IWorkbench iwork = PlatformUI.getWorkbench();
-        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
-        IWorkbenchPage[] pages = windows[0].getPages();
-
-        System.out.println("Windows Length : " + windows.length);
-        System.out.println("Pages length : " + pages.length);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Windows Length : " + windows.length);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Pages length : " + pages.length);
 
         for(IWorkbenchPage page : pages) {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListView.ID)) {
                     ReportListView rlv = (ReportListView) vp.getView(true);
-                    if (rlv.linkedToEditor()) {
+                    if (rlv.getViewerRefresh()) {
                         rlv.onEditorChanged(project, filename);
+                    } else {
+                    	rlv.setViewerRefresh(true);
+                    }
+                }
+
+                if(vp.getId().equals(ReportListViewProject.ID)) {
+                	ReportListViewProject rlvp = (ReportListViewProject) vp.getView(true);
+                	if (project != activeProject) {
+                		this.activeProject = project;
+                		rlvp.onEditorChanged(project, filename);
                     }
                 }
             }

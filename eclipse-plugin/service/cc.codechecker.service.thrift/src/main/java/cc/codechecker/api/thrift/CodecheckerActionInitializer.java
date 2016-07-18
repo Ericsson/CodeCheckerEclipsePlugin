@@ -1,6 +1,5 @@
 package cc.codechecker.api.thrift;
 
-import cc.codechecker.api.thrift.bug.path.BugPathActionThriftImpl;
 import cc.codechecker.api.thrift.file.info.FileInfoActionThriftImpl;
 import cc.codechecker.api.thrift.run.list.ListRunsActionThriftImpl;
 import cc.codechecker.api.thrift.result.count.ResultCountActionThriftImpl;
@@ -15,7 +14,6 @@ public class CodecheckerActionInitializer {
         reg.addImplementation(new FileInfoActionThriftImpl());
         reg.addImplementation(new ResultListActionThriftImpl());
         reg.addImplementation(new ResultCountActionThriftImpl());
-        reg.addImplementation(new BugPathActionThriftImpl());
 
         return reg;
     }
