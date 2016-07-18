@@ -1,6 +1,5 @@
 package cc.ecl.action.thrift;
 
-import com.google.common.reflect.Reflection;
 import com.google.common.reflect.TypeToken;
 
 import org.apache.thrift.TServiceClientFactory;
@@ -9,11 +8,12 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Provider for HTTP/JSON cc.ecl.action.thrift protocol instances.
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  */
 public class ThriftTransportFactory implements ThriftCommunicationInterface {
 
-    private final static Logger LOGGER = Logger.getLogger(ThriftTransportFactory.class.getName());
+    private final static Logger logger = LogManager.getLogger(ThriftTransportFactory.class.getName());
 
     private Map<String, TTransport> activeTransports;
 
@@ -40,7 +40,7 @@ public class ThriftTransportFactory implements ThriftCommunicationInterface {
         TTransport act;
 
         if (!activeTransports.containsKey(url)) {
-            LOGGER.info("Creating new transport for: " + url);
+        	logger.log(Level.DEBUG ,"Creating new transport for: " + url);
             activeTransports.put(url, new THttpClient(url));
         }
 

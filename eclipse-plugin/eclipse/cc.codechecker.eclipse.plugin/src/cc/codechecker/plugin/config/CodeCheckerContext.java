@@ -4,12 +4,10 @@ import cc.codechecker.api.thrift.CodecheckerActionInitializer;
 import cc.codechecker.api.action.analyze.AnalyzeRequest;
 import cc.codechecker.api.action.result.ResultFilter;
 import cc.codechecker.api.action.run.list.ListRunsRequest;
-import cc.codechecker.api.job.ProblemInfoJob;
 import cc.codechecker.api.job.RunListJob;
 import cc.codechecker.api.job.analyze.AnalyzeJob;
 import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchRequest;
-import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
 import cc.codechecker.plugin.config.project.CcConfiguration;
@@ -25,9 +23,6 @@ import cc.ecl.job.JobListener;
 import cc.ecl.job.JobRunner;
 import cc.ecl.job.SimpleJobRunner;
 
-import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.action.result.ReportInfo;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -35,7 +30,6 @@ import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -45,8 +39,15 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.joda.time.Instant;
 
-public class CodeCheckerContext {
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 
+public class CodeCheckerContext {
+	
+	//Logger
+	private static final Logger logger = LogManager.getLogger(CodeCheckerContext.class);
+	
     static CodeCheckerContext instance;
     JobRunner jobRunner;
     IEditorPart activeEditorPart;
@@ -90,10 +91,6 @@ public class CodeCheckerContext {
         IWorkbench iwork = PlatformUI.getWorkbench();
         IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
         IWorkbenchPage[] pages = windows[0].getPages();
-
-        System.out.println("Windows Length : " + windows.length);
-        System.out.println("Pages length : " + pages.length);
-
         IWorkbenchPage activePage = pages[0];
 
         if (activePage == null) return;
@@ -107,7 +104,7 @@ public class CodeCheckerContext {
 
     public void cleanCache(IProject project) {
         jobRunner.getActionCacheFilter().removeAll();
-        System.out.println("CLEARING CACHE");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CLEARING CACHE");
     }
 
     public void setActiveEditorPart(IEditorPart partRef,boolean refresh) {
@@ -131,14 +128,14 @@ public class CodeCheckerContext {
 
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
 
-        System.out.println("Changed to: " + filename);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Changed to: " + filename);
 
         IWorkbench iwork = PlatformUI.getWorkbench();
         IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
         IWorkbenchPage[] pages = windows[0].getPages();
 
-        System.out.println("Windows Length : " + windows.length);
-        System.out.println("Pages length : " + pages.length);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Windows Length : " + windows.length);
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Pages length : " + pages.length);
 
         for(IWorkbenchPage page : pages) {
             for (IViewReference vp : page.getViewReferences()) {
