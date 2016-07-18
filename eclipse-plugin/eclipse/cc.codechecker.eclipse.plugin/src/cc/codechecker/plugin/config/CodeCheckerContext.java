@@ -115,9 +115,23 @@ public class CodeCheckerContext {
         if (!(partRef.getEditorInput() instanceof IFileEditorInput)) {
             return;
         }
+        
+        IWorkbench iwork = PlatformUI.getWorkbench();
+        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
+        IWorkbenchPage[] pages = windows[0].getPages();
+        
         if (partRef == activeEditorPart && !refresh) {
-            return;
+        	for(IWorkbenchPage page : pages) {
+                for (IViewReference vp : page.getViewReferences()) {
+                    if (vp.getId().equals(ReportListView.ID)) {
+                        ReportListView rlv = (ReportListView) vp.getView(true);
+                        rlv.setViewerRefresh(true);
+                    }
+                }
+            }
+        	return;
         }
+        
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
         IProject project = file.getProject();
@@ -133,10 +147,6 @@ public class CodeCheckerContext {
 
         System.out.println("Changed to: " + filename);
 
-        IWorkbench iwork = PlatformUI.getWorkbench();
-        IWorkbenchWindow[] windows = iwork.getWorkbenchWindows();
-        IWorkbenchPage[] pages = windows[0].getPages();
-
         System.out.println("Windows Length : " + windows.length);
         System.out.println("Pages length : " + pages.length);
 
@@ -144,8 +154,10 @@ public class CodeCheckerContext {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListView.ID)) {
                     ReportListView rlv = (ReportListView) vp.getView(true);
-                    if (rlv.linkedToEditor()) {
+                    if (rlv.getViewerRefresh()) {
                         rlv.onEditorChanged(project, filename);
+                    } else {
+                    	rlv.setViewerRefresh(true);
                     }
                 }
             }

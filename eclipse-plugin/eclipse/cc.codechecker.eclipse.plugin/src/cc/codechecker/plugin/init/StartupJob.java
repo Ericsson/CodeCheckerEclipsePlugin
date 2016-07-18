@@ -1,9 +1,7 @@
 package cc.codechecker.plugin.init;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 
-import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
