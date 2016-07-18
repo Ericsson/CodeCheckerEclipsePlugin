@@ -7,8 +7,9 @@ import com.google.common.reflect.TypeToken;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
 
 /**
  * Basic implementation for HTTP/JSON Thrift actions.
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
 public abstract class ThriftActionImpl<ReqT extends ServerRequest, ResT, IFaceT> extends
         AbstractActionImpl<ReqT, ResT, ThriftCommunicationInterface> {
 
-    private final static Logger LOGGER = Logger.getLogger(ThriftActionImpl.class.getName());
+    private final static Logger logger = LogManager.getLogger(ThriftActionImpl.class.getName());
 
     protected final TypeToken<IFaceT> ifaceType = new TypeToken<IFaceT>(getClass()) {
     };
@@ -31,13 +32,13 @@ public abstract class ThriftActionImpl<ReqT extends ServerRequest, ResT, IFaceT>
 
             return runThrift(iface, action, innerRunner);
         } catch (TTransportException tte) {
-            LOGGER.log(Level.WARNING, "Error in cc.ecl.action.thrift transport creation", tte);
+        	logger.log(Level.ERROR, "Error in cc.ecl.action.thrift transport creation", tte);
             return new ActionResult<>(ActionStatus.COMMUNICATION_ERROR);
         } catch (TException te) {
-            LOGGER.log(Level.WARNING, "Error in cc.ecl.action.thrift call", te);
+        	logger.log(Level.ERROR, "Error in cc.ecl.action.thrift call", te);
             return new ActionResult<>(ActionStatus.COMMUNICATION_ERROR);
         } catch (ThriftTransportFactory.ThriftFactoryException e) {
-            LOGGER.log(Level.SEVERE, "Error in cc.ecl.action.thrift factory creation", e);
+        	logger.log(Level.ERROR, "Error in cc.ecl.action.thrift factory creation", e);
             return new ActionResult<>(ActionStatus.LOGIC_ERROR);
         }
     }

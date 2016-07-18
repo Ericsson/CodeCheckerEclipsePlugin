@@ -14,6 +14,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 /**
  * Simple representation of a job: something consisting of actions, with a possible deadline, no
  * other requirement.
@@ -25,6 +29,8 @@ import java.util.Set;
  */
 public abstract class Job<SubType extends Job, ListenerType extends JobListener<SubType>> {
 
+	private static final Logger logger = LogManager.getLogger(Job.class);
+	
     protected final Optional<Instant> deadline;
     protected final Set<ListenerType> listeners;
     private final int priority;
@@ -86,7 +92,8 @@ public abstract class Job<SubType extends Job, ListenerType extends JobListener<
      */
     public void startWithManager(JobManager manager) {
         if (jobManager != null) {
-            throw new RuntimeException("Job already started");
+            logger.log(Level.ERROR, "Job already started!");
+        	throw new RuntimeException("Job already started");
         }
         jobManager = manager;
 
@@ -106,7 +113,7 @@ public abstract class Job<SubType extends Job, ListenerType extends JobListener<
 
         try {
             for (ActionRequest rq : startActions()) {
-                System.out.println(rq.action.getParameterInfo());
+                logger.log(Level.DEBUG, rq.action.getParameterInfo());
                 jobManager.queueAction(this, rq.action, rq.priority);
                 ongoingActions++;
             }

@@ -9,15 +9,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
+
 import org.joda.time.Instant;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.logging.Logger;
 
 public class ListList {
 
-    private final static Logger LOGGER = Logger.getLogger(ListList.class.getName());
+    private final static Logger logger = LogManager.getLogger(ListList.class.getName());
 
     private final ListRequest request;
 
@@ -34,7 +37,7 @@ public class ListList {
     void addReports(ImmutableList<ReportInfo> reports) {
         for (ReportInfo report : reports) {
             if (this.reports.containsValue(report)) {
-                LOGGER.warning("Duplicate report in the result list: " + report);
+            	logger.log(Level.WARN, "Duplicate report in the result list: " + report);
             }
             this.reports.put(report.getCheckerId(), report);
         }

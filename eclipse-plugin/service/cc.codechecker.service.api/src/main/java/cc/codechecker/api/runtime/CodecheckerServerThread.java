@@ -9,8 +9,15 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class CodecheckerServerThread {
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
 
+public class CodecheckerServerThread {
+	
+	//Logger
+	private final static Logger logger = LogManager.getLogger(CodecheckerServerThread.class.getName());
+	
 	private static Random random = new Random();
     public final int serverPort = random.nextInt(10000) + 15000;
     final BlockingQueue<String> processingQueue = new LinkedBlockingDeque<>();
@@ -39,7 +46,7 @@ public class CodecheckerServerThread {
 
     public synchronized void start() {
         if (running) stop();
-        System.out.println("SERVER-MGR> starting CC");
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> Starting CC");
         if (ccec != null && serverExecutor == null) {
             final String cmd = ccec.codeCheckerCommand + " server --not-host-only -w " + ccec
                     .workspaceName + " --view-port " + serverPort;
@@ -47,9 +54,9 @@ public class CodecheckerServerThread {
             serverExecutor = she.getServerObject(cmd);
             serverThread = new Thread(new Runnable() {
                 public void run() {
-                    System.out.println("SERVER-MGR> started server thread");
-                    System.out.println("SERVER-MGR> HTTP server command: " + cmd);
-                    System.out.println("SERVER-MGR> HTTP server URL: " + getServerUrl());
+                	logger.log(Level.DEBUG, "SERVER_SER_MSG >> started server thread");
+                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> HTTP server command: " + cmd);
+                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> HTTP server URL: " + getServerUrl());
                     serverExecutor.start();
                 }
             });
@@ -60,13 +67,13 @@ public class CodecheckerServerThread {
             @Override
             public void run() {
                 try {
-                    System.out.println("SERVER-MGR> started queue thread");
+                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> started queue thread");
                     while (true) {
                         String s = processingQueue.take();
                         if (currentlyRunning.add(s)) {
-                            System.out.println("SERVER-MGR> Queue size (-1): " + processingQueue
+                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
-                            System.out.println(ccec.processLog(s)); // TODO: logging!
+                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + ccec.processLog(s)); // TODO: logging!
                             currentlyRunning.remove(s);
                             if (callback != null) callback.built();
                         }
@@ -80,24 +87,24 @@ public class CodecheckerServerThread {
     }
 
     public synchronized void stop() {
-        System.out.println("SERVER-MGR> stopping CC");
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> stopping CC");
         if (serverExecutor != null) {
-            System.out.println("SERVER-MGR> killing server thread");
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing server thread");
             serverExecutor.kill();
             serverThread.interrupt();
             serverThread = null;
             serverExecutor = null;
         }
         if (queueThread != null) {
-            System.out.println("SERVER-MGR> killing queue thread");
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing queue thread");
             queueThread.interrupt();
             queueThread = null;
         }
 
         try {
-            System.out.println("waiting");
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Waiting...");
             Thread.sleep(2000);
-            System.out.println("done");
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Done");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -111,7 +118,7 @@ public class CodecheckerServerThread {
             if (newF.isPresent()) {
                 try {
                     processingQueue.put(newF.get());
-                    System.out.println("SERVER-MGR> Queue size (+1): " + processingQueue.size() +
+                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (+1): " + processingQueue.size() +
                             " << " + newF.get());
                 } catch (InterruptedException e) {
                     e.printStackTrace();

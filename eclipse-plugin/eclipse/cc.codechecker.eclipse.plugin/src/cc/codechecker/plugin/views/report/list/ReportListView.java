@@ -38,8 +38,15 @@ import cc.codechecker.plugin.views.report.list.action.showas.CheckerTreeAction;
 import cc.codechecker.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
 import cc.codechecker.plugin.views.report.list.provider.label.BasicViewLabelProvider;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class ReportListView extends ViewPart {
 
+	//Logger
+	private static final Logger logger = LogManager.getLogger(ReportListView.class);
+	
     public static final String ID = "cc.codechecker.plugin.views.ReportList";
     FilterConfiguration activeConfiguration = new FilterConfiguration();
 
@@ -278,7 +285,7 @@ public class ReportListView extends ViewPart {
 
     public void onEditorChanged(IProject project, String filename) {
         if (project != currentProject) {
-            System.out.println("PreChanging runList!");
+        	logger.log(Level.INFO, "SERVER_GUI_MSG >> PreChanging runList!");
             this.currentProject = project;
             //CodeCheckerContext.getInstance().runRunListJob(this);
         }

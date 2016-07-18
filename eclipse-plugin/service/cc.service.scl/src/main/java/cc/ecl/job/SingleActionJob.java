@@ -10,6 +10,10 @@ import org.joda.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 /**
  * Helper class, implements a job which consist of a single action.
  *
@@ -17,7 +21,9 @@ import java.util.List;
  */
 public class SingleActionJob<ReqT, ResT, SubType extends SingleActionJob> extends
         AbstractJob<SubType, JobListener<SubType>> {
-
+	
+	private static final Logger logger = LogManager.getLogger(SingleActionJob.class);
+	
     protected final ReqT request;
     private final TypeToken<ReqT> requestType = new TypeToken<ReqT>(getClass()) {
     };
@@ -32,7 +38,7 @@ public class SingleActionJob<ReqT, ResT, SubType extends SingleActionJob> extend
 
     @Override
     protected List<ActionRequest> startActions() {
-        System.out.println(requestType);
+        logger.log(Level.DEBUG, requestType);
         // TODO: why is this needed? Seems like a crude hack to me
         return Arrays.asList(new ActionRequest(new Action<ReqT, ResT>(request, requestType,
                 resultType), 0));
