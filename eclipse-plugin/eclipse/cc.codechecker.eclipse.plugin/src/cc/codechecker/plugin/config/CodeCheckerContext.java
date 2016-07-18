@@ -16,6 +16,7 @@ import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
+import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 import cc.ecl.action.ActionImplementationRegistry;
 import cc.ecl.action.PerServerActionRunner;
 import cc.ecl.action.PerServerSimpleActionRunner;
@@ -51,6 +52,7 @@ public class CodeCheckerContext {
     JobRunner jobRunner;
     IEditorPart activeEditorPart;
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
+    private IProject activeProject = null;
 
     private CodeCheckerContext() {
         PerServerActionRunner<ThriftCommunicationInterface> actionRunner;
@@ -146,6 +148,13 @@ public class CodeCheckerContext {
                     ReportListView rlv = (ReportListView) vp.getView(true);
                     if (rlv.linkedToEditor()) {
                         rlv.onEditorChanged(project, filename);
+                    }
+                }
+                if(vp.getId().equals(ReportListViewProject.ID)) {
+                	ReportListViewProject rlvp = (ReportListViewProject) vp.getView(true);
+                	if (rlvp.linkedToEditor() && project != activeProject) {
+                		this.activeProject = project;
+                		rlvp.onEditorChanged(project, filename);
                     }
                 }
             }

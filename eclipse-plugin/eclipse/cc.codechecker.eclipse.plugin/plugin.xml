@@ -62,11 +62,18 @@
                 id="cc.codechecker.plugin.CodeChecker">
         </category>
         <view
-                name="ReportList"
+                name="Current File"
                 icon="icons/sample.gif"
                 category="cc.codechecker.plugin.CodeChecker"
                 class="cc.codechecker.plugin.views.report.list.ReportListView"
                 id="cc.codechecker.plugin.views.ReportList">
+        </view>
+        <view
+                name="All Files"
+                icon="icons/sample.gif"
+                category="cc.codechecker.plugin.CodeChecker"
+                class="cc.codechecker.plugin.views.report.list.ReportListViewProject"
+                id="cc.codechecker.plugin.views.ReportListProject">
         </view>
     </extension>
     <extension
