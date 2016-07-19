@@ -80,25 +80,12 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
         ImmutableList.Builder<ReportInfo> builder = new ImmutableList.Builder<>();
 
         for (ReportData rd : res) {
-            FileInfoAction fiaResult = new FileInfoAction(new FileInfoRequest(action.getRequest()
-                    .getServer(), rd.getFileId()));
-            fiaResult = innerRunner.requireResult(fiaResult);
-            if (fiaResult.getStatus() != ActionStatus.SUCCEEDED) {
-                throw new RuntimeException("Bad status for inner action: " + fiaResult);
-            }
-
-            FileInfoAction fiaBug = new FileInfoAction(new FileInfoRequest(action.getRequest()
-                    .getServer(), rd.getLastBugPosition().getFileId()));
-            fiaBug = innerRunner.requireResult(fiaBug);
-            if (fiaBug.getStatus() != ActionStatus.SUCCEEDED) {
-                throw new RuntimeException("Bad status for inner action: " + fiaBug);
-            }
 
             BugPathItem lastBugItem = new BugPathItem(new BugPathItem.Position(rd
                     .getLastBugPosition().getStartLine(), rd.getLastBugPosition().getStartCol()),
                     new BugPathItem.Position(rd.getLastBugPosition().getEndLine(), rd
                             .getLastBugPosition().getEndCol()), rd.getLastBugPosition().getMsg(),
-                    fiaBug.getResult().get().getFilePath());
+                    rd.getCheckedFile());
             
             // BugPathItems
             ReportDetails reportdetails = client.getReportDetails(rd.getReportId());
@@ -106,18 +93,11 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportData : " + rd.toString());
             for (BugPathEvent bpe : reportdetails.getPathEvents()) {
 
-                FileInfoAction fileinfoaction = new FileInfoAction(new FileInfoRequest(action.getRequest()
-                        .getServer(), bpe.getFileId()));
-                fileinfoaction = innerRunner.requireResult(fileinfoaction);
-                if (fileinfoaction.getStatus() != ActionStatus.SUCCEEDED) {
-                    throw new RuntimeException("Bad status for inner action: " + fileinfoaction);
-                }
-
                 listBuilder.add(new BugPathItem(new BugPathItem.Position(bpe.getStartLine(), bpe
                         .getStartCol()), new BugPathItem.Position(bpe.getEndLine(), bpe.getEndCol()),
-                        bpe.getMsg(), fileinfoaction.getResult().get().getFilePath()));
+                        bpe.getMsg(), bpe.getFilePath()));
                 logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : BugPathItem : " + bpe.getStartLine() + " - " + 
-                        bpe.getStartCol() + " - " + bpe.getMsg() + " - " + fileinfoaction.getResult().get().getFilePath());
+                        bpe.getStartCol() + " - " + bpe.getMsg() + " - " + bpe.getFilePath());
             }
             ImmutableList.Builder<BugPathItem> bugpathitems = new ImmutableList.Builder<>();
             bugpathitems.addAll(listBuilder);
@@ -126,8 +106,8 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             		new ProblemInfo(bugpathitems.build())).getResult();
             
             builder.add(new ReportInfo(rd.getCheckerId(), rd.getBugHash(), rd.getCheckedFile(),
-                    rd.getCheckerMsg(), rd.getReportId(), rd.isSuppressed(), fiaResult.getResult
-                    ().get().getFilePath(), lastBugItem, probleminfo));
+                    rd.getCheckerMsg(), rd.getReportId(), rd.isSuppressed(), rd.getCheckedFile(), 
+                    lastBugItem, probleminfo));
         }
 
         return new ActionResult<>(new ResultList(builder.build()));

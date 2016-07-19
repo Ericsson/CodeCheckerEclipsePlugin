@@ -31,7 +31,6 @@ import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.filter.Filter;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 import cc.codechecker.plugin.config.project.CcConfiguration;
-import cc.codechecker.plugin.views.report.list.action.AnalyzeAllAction;
 import cc.codechecker.plugin.views.report.list.action.NewInstanceAction;
 import cc.codechecker.plugin.views.report.list.action.ShowFilterConfigurationDialog;
 import cc.codechecker.plugin.views.report.list.action.showas.CheckerGroupAction;
@@ -55,11 +54,11 @@ public class ReportListView extends ViewPart {
     Optional<SearchList> reportList = Optional.<SearchList>absent();
     private TreeViewer viewer;
     private boolean viewerRefresh;
-    private AnalyzeAllAction analyzeAllAction;
     private Composite parent;
     private String currentFilename;
     private IProject currentProject;
     private ImmutableList<RunInfo> runList;
+    private ShowFilterConfigurationDialog showfilterconfigurationdialog;
     
     public ReportListView() {
     }
@@ -97,9 +96,8 @@ public class ReportListView extends ViewPart {
         treeGridData.verticalAlignment = GridData.FILL;
         treeGridData.horizontalAlignment = GridData.FILL;
         viewer.getControl().setLayoutData(treeGridData);
-
+        this.showfilterconfigurationdialog = new ShowFilterConfigurationDialog(this);
         this.viewerRefresh = true;
-        analyzeAllAction = new AnalyzeAllAction(this);
 
 
         // Create the help context id for the viewer's control
@@ -141,7 +139,7 @@ public class ReportListView extends ViewPart {
 		filterConfigMenu.add(new Separator());
 		filterConfigMenu.add(new Action("Global config 1"){});
 		manager.add(filterConfigMenu);*/
-        manager.add(new ShowFilterConfigurationDialog(this));
+        manager.add(this.showfilterconfigurationdialog);
         /*
         manager.add(new Separator());
 
@@ -169,8 +167,8 @@ public class ReportListView extends ViewPart {
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
+    	manager.add(this.showfilterconfigurationdialog);
         manager.add(new NewInstanceAction(new ReportListView()));
-        manager.add(analyzeAllAction);
         manager.add(new Separator());
     }
 
