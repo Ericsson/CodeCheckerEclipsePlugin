@@ -2,16 +2,20 @@ package cc.codechecker.plugin;
 
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
+import org.eclipse.cdt.utils.Platform;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import cc.codechecker.plugin.init.StartupJob;
 
-import java.util.Properties;
+import java.net.URL;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -38,11 +42,9 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      * The constructor
      */
     public Activator() {
-    	Properties props = new Properties();
-    	try {
-    		props.load(getClass().getResourceAsStream("log4j.properties"));
-    	} catch(Exception e) {}
-    	PropertyConfigurator.configure(props);
+    	Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+        final URL fullPathString = FileLocator.find(bundle, new Path("log4j.properties"), null);
+    	PropertyConfigurator.configure(fullPathString);
     	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator Created");
     }
 
