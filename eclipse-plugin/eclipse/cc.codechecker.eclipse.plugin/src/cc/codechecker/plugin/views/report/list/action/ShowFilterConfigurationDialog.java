@@ -1,16 +1,24 @@
 package cc.codechecker.plugin.views.report.list.action;
 
-import org.eclipse.jdt.internal.ui.JavaPluginImages;
+import org.eclipse.cdt.utils.Platform;
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
 
+import cc.codechecker.plugin.Activator;
 import cc.codechecker.plugin.views.config.filter.FilterConfigurationDialog;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.action.showas.TreeAwareAction;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.LogManager;
+
+import java.net.URL;
+
 import org.apache.log4j.Level;
 
 public class ShowFilterConfigurationDialog extends TreeAwareAction {
@@ -20,7 +28,9 @@ public class ShowFilterConfigurationDialog extends TreeAwareAction {
     public ShowFilterConfigurationDialog(ReportListView listView) {
         super(listView, "Show Filter Configurators", IAction.AS_PUSH_BUTTON);
         setToolTipText("Show Filter Configurators");
-        setImageDescriptor(JavaPluginImages.DESC_DLCL_FILTER);
+        Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+        final URL fullPathString = FileLocator.find(bundle, new Path("icons/filter.png"), null);
+        setImageDescriptor(ImageDescriptor.createFromURL(fullPathString));
     }
 
     @Override
