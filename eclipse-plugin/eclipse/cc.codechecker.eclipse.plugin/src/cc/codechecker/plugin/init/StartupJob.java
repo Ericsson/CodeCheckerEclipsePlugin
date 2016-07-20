@@ -56,7 +56,7 @@ public class StartupJob extends Job {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
 
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
@@ -82,7 +82,7 @@ public class StartupJob extends Job {
                             }
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
                         }
                         break;
                     }
@@ -102,7 +102,7 @@ public class StartupJob extends Job {
                         }
                     });
                 } catch (CoreException e) {
-                    e.printStackTrace();
+                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
                 }
             }
 
@@ -133,7 +133,7 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
@@ -153,7 +153,7 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Good Natured!");
         try {
@@ -173,7 +173,7 @@ public class StartupJob extends Job {
         try {
             win.getActivePage().addPartListener(partListener);
         } catch (Exception e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
     }
 

@@ -3,7 +3,6 @@ package cc.codechecker.plugin.config.filter.store;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
@@ -17,7 +16,14 @@ import com.google.gson.reflect.TypeToken;
 import cc.codechecker.plugin.Activator;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+
 public class FilterStore {
+
+	//Logger
+	private static final Logger logger = LogManager.getLogger(FilterStore.class);
 
     private final String projectName;
 
@@ -101,7 +107,7 @@ public class FilterStore {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
 
     }
@@ -124,7 +130,7 @@ public class FilterStore {
             outputStream.write(gson.toJson(subList).getBytes());
             outputStream.close();
         } catch (Exception e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         }
     }
 }

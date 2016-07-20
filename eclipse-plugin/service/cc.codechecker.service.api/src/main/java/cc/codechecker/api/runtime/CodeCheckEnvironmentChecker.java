@@ -61,6 +61,8 @@ public class CodeCheckEnvironmentChecker {
         	++test;
         } while(!ccEnvOutput.isPresent() && test <= 2);
         if (!ccEnvOutput.isPresent() && test > 2) {
+        	logger.log(Level.ERROR, "Couldn't run the specified CodeChecker for " +
+                    "environment testing!");
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
         }
@@ -80,6 +82,7 @@ public class CodeCheckEnvironmentChecker {
                     " ; env");
 
             if (!output.isPresent()) {
+            	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
@@ -162,7 +165,8 @@ public class CodeCheckEnvironmentChecker {
         ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
         for (String key : checkerEnvironment.keySet()) {
             if (key.equals("CC_LOGGER_FILE")) {
-            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> modifyLogfileName >> " + key + " " + checkerEnvironment.get(key) + ".javarunner");
+            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> modifyLogfileName >> " + key + " " + 
+            				checkerEnvironment.get(key) + ".javarunner");
                 builder.put(key, checkerEnvironment.get(key) + ".javarunner");
             } else {
                 builder.put(key, checkerEnvironment.get(key));
@@ -182,12 +186,12 @@ public class CodeCheckEnvironmentChecker {
         try {
             locator = new CodeCheckerLocator(she, Optional.of(codeCheckerPath));
         } catch (IOException e) {
-        	logger.log(Level.ERROR, "Error wile locating CodeChecker!");
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> Error wile locating CodeChecker! " + e);
             throw new RuntimeException("Error while locating CodeChecker!");
         }
 
         if (!locator.getRunnerCommand().isPresent()) {
-        	logger.log(Level.ERROR, "CodeChecker not found: " + codeCheckerParameter);
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> CodeChecker not found: " + codeCheckerParameter);
             throw new IllegalArgumentException("CodeChecker not found: " + codeCheckerParameter);
         }
 

@@ -225,7 +225,7 @@ public class ReportListView extends ViewPart {
             	IDE.gotoMarker(page.getActiveEditor(), marker);
                 marker.delete();
             } catch (CoreException e) {
-                e.printStackTrace();
+            	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
             }
         }
     }

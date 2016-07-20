@@ -3,8 +3,9 @@ package cc.ecl.action;
 import com.google.common.base.Optional;
 import com.google.common.reflect.TypeToken;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
 
 /**
  * Class responsible for storing action related data.
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class Action<ReqT, ResT> {
 
-    private final static Logger LOGGER = Logger.getLogger(Action.class.getName());
+    private final static Logger logger = LogManager.getLogger(Action.class);
 
     final private ReqT request;
     // generic parameter hack
@@ -66,7 +67,7 @@ public class Action<ReqT, ResT> {
                 result = tmp;
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Exception while running action, treating as " +
+        	logger.log(Level.ERROR, "Exception while running action, treating as " +
                     "COMMUNICATION_ERROR", e);
             result = new ActionResult<ResT>(ActionStatus.COMMUNICATION_ERROR);
         }

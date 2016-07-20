@@ -71,9 +71,9 @@ public class MarkerListener implements SearchListener {
                         try {
                             fileinfo.deleteMarkers("cc.codechecker.markers.problemmarker", true,
                                     IResource.DEPTH_INFINITE);
-                        } catch (CoreException e1) {
+                        } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                            e1.printStackTrace();
+                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
                         }
 
                         try {
@@ -89,7 +89,7 @@ public class MarkerListener implements SearchListener {
                             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
                         }
                     }
                 }

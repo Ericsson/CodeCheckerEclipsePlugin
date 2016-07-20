@@ -79,6 +79,7 @@ public class CodecheckerServerThread {
                         }
                     }
                 } catch (InterruptedException e) {
+                	logger.log(Level.ERROR, "SERVER_SER_MSG >> queueThread >> " + e);
                 }
             }
         });
@@ -103,10 +104,10 @@ public class CodecheckerServerThread {
 
         try {
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Waiting...");
-            Thread.sleep(2000);
+            Thread.sleep(1000);
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Done");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
         }
 
         running = false;
@@ -121,7 +122,7 @@ public class CodecheckerServerThread {
                     logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (+1): " + processingQueue.size() +
                             " << " + newF.get());
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
                 }
             }
         }
