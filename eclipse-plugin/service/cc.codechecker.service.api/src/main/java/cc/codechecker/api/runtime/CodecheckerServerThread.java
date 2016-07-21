@@ -69,7 +69,13 @@ public class CodecheckerServerThread {
                 try {
                     logger.log(Level.DEBUG, "SERVER_SER_MSG >> started queue thread");
                     while (true) {
+                    	if(Thread.interrupted()) {
+                    		break;
+                    	}
                         String s = processingQueue.take();
+                        if(s.equals("STOP!")) {
+                        	break;
+                        }
                         if (currentlyRunning.add(s)) {
                             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
@@ -97,6 +103,7 @@ public class CodecheckerServerThread {
         }
         if (queueThread != null) {
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing queue thread");
+            processingQueue.add("STOP!");
             queueThread.interrupt();
             queueThread = null;
         }
