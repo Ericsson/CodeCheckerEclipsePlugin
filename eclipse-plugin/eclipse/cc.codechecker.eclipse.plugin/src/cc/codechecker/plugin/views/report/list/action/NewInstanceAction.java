@@ -11,7 +11,14 @@ import org.eclipse.ui.PlatformUI;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.action.showas.TreeAwareAction;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
+
 public class NewInstanceAction extends TreeAwareAction {
+
+	//Logger
+	private final static Logger logger = LogManager.getLogger(NewInstanceAction.class.getName());
 
     public NewInstanceAction(ReportListView listView) {
         super(listView, "Create new ReportList", IAction.AS_PUSH_BUTTON);
@@ -31,7 +38,8 @@ public class NewInstanceAction extends TreeAwareAction {
                     IWorkbenchPage.VIEW_ACTIVATE);
         } catch (PartInitException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 }

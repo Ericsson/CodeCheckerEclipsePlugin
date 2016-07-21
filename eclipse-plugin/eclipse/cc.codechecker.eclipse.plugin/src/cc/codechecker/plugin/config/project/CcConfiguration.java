@@ -52,7 +52,8 @@ public class CcConfiguration {
                 projectPreferences = context.getNode(CodeCheckerNature.NATURE_ID);
             }
         } catch (CoreException e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
@@ -70,7 +71,8 @@ public class CcConfiguration {
         try {
             CoreModel.getDefault().setProjectDescription(project, prjd);
         } catch (CoreException e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
@@ -160,7 +162,8 @@ public class CcConfiguration {
 
             modifyProjectEnvironmentVariables(project, ccec.environmentDifference);
         } catch (Exception e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 

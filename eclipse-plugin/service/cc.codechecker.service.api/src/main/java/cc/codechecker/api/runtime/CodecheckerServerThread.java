@@ -69,16 +69,23 @@ public class CodecheckerServerThread {
                 try {
                     logger.log(Level.DEBUG, "SERVER_SER_MSG >> started queue thread");
                     while (true) {
+                    	if(Thread.interrupted()) {
+                    		break;
+                    	}
                         String s = processingQueue.take();
+                        if(s.equals("STOP!")) {
+                        	break;
+                        }
                         if (currentlyRunning.add(s)) {
                             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
-                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + ccec.processLog(s)); // TODO: logging!
+                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + ccec.processLog(s));
                             currentlyRunning.remove(s);
                             if (callback != null) callback.built();
                         }
                     }
                 } catch (InterruptedException e) {
+                	logger.log(Level.ERROR, "SERVER_SER_MSG >> queueThread >> " + e);
                 }
             }
         });
@@ -97,16 +104,18 @@ public class CodecheckerServerThread {
         }
         if (queueThread != null) {
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing queue thread");
+            processingQueue.add("STOP!");
             queueThread.interrupt();
             queueThread = null;
         }
 
         try {
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Waiting...");
-            Thread.sleep(2000);
+            Thread.sleep(1000);
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Done");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + e.getStackTrace());
         }
 
         running = false;
@@ -121,7 +130,8 @@ public class CodecheckerServerThread {
                     logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (+1): " + processingQueue.size() +
                             " << " + newF.get());
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
+                	logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + e.getStackTrace());
                 }
             }
         }

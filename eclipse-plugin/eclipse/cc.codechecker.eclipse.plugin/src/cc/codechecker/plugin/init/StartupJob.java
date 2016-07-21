@@ -56,14 +56,14 @@ public class StartupJob extends Job {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
 
             @Override
             public void resourceChanged(IResourceChangeEvent event) {
-            	logger.log(Level.DEBUG, event);
                 switch (event.getType()) {
                     case IResourceChangeEvent.POST_BUILD: {
                     	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
@@ -82,7 +82,8 @@ public class StartupJob extends Job {
                             }
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                         }
                         break;
                     }
@@ -102,7 +103,8 @@ public class StartupJob extends Job {
                         }
                     });
                 } catch (CoreException e) {
-                    e.printStackTrace();
+                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                 }
             }
 
@@ -133,7 +135,8 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
@@ -153,7 +156,8 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Good Natured!");
         try {
@@ -173,7 +177,8 @@ public class StartupJob extends Job {
         try {
             win.getActivePage().addPartListener(partListener);
         } catch (Exception e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
