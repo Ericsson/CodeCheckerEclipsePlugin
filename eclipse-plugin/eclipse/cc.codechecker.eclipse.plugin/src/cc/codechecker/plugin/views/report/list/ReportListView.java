@@ -53,7 +53,7 @@ public class ReportListView extends ViewPart {
     ;
     Optional<SearchList> reportList = Optional.<SearchList>absent();
     private TreeViewer viewer;
-    private boolean viewerRefresh;
+    private boolean viewerRefresh = true;
     private Composite parent;
     private String currentFilename;
     private IProject currentProject;
@@ -73,23 +73,7 @@ public class ReportListView extends ViewPart {
         viewer.setContentProvider(new TreeCheckerContentProvider(this));
         viewer.setLabelProvider(new BasicViewLabelProvider(this));
         viewer.setInput(new EmptyModel());
-        viewer.getTree().addMouseListener(new MouseListener() {
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				// TODO Auto-generated method stub
-				setViewerRefresh(false);
-			}
 
-			@Override
-			public void mouseDown(MouseEvent e) {
-				// TODO Auto-generated method stub
-			}
-
-			@Override
-			public void mouseUp(MouseEvent e) {
-				// TODO Auto-generated method stub
-			}
-        });
         GridData treeGridData = new GridData();
         treeGridData.grabExcessHorizontalSpace = true;
         treeGridData.grabExcessVerticalSpace = true;
@@ -212,7 +196,13 @@ public class ReportListView extends ViewPart {
         IFile fileinfo = currentProject.getFile(relName);
 
         if (fileinfo != null && fileinfo.exists()) {
-            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+            if(!fileinfo.getName().equals(currentFilename)) {
+            	this.setViewerRefresh(false);
+            } else {
+            	this.setViewerRefresh(true);
+            }
+
+        	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getActivePage();
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
