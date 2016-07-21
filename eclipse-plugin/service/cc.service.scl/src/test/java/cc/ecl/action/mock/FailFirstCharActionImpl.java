@@ -3,10 +3,17 @@ package cc.ecl.action.mock;
 import cc.ecl.action.*;
 import cc.ecl.action.InnerRunner;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Level;
+
 /**
  * Sample action implementation which fails with COMM_ERR once.
  */
 public class FailFirstCharActionImpl extends AbstractActionImpl<Character, Character, Object> {
+	
+	//Logger
+	private final static Logger logger = LogManager.getLogger(FailFirstCharActionImpl.class.getName());	
 
     @Override
     protected ActionResult<Character> doRealRun(Action<Character, Character> action, InnerRunner
@@ -16,7 +23,8 @@ public class FailFirstCharActionImpl extends AbstractActionImpl<Character, Chara
         try {
             Thread.sleep(400);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
+        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
         if (action.getStatus() == ActionStatus.COMMUNICATION_ERROR) {

@@ -84,7 +84,11 @@ public class CodeCheckerContext {
                 @Override
                 public void built() {
                     cleanCache(project);
-                    CodeCheckerContext.getInstance().autoRefresh();
+                    Display.getDefault().asyncExec(new Runnable() {
+                    	public void run() {
+                    		CodeCheckerContext.getInstance().autoRefresh();
+                    	}
+                    });
                 }
             });
             CcConfiguration config = new CcConfiguration(project);
@@ -159,7 +163,7 @@ public class CodeCheckerContext {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListView.ID)) {
                     ReportListView rlv = (ReportListView) vp.getView(true);
-                    if (rlv.getViewerRefresh()) {
+                    if (rlv.getViewerRefresh() || refresh) {
                         rlv.onEditorChanged(project, filename);
                     } else {
                     	rlv.setViewerRefresh(true);
@@ -168,7 +172,7 @@ public class CodeCheckerContext {
 
                 if(vp.getId().equals(ReportListViewProject.ID)) {
                 	ReportListViewProject rlvp = (ReportListViewProject) vp.getView(true);
-                	if (project != activeProject) {
+                	if (project != activeProject || refresh) {
                 		this.activeProject = project;
                 		rlvp.onEditorChanged(project, filename);
                     }

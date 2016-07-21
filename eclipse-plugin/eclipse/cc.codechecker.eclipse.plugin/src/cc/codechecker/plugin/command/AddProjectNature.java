@@ -64,7 +64,8 @@ public class AddProjectNature extends AbstractHandler {
 
                 } catch (CoreException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                 }
 
             }

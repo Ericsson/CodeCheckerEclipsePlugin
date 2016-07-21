@@ -147,13 +147,11 @@ public class ShellExecutorHelper {
                 //     all its descendant processes and kills them.
                 // The pidObject process should always be the main CodeChecker process this plugin
                 //     starts.
-                waitReturnOutput("list_descendants () { "
-                        + "local children=$(ps -o pid= --ppid \"$1\"); "
-                        + "for pid in $children; do "
-                        + "list_descendants \"$pid\"; done; "
-                        + "echo \"$children\"; "
-                        + "}; "
-                        + "kill $(list_descendants " + pidObject.pid + ")");
+        		String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")").get().replace("\n", "");
+            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
+            	try {
+            		waitReturnOutput("kill " + cpid);
+            	} catch(Exception e) {}
             }
         }
 
@@ -161,7 +159,6 @@ public class ShellExecutorHelper {
             try {
                 executor.execute(cmdLine, environment);
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
