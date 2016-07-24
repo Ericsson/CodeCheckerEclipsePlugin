@@ -14,6 +14,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -28,14 +30,16 @@ import org.apache.log4j.LogManager;
 
 public class StartupJob extends Job {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(StartupJob.class);	
+    //Logger
+    private static final Logger logger = LogManager.getLogger(StartupJob.class);	
 
     EditorPartListener partListener;
+    ProjectExplorerSelectionListener projectexplorerselectionlistener;
 
     public StartupJob() {
         super("CodeChecker Startup Job");
         partListener = new EditorPartListener();
+        projectexplorerselectionlistener = new ProjectExplorerSelectionListener();
     }
 
     @Override
@@ -56,8 +60,8 @@ public class StartupJob extends Job {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
@@ -65,28 +69,28 @@ public class StartupJob extends Job {
             @Override
             public void resourceChanged(IResourceChangeEvent event) {
                 switch (event.getType()) {
-                    case IResourceChangeEvent.POST_BUILD: {
-                    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
-                        try {
-                            final HashSet<IProject> changedProjects = new HashSet<>();
-                            event.getDelta().accept(new IResourceDeltaVisitor() {
-                                public boolean visit(final IResourceDelta delta) throws
-                                        CoreException {
-                                    IResource resource = delta.getResource();
-                                    changedProjects.add(resource.getProject());
-                                    return true;
-                                }
-                            });
-                            for (IProject p : changedProjects) {
-                                onProjectBuilt(p);
+                case IResourceChangeEvent.POST_BUILD: {
+                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
+                    try {
+                        final HashSet<IProject> changedProjects = new HashSet<>();
+                        event.getDelta().accept(new IResourceDeltaVisitor() {
+                            public boolean visit(final IResourceDelta delta) throws
+                            CoreException {
+                                IResource resource = delta.getResource();
+                                changedProjects.add(resource.getProject());
+                                return true;
                             }
-                        } catch (CoreException e) {
-                            // TODO Auto-generated catch block
-                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                        });
+                        for (IProject p : changedProjects) {
+                            onProjectBuilt(p);
                         }
-                        break;
+                    } catch (CoreException e) {
+                        // TODO Auto-generated catch block
+                        logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                     }
+                    break;
+                }
                 }
                 try {
                     event.getDelta().accept(new IResourceDeltaVisitor() {
@@ -103,8 +107,8 @@ public class StartupJob extends Job {
                         }
                     });
                 } catch (CoreException e) {
-                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                    logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                 }
             }
 
@@ -135,13 +139,13 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
         if (project.isOpen()) {
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project built event! - good natured!");
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project built event! - good natured!");
             if (!server.isRunning()) server.start(); // ensure started!
             server.recheck();
         }
@@ -156,8 +160,8 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Good Natured!");
         try {
@@ -175,10 +179,12 @@ public class StartupJob extends Job {
 
     private void addListenerToWorkbenchWindow(IWorkbenchWindow win) {
         try {
+            ISelectionService ss = win.getSelectionService();
+            ss.addPostSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, projectexplorerselectionlistener);
             win.getActivePage().addPartListener(partListener);
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 

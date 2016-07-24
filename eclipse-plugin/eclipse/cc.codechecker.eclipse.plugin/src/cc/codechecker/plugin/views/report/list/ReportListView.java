@@ -14,8 +14,6 @@ import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -44,9 +42,9 @@ import org.apache.log4j.LogManager;
 
 public class ReportListView extends ViewPart {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(ReportListView.class);
-	
+    //Logger
+    private static final Logger logger = LogManager.getLogger(ReportListView.class);
+
     public static final String ID = "cc.codechecker.plugin.views.ReportList";
     FilterConfiguration activeConfiguration = new FilterConfiguration();
 
@@ -59,7 +57,7 @@ public class ReportListView extends ViewPart {
     private IProject currentProject;
     private ImmutableList<RunInfo> runList;
     private ShowFilterConfigurationDialog showfilterconfigurationdialog;
-    
+
     public ReportListView() {
     }
 
@@ -118,24 +116,24 @@ public class ReportListView extends ViewPart {
         //manager.add(new Separator());
         /*
         MenuManager filterConfigMenu = new MenuManager("Load configuration", null);
-		filterConfigMenu.add(new Action("Config 1"){});
-		filterConfigMenu.add(new Action("Config 2"){});
-		filterConfigMenu.add(new Separator());
-		filterConfigMenu.add(new Action("Global config 1"){});
-		manager.add(filterConfigMenu);*/
+        filterConfigMenu.add(new Action("Config 1"){});
+        filterConfigMenu.add(new Action("Config 2"){});
+        filterConfigMenu.add(new Separator());
+        filterConfigMenu.add(new Action("Global config 1"){});
+        manager.add(filterConfigMenu);*/
         manager.add(this.showfilterconfigurationdialog);
         /*
         manager.add(new Separator());
-
-		manager.add(new NewInstanceAction(this));
-
-		MenuManager bugPathMenu = new MenuManager("Default bug path window", null);
-		bugPathMenu.add(new Action(){}); // dummy
-		bugPathMenu.setRemoveAllWhenShown(true);
-		bugPathMenu.addMenuListener(new BugPathMenuProvider(this));
-		manager.add(bugPathMenu);
-		*/
-        manager.add(new NewInstanceAction(new ReportListView()));
+        
+        manager.add(new NewInstanceAction(this));
+        
+        MenuManager bugPathMenu = new MenuManager("Default bug path window", null);
+        bugPathMenu.add(new Action(){}); // dummy
+        bugPathMenu.setRemoveAllWhenShown(true);
+        bugPathMenu.addMenuListener(new BugPathMenuProvider(this));
+        manager.add(bugPathMenu);
+         */
+        manager.add(new NewInstanceAction(new ReportListViewCustom()));
         MenuManager displayTypeMenu = new MenuManager("Show as", null);
         displayTypeMenu.add(new CheckerGroupAction(this, false));
         displayTypeMenu.add(new CheckerTreeAction(this, true));
@@ -144,15 +142,15 @@ public class ReportListView extends ViewPart {
 
     private void fillContextMenu(IMenuManager manager) {
         //manager.add(new RerunSelectedAction(this));
-        manager.add(new NewInstanceAction(new ReportListView()));
+        manager.add(new NewInstanceAction(new ReportListViewCustom()));
         manager.add(new Separator());
         // Other plug-ins can contribute there actions here
         manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
-    	manager.add(this.showfilterconfigurationdialog);
-        manager.add(new NewInstanceAction(new ReportListView()));
+        manager.add(this.showfilterconfigurationdialog);
+        manager.add(new NewInstanceAction(new ReportListViewCustom()));
         manager.add(new Separator());
     }
 
@@ -166,13 +164,13 @@ public class ReportListView extends ViewPart {
                 }
 
                 final Object sel = selection.getFirstElement();
-                
+
                 if(sel instanceof BugPathItem) {
-                	BugPathItem bpi = (BugPathItem) sel;
+                    BugPathItem bpi = (BugPathItem) sel;
                     jumpToBugPosition(bpi);
                     return;
                 }
-                
+
                 final ITreeContentProvider provider =
                         (ITreeContentProvider) viewer.getContentProvider();
 
@@ -185,11 +183,11 @@ public class ReportListView extends ViewPart {
                 } else {
                     viewer.expandToLevel(sel, 1);
                 }
-                
+
             }
         });
     }
-    
+
     private void jumpToBugPosition(BugPathItem bpi) {
         CcConfiguration config = new CcConfiguration(currentProject);
         String relName = config.convertFilenameFromServer(bpi.getFile());
@@ -197,12 +195,12 @@ public class ReportListView extends ViewPart {
 
         if (fileinfo != null && fileinfo.exists()) {
             if(!fileinfo.getName().equals(currentFilename)) {
-            	this.setViewerRefresh(false);
+                this.setViewerRefresh(false);
             } else {
-            	this.setViewerRefresh(true);
+                this.setViewerRefresh(true);
             }
 
-        	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+            IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                     .getActivePage();
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put(IMarker.LINE_NUMBER, new Integer((int) bpi.getStartPosition().getLine()));
@@ -211,12 +209,12 @@ public class ReportListView extends ViewPart {
             try {
                 marker = fileinfo.createMarker(IMarker.TEXT);
                 marker.setAttributes(map);
-            	IDE.openEditor(page, fileinfo);
-            	IDE.gotoMarker(page.getActiveEditor(), marker);
+                IDE.openEditor(page, fileinfo);
+                IDE.gotoMarker(page.getActiveEditor(), marker);
                 marker.delete();
             } catch (CoreException e) {
-            	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
             }
         }
     }
@@ -224,7 +222,7 @@ public class ReportListView extends ViewPart {
     private void showMessage(String message) {
         MessageDialog.openInformation(viewer.getControl().getShell(), "ReportList", message);
     }
-    
+
     /**
      * Passing the focus request to the viewer's control.
      */
@@ -285,7 +283,7 @@ public class ReportListView extends ViewPart {
 
     public void onEditorChanged(IProject project, String filename) {
         if (project != currentProject) {
-        	logger.log(Level.INFO, "SERVER_GUI_MSG >> PreChanging runList!");
+            logger.log(Level.INFO, "SERVER_GUI_MSG >> PreChanging runList!");
             this.currentProject = project;
             //CodeCheckerContext.getInstance().runRunListJob(this);
         }
@@ -313,13 +311,13 @@ public class ReportListView extends ViewPart {
     public IProject getCurrentProject() {
         return currentProject;
     }
-    
+
     public boolean getViewerRefresh() {
-    	return this.viewerRefresh;
+        return this.viewerRefresh;
     }
-    
+
     public void setViewerRefresh(boolean viewerRefresh) {
-    	this.viewerRefresh = viewerRefresh;
+        this.viewerRefresh = viewerRefresh;
     }
 
     static class EmptyModel {

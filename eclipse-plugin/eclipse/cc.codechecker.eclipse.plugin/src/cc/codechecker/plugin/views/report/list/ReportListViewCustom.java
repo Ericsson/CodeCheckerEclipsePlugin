@@ -7,11 +7,11 @@ import org.eclipse.core.resources.IProject;
 import cc.codechecker.plugin.config.filter.Filter;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 
-public class ReportListViewProject extends ReportListView {
+public class ReportListViewCustom extends ReportListView {
 
-    public static final String ID = "cc.codechecker.plugin.views.ReportListProject";
+    public static final String ID = "cc.codechecker.plugin.views.ReportListViewCustom";
 
-    public ReportListViewProject() {
+    public ReportListViewCustom() {
         Filter all = new Filter();
         all.setFilepath("*");
         LinkedList<Filter> filter = new LinkedList<>();

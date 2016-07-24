@@ -69,11 +69,18 @@
                 id="cc.codechecker.plugin.views.ReportList">
         </view>
         <view
-                name="All Files"
+                name="Current Project"
                 icon="icons/sample.gif"
                 category="cc.codechecker.plugin.CodeChecker"
                 class="cc.codechecker.plugin.views.report.list.ReportListViewProject"
                 id="cc.codechecker.plugin.views.ReportListProject">
+        </view>
+        <view
+                name="Custom Config"
+                icon="icons/sample.gif"
+                category="cc.codechecker.plugin.CodeChecker"
+                class="cc.codechecker.plugin.views.report.list.ReportListViewCustom"
+                id="cc.codechecker.plugin.views.ReportListViewCustom">
         </view>
     </extension>
     <extension
