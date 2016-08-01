@@ -34,11 +34,11 @@ import org.apache.log4j.Level;
 
 public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, ResultList,
         CodeCheckerDBAccess.Iface> {
-	
-	//Logger
-	private static final Logger logger = LogManager.getLogger(ResultListActionThriftImpl.class);
 
-	@Override
+    //Logger
+    private static final Logger logger = LogManager.getLogger(ResultListActionThriftImpl.class);
+
+    @Override
     protected String getProtocolUrlEnd(SearchRequest request) {
         return "codeCheckerDBAccess";
     }
@@ -79,6 +79,8 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
 
         ImmutableList.Builder<ReportInfo> builder = new ImmutableList.Builder<>();
 
+        String checkerId = "";
+
         for (ReportData rd : res) {
 
             BugPathItem lastBugItem = new BugPathItem(new BugPathItem.Position(rd
@@ -86,11 +88,11 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
                     new BugPathItem.Position(rd.getLastBugPosition().getEndLine(), rd
                             .getLastBugPosition().getEndCol()), rd.getLastBugPosition().getMsg(),
                     rd.getCheckedFile());
-            
+
             // BugPathItems
             ReportDetails reportdetails = client.getReportDetails(rd.getReportId());
             LinkedList<BugPathItem> listBuilder = new LinkedList<BugPathItem>();
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportData : " + rd.toString());
+
             for (BugPathEvent bpe : reportdetails.getPathEvents()) {
 
                 listBuilder.add(new BugPathItem(new BugPathItem.Position(bpe.getStartLine(), bpe
@@ -103,11 +105,21 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             bugpathitems.addAll(listBuilder);
             //Bug path items!!
             Optional<ProblemInfo> probleminfo = new ActionResult<>(
-            		new ProblemInfo(bugpathitems.build())).getResult();
-            
-            builder.add(new ReportInfo(rd.getCheckerId(), rd.getBugHash(), rd.getCheckedFile(),
+                    new ProblemInfo(bugpathitems.build())).getResult();
+
+            if(rd.getCheckerId().equals("")) {
+                checkerId = "unknown checker";
+            } else {
+                checkerId = rd.getCheckerId();
+            }
+
+            ReportInfo ri = new ReportInfo(checkerId, rd.getBugHash(), rd.getCheckedFile(),
                     rd.getCheckerMsg(), rd.getReportId(), rd.isSuppressed(), rd.getCheckedFile(), 
-                    lastBugItem, probleminfo));
+                    lastBugItem, probleminfo);
+
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportInfo" + ri.toString());
+
+            builder.add(ri);
         }
 
         return new ActionResult<>(new ResultList(builder.build()));
