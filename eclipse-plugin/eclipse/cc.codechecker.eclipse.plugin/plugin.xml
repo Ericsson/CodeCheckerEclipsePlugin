@@ -84,6 +84,14 @@
         </view>
     </extension>
     <extension
+        point="org.eclipse.ui.console.consoleFactories">
+        <consoleFactory
+             class="cc.codechecker.plugin.views.console.ConsoleFactory"
+             icon="icons/sample.gif"
+             label="CodeChecker Console">
+        </consoleFactory>
+    </extension>
+    <extension
             point="org.eclipse.help.contexts">
         <contexts
                 file="contexts.xml">

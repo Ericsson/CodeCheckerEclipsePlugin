@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.plugin.CodeCheckerNature;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -59,7 +60,7 @@ public class AddProjectNature extends AbstractHandler {
 
                     IProgressMonitor monitor = null;
                     project.setDescription(description, monitor);
-                    
+                    ConsoleFactory.consoleWrite(project.getName() + " added CodeChecker nature!");
                     logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project nature added!");
 
                 } catch (CoreException e) {

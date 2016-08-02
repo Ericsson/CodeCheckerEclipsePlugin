@@ -14,6 +14,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import cc.codechecker.plugin.init.StartupJob;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import java.net.URL;
 
@@ -76,6 +77,7 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
      */
     public void start(BundleContext context) throws Exception {
+        ConsoleFactory.consoleWrite("CodeChecker Plugin Started");
     	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator started");
         super.start(context);
 

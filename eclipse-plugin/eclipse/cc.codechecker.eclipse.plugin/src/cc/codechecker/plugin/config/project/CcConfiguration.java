@@ -23,6 +23,7 @@ import cc.codechecker.api.runtime.EnvironmentDifference;
 import cc.codechecker.api.runtime.EnvironmentDifference.ModificationAction;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import java.io.File;
 
@@ -161,7 +162,9 @@ public class CcConfiguration {
             server.setCodecheckerEnvironment(ccec);
 
             modifyProjectEnvironmentVariables(project, ccec.environmentDifference);
+            ConsoleFactory.consoleWrite(project.getName() + " complete to CodeChecker configuration and started server!");
         } catch (Exception e) {
+            ConsoleFactory.consoleWrite(project.getName() + " failed to CodeChecker configuration and started server!");
         	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
