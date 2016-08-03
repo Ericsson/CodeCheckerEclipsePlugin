@@ -12,6 +12,7 @@ import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
 import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
@@ -132,7 +133,9 @@ public class CodeCheckerContext {
                 public void built() {
                     cleanCache(project);
                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
                         public void run() {
+                            ConsoleFactory.consoleWrite(project.getName() + " to built CodeChecker Data Transport Complete!");
                             CodeCheckerContext.getInstance().refreshAfterBuild();
                         }
                     });
