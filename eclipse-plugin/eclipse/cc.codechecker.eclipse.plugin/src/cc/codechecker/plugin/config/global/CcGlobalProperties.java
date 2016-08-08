@@ -73,18 +73,14 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
 
         final ScrolledForm form = toolkit.createScrolledForm(parent);
         form.setMessage("Not CodeChecker Check!", 1);
-        GridLayout layout = new GridLayout();
-        form.getBody().setLayout(layout);
-        layout.horizontalSpacing = 20;
-        layout.verticalSpacing = 20;
+        form.getBody().setLayout(new GridLayout());
 
         Section section = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                         | ExpandableComposite.EXPANDED);
 
         final Composite client = toolkit.createComposite(section);
-        layout = new GridLayout();
-        client.setLayout(layout);
+        client.setLayout(new GridLayout(3, true));
         section.setClient(client);
         section.setText("CodeChecker Configuration");
 
@@ -93,9 +89,9 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
         codeCheckerDirectoryField = toolkit.createText(client, "");
         codeCheckerDirectoryField.setLayoutData(new GridData(GridData.FILL));
 
-        final Button browse = new Button(client, SWT.PUSH);
-        browse.setText("Browse");
-        browse.addSelectionListener(new SelectionAdapter() {
+        final Button codeCheckerDirectoryFieldBrowse = new Button(client, SWT.PUSH);
+        codeCheckerDirectoryFieldBrowse.setText("Browse");
+        codeCheckerDirectoryFieldBrowse.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
                 DirectoryDialog dlg = new DirectoryDialog(client.getShell());
                 dlg.setFilterPath(codeCheckerDirectoryField.getText());
@@ -118,6 +114,20 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
         pythonEnvLabel.setLayoutData(new GridData());
         pythonEnvField = toolkit.createText(client, "");
         pythonEnvField.setLayoutData(new GridData(GridData.FILL));
+        final Button pythonEnvFieldBrowse = new Button(client, SWT.PUSH);
+        pythonEnvFieldBrowse.setText("Browse");
+        pythonEnvFieldBrowse.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
+                dlg.setFilterPath(codeCheckerDirectoryField.getText());
+                dlg.setText("SWT's DirectoryDialog");
+                dlg.setMessage("Select a directory");
+                String dir = dlg.open();
+                if(dir != null) {
+                    pythonEnvField.setText(dir);
+                }
+            }
+        });
 
         final Button busy = toolkit.createButton(client, "Codechecker check!",
                 SWT.PUSH);

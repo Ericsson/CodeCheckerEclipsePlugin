@@ -62,29 +62,24 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
         final ScrolledForm form = toolkit.createScrolledForm(parent);
         form.setMessage("Not CodeChecker Check!", 1);
-        GridLayout layout = new GridLayout();
-        form.getBody().setLayout(layout);
-        layout.horizontalSpacing = 20;
-        layout.verticalSpacing = 20;
+        form.getBody().setLayout(new GridLayout());
 
         Section section = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                         | ExpandableComposite.EXPANDED);
 
         final Composite client = toolkit.createComposite(section);
-        layout = new GridLayout();
-        client.setLayout(layout);
+        client.setLayout(new GridLayout(3, true));
         section.setClient(client);
         section.setText("CodeChecker Configuration");
-
         Label codeCheckerDirectoryLabel = toolkit.createLabel(client, "CodeChecker package root directory");
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
         codeCheckerDirectoryField = toolkit.createText(client, "");
-        codeCheckerDirectoryField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        codeCheckerDirectoryField.setLayoutData(new GridData(GridData.FILL));
 
-        final Button browse = new Button(client, SWT.PUSH);
-        browse.setText("Browse");
-        browse.addSelectionListener(new SelectionAdapter() {
+        final Button codeCheckerDirectoryFieldBrowse = new Button(client, SWT.PUSH);
+        codeCheckerDirectoryFieldBrowse.setText("Browse");
+        codeCheckerDirectoryFieldBrowse.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
                 DirectoryDialog dlg = new DirectoryDialog(client.getShell());
                 dlg.setFilterPath(codeCheckerDirectoryField.getText());
@@ -106,7 +101,21 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         Label pythonEnvLabel = toolkit.createLabel(client, "Python virtualenv root directory (optional)");
         pythonEnvLabel.setLayoutData(new GridData());
         pythonEnvField = toolkit.createText(client, "");
-        pythonEnvField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        pythonEnvField.setLayoutData(new GridData(GridData.FILL));
+        final Button pythonEnvFieldBrowse = new Button(client, SWT.PUSH);
+        pythonEnvFieldBrowse.setText("Browse");
+        pythonEnvFieldBrowse.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
+                dlg.setFilterPath(codeCheckerDirectoryField.getText());
+                dlg.setText("SWT's DirectoryDialog");
+                dlg.setMessage("Select a directory");
+                String dir = dlg.open();
+                if(dir != null) {
+                    pythonEnvField.setText(dir);
+                }
+            }
+        });
 
         final Button busy = toolkit.createButton(client, "Codechecker check!",
                 SWT.PUSH);
