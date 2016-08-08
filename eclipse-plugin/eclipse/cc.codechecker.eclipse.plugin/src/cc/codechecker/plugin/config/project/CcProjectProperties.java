@@ -11,6 +11,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -69,7 +71,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                         | ExpandableComposite.EXPANDED);
 
-        Composite client = toolkit.createComposite(section);
+        final Composite client = toolkit.createComposite(section);
         layout = new GridLayout();
         client.setLayout(layout);
         section.setClient(client);
@@ -79,6 +81,27 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
         codeCheckerDirectoryField = toolkit.createText(client, "");
         codeCheckerDirectoryField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        final Button browse = new Button(client, SWT.PUSH);
+        browse.setText("Browse");
+        browse.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
+                dlg.setFilterPath(codeCheckerDirectoryField.getText());
+                dlg.setText("SWT's DirectoryDialog");
+                dlg.setMessage("Select a directory");
+                String dir = dlg.open();
+                if(dir != null) {
+                    codeCheckerDirectoryField.setText(dir);
+                    try {
+                        testToCodeChecker();
+                        form.setMessage("CodeChecker Directory Complete!", 1);
+                    } catch (Exception e1) {
+                        form.setMessage("CodeChecker NOT FOUND Directory!", 3);
+                    }
+                }
+            }
+        });
 
         Label pythonEnvLabel = toolkit.createLabel(client, "Python virtualenv root directory (optional)");
         pythonEnvLabel.setLayoutData(new GridData());
@@ -162,6 +185,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
     private void checkerList(CodeCheckEnvironmentChecker ccec) {
         String s = ccec.checkerList();
         String[] split = s.split("\n");
+        checkersList.clear();
         for(String it : split) {
             CheckerItem check = new CheckerItem(it.split(" ")[2]);
             if(it.split(" ")[1].equals("+")) {
