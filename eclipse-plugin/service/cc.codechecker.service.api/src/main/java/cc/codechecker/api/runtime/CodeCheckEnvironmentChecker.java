@@ -15,12 +15,13 @@ import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
-	private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
-	
+    private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
+
     public final Optional<String> pythonEnvironment;
     public final String codeCheckerParameter; // as specified by the user
     public final String codeCheckerCommand; // used by us
     public final String workspaceName;
+    public String checkerCommand;
 
     public final ImmutableMap<String, String> environmentBefore; // with specific python. This
     // can be used to run CodeChecker
@@ -29,10 +30,11 @@ public class CodeCheckEnvironmentChecker {
     public final ImmutableList<EnvironmentDifference> environmentDifference;
 
     public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment,
-            String codeCheckerParameter, String workspaceName) {
+            String codeCheckerParameter, String workspaceName, String checkerCommand) {
         this.pythonEnvironment = pythonEnvironment;
         this.codeCheckerParameter = codeCheckerParameter;
         this.workspaceName = workspaceName;
+        this.checkerCommand = checkerCommand;
 
         environmentBefore = getInitialEnvironment(pythonEnvironment);
 
@@ -56,12 +58,12 @@ public class CodeCheckEnvironmentChecker {
                 workspaceName + " -n dummy -b env | grep =");
         double test = 1;
         do {
-        	ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
+            ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
                     workspaceName + " -n dummy -b env | grep =", Math.pow( 2.0 , test ) * 1000);
-        	++test;
+            ++test;
         } while(!ccEnvOutput.isPresent() && test <= 2);
         if (!ccEnvOutput.isPresent() && test > 2) {
-        	logger.log(Level.ERROR, "Couldn't run the specified CodeChecker for " +
+            logger.log(Level.ERROR, "Couldn't run the specified CodeChecker for " +
                     "environment testing!");
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
@@ -82,7 +84,7 @@ public class CodeCheckEnvironmentChecker {
                     " ; env");
 
             if (!output.isPresent()) {
-            	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
+                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
@@ -98,7 +100,7 @@ public class CodeCheckEnvironmentChecker {
 
                     ImmutableList<EnvironmentDifference> diff = (new
                             EnvironmentDifferenceGenerator()).difference(originalEnvironment,
-                            environment);
+                                    environment);
                     if (diff.isEmpty()) {
                         //throw new RuntimeException("Python environment changes nothing:" +
                         // pythonEnvironment.get());
@@ -122,7 +124,11 @@ public class CodeCheckEnvironmentChecker {
         CodeCheckEnvironmentChecker other = (CodeCheckEnvironmentChecker) obj;
         return Objects.equals(pythonEnvironment, other.pythonEnvironment) && Objects.equals
                 (codeCheckerCommand, other.codeCheckerCommand) && Objects.equals(workspaceName,
-                other.workspaceName);
+                        other.workspaceName);
+    }
+    
+    public void setCheckerCommand(String checkerCommand) {
+        this.checkerCommand = checkerCommand;
     }
 
     public String getLogFileLocation() {
@@ -144,9 +150,9 @@ public class CodeCheckEnvironmentChecker {
     public String processLog(String fileName) { // returns the log
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ codeCheckerCommand + " check -n javarunner -w " 
-        		+ workspaceName + " -l " + fileName);
-        String cmd = codeCheckerCommand + " check -n javarunner -w " + workspaceName + " -l " +
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ codeCheckerCommand + " check " + this.checkerCommand + " -n javarunner -w " + workspaceName + " -l " +
+                fileName);
+        String cmd = codeCheckerCommand + " check " + this.checkerCommand + " -n javarunner -w " + workspaceName + " -l " +
                 fileName;
 
         Optional<String> ccOutput = she.waitReturnOutput(cmd);
@@ -156,6 +162,16 @@ public class CodeCheckEnvironmentChecker {
             File f = new File(fileName);
             f.delete();
         }
+
+        return ccOutput.or("");
+    }
+
+    public String checkerList() {
+        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+
+        String cmd = codeCheckerCommand + " checkers";
+
+        Optional<String> ccOutput = she.waitReturnOutput(cmd);
 
         return ccOutput.or("");
     }
@@ -186,12 +202,12 @@ public class CodeCheckEnvironmentChecker {
         try {
             locator = new CodeCheckerLocator(she, Optional.of(codeCheckerPath));
         } catch (IOException e) {
-        	logger.log(Level.ERROR, "SERVER_SER_MSG >> Error wile locating CodeChecker! " + e);
+            logger.log(Level.ERROR, "SERVER_SER_MSG >> Error wile locating CodeChecker! " + e);
             throw new RuntimeException("Error while locating CodeChecker!");
         }
 
         if (!locator.getRunnerCommand().isPresent()) {
-        	logger.log(Level.ERROR, "SERVER_SER_MSG >> CodeChecker not found: " + codeCheckerParameter);
+            logger.log(Level.ERROR, "SERVER_SER_MSG >> CodeChecker not found: " + codeCheckerParameter);
             throw new IllegalArgumentException("CodeChecker not found: " + codeCheckerParameter);
         }
 
