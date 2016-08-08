@@ -1,4 +1,4 @@
-package cc.codechecker.plugin.config.project;
+package cc.codechecker.plugin.config;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.IContributedEnvironment;
@@ -22,7 +22,6 @@ import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.EnvironmentDifference;
 import cc.codechecker.api.runtime.EnvironmentDifference.ModificationAction;
 import cc.codechecker.plugin.CodeCheckerNature;
-import cc.codechecker.plugin.config.CodeCheckerContext;
 
 import java.io.File;
 
@@ -113,14 +112,14 @@ public class CcConfiguration {
         }
     }
 
-    public void update(String serverUrl, String locationPrefix) {
+    public void update(String serverUrl, String locationPrefix, String checkerCommand) {
         projectPreferences.put(CODECHECKER_DIRECTORY_KEY, serverUrl);
         projectPreferences.put(PYTHON_ENV_KEY, locationPrefix);
 
         try {
             projectPreferences.flush();
 
-            updateServer(project, CodeCheckerContext.getInstance().getServerObject(project));
+            updateServer(project, CodeCheckerContext.getInstance().getServerObject(project), checkerCommand);
         } catch (BackingStoreException e) {
         }
     }
@@ -145,7 +144,7 @@ public class CcConfiguration {
         return !getServerUrl().equals("");
     }
 
-    public void updateServer(IProject project, CodecheckerServerThread server) {
+    public void updateServer(IProject project, CodecheckerServerThread server, String checkerCommand) {
 
         String location = getCodecheckerDirectory();
         try {
@@ -155,8 +154,9 @@ public class CcConfiguration {
             	dir.mkdir();
             }
             logger.log(Level.INFO, "SERVER_GUI_MSG >> Workdir : " + dir);
+            String workspaceName = dir + "/" + project.getName();
             CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getPythonEnv(),
-                    location, dir + "/" + project.getName());
+                    location, workspaceName, checkerCommand);
 
             server.setCodecheckerEnvironment(ccec);
 

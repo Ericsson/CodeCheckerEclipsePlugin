@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -73,16 +74,18 @@ public class StartupJob extends Job {
                     logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
                     try {
                         final HashSet<IProject> changedProjects = new HashSet<>();
-                        event.getDelta().accept(new IResourceDeltaVisitor() {
-                            public boolean visit(final IResourceDelta delta) throws
-                            CoreException {
-                                IResource resource = delta.getResource();
-                                changedProjects.add(resource.getProject());
-                                return true;
+                        if(event.getBuildKind() != IncrementalProjectBuilder.CLEAN_BUILD) {
+                            event.getDelta().accept(new IResourceDeltaVisitor() {
+                                public boolean visit(final IResourceDelta delta) throws
+                                CoreException {
+                                    IResource resource = delta.getResource();
+                                    changedProjects.add(resource.getProject());
+                                    return true;
+                                }
+                            });
+                            for (IProject p : changedProjects) {
+                                onProjectBuilt(p);
                             }
-                        });
-                        for (IProject p : changedProjects) {
-                            onProjectBuilt(p);
                         }
                     } catch (CoreException e) {
                         // TODO Auto-generated catch block
