@@ -17,7 +17,7 @@ public class CmdLineCcEnvTest {
         try {
 
             CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(Optional.of
-                    ("/home/dutow/checker_env"), location, "/home/dutow/codechecker_workspace");
+                    ("/home/dutow/checker_env"), location, "/home/dutow/codechecker_workspace", "");
 
             System.out.println("Environment changes");
             System.out.println("===================");

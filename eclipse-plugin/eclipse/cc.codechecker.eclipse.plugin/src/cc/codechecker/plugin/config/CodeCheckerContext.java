@@ -10,7 +10,6 @@ import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchRequest;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
-import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
 import cc.codechecker.plugin.views.report.list.ReportListView;
@@ -142,7 +141,7 @@ public class CodeCheckerContext {
                 }
             });
             CcConfiguration config = new CcConfiguration(project);
-            config.updateServer(project, serverObj);
+            config.updateServer(project, serverObj, "");
             servers.put(project, serverObj);
         }
         return servers.get(project);

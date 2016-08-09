@@ -13,7 +13,7 @@ import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.job.report.list.SearchList;
 import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchListener;
-import cc.codechecker.plugin.config.project.CcConfiguration;
+import cc.codechecker.plugin.config.CcConfiguration;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
