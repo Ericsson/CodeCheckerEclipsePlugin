@@ -133,7 +133,7 @@ public class CodeCheckerContext {
                     cleanCache(project);
                     Display.getDefault().asyncExec(new Runnable() {
                         public void run() {
-                            CodeCheckerContext.getInstance().refreshAfterBuild();
+                            CodeCheckerContext.getInstance().refreshAfterBuild(project);
                         }
                     });
                 }
@@ -151,7 +151,7 @@ public class CodeCheckerContext {
     }
 
 
-    public void refreshAfterBuild() {
+    public void refreshAfterBuild(final IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
@@ -162,20 +162,9 @@ public class CodeCheckerContext {
         IWorkbenchPage[] pages = activeWindow.getPages();
 
         //All Files Refreshing!
-        if(activeWindow.getSelectionService() == null) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> activeWindow getSelectionService is null!");
-        } else {
-            IStructuredSelection selection = (IStructuredSelection) activeWindow.getSelectionService().getSelection();
-            if(selection != null) {
-                Object firstElement = selection.getFirstElement();
-                if (firstElement instanceof IAdaptable) {
-                    IProject project = (IProject)((IAdaptable)firstElement).getAdapter(IProject.class);
-                    this.refreshProject(pages, project, false);
-                    this.refreshCustom(pages, project, "", false);
-                    this.activeProject = project;
-                }
-            }
-        }
+        this.refreshProject(pages, project, false);
+        this.refreshCustom(pages, project, "", false);
+        this.activeProject = project;
 
         //Current File Refreshing!
         IWorkbenchPage activePage = activeWindow.getActivePage();
@@ -194,7 +183,9 @@ public class CodeCheckerContext {
 
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-        IProject project = file.getProject();
+        if(project != file.getProject()) {
+            return;
+        }
 
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) {
