@@ -15,16 +15,15 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 
 import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.EnvironmentDifference;
-import cc.codechecker.api.runtime.EnvironmentDifference.ModificationAction;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -57,15 +56,31 @@ public class CcConfiguration {
         }
     }
 
-    public static void modifyProjectEnvironmentVariables(IProject project,
-            ImmutableList<EnvironmentDifference> env) {
+    public void modifyProjectEnvironmentVariables(final IProject project, final File dir) {
         IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
                 .getContributedEnvironment();
         ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true);
         ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
-
-        for (EnvironmentDifference ed : env) {
-            ice.addVariable(ed.variableName, ed.parameter, toVariableAction(ed.action), "", cfgd);
+        final String location = getCodecheckerDirectory();
+        Map<String, String> environmentAdd = new HashMap<String, String>(){{
+            put("LD_LIBRARY_PATH", location + "/ld_logger/lib");
+            put("_", location + "/bin/CodeChecker");
+            put("CC_LOGGER_GCC_LIKE", "gcc:g++:clang:cc:c++");
+            put("LD_PRELOAD","ldlogger.so");
+            put("CC_LOGGER_FILE", dir.toString() + "/" + project.getName() + "/compilation_commands.json.javarunner");
+            put("CC_LOGGER_BIN", location + "/bin/ldlogger");
+        }};
+        if(getPythonEnv().isPresent()) {
+            String pythonEnvironment = getPythonEnv().get();
+            environmentAdd.put("PATH", pythonEnvironment + "/bin:");
+            environmentAdd.put("VIRTUAL_ENV", pythonEnvironment);
+        }
+        for(String key : environmentAdd.keySet()) {
+            if(key.equals("PATH")) {
+                ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_PREPEND,"", cfgd);
+            } else {
+                ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_REPLACE,"", cfgd);
+            }
         }
 
         try {
@@ -74,22 +89,6 @@ public class CcConfiguration {
         	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
-    }
-
-    private static int toVariableAction(ModificationAction action) {
-        switch (action) {
-            case ADD:
-                return IEnvironmentVariable.ENVVAR_REPLACE;
-            case REPLACE:
-                return IEnvironmentVariable.ENVVAR_REPLACE;
-            case APPEND:
-                return IEnvironmentVariable.ENVVAR_APPEND;
-            case PREPEND:
-                return IEnvironmentVariable.ENVVAR_PREPEND;
-            case REMOVE:
-                return IEnvironmentVariable.ENVVAR_REMOVE;
-        }
-        return IEnvironmentVariable.ENVVAR_REPLACE;
     }
 
     public String getServerUrl() {
@@ -109,6 +108,7 @@ public class CcConfiguration {
         if (s.isEmpty()) {
             return Optional.absent();
         } else {
+            s = s.replaceAll("/bin/activate", "").replaceAll("/bin", "");
             return Optional.of(s);
         }
     }
@@ -160,7 +160,7 @@ public class CcConfiguration {
 
             server.setCodecheckerEnvironment(ccec);
 
-            modifyProjectEnvironmentVariables(project, ccec.environmentDifference);
+            modifyProjectEnvironmentVariables(project, dir);
         } catch (Exception e) {
         	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
         	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());

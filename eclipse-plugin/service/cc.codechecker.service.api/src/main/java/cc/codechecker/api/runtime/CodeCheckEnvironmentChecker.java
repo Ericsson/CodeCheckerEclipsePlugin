@@ -25,8 +25,6 @@ public class CodeCheckEnvironmentChecker {
     public final ImmutableMap<String, String> environmentBefore; // with specific python. This
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentDuringChecks; // this can be added to
-    // the build processes
-    public final ImmutableList<EnvironmentDifference> environmentDifference;
 
     public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment,
             String codeCheckerParameter, String workspaceName) {
@@ -35,14 +33,10 @@ public class CodeCheckEnvironmentChecker {
         this.workspaceName = workspaceName;
 
         environmentBefore = getInitialEnvironment(pythonEnvironment);
-
         codeCheckerCommand = getCodeCheckerCommand(environmentBefore, codeCheckerParameter);
 
         environmentDuringChecks = modifyLogfileName(getCheckerEnvironment(environmentBefore,
                 codeCheckerCommand, workspaceName));
-        EnvironmentDifferenceGenerator gen = new EnvironmentDifferenceGenerator();
-        environmentDifference = (gen).difference(getInitialEnvironment(Optional.<String>absent())
-                , environmentDuringChecks);
     }
 
     private static ImmutableMap<String, String> getCheckerEnvironment(
@@ -75,10 +69,7 @@ public class CodeCheckEnvironmentChecker {
         if (pythonEnvironment.isPresent()) {
             ShellExecutorHelper she = new ShellExecutorHelper(System.getenv());
 
-            if (!pythonEnvironment.get().endsWith("/bin/activate")) {
-                pythonEnvironment = Optional.of(pythonEnvironment.get() + "/bin/activate");
-            }
-            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() +
+            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() + "/bin/activate" + 
                     " ; env");
 
             if (!output.isPresent()) {
@@ -87,24 +78,6 @@ public class CodeCheckEnvironmentChecker {
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
                         .get());
-
-                if (pythonEnvironment.isPresent()) {
-                    // sanity check
-                    ShellExecutorHelper originalEnv = new ShellExecutorHelper(System.getenv());
-                    Optional<String> originalOutput = she.quickReturnOutput("source " +
-                            pythonEnvironment.get() + " ; env");
-                    ImmutableMap<String, String> originalEnvironment = (new EnvironmentParser())
-                            .parse(originalOutput.get());
-
-                    ImmutableList<EnvironmentDifference> diff = (new
-                            EnvironmentDifferenceGenerator()).difference(originalEnvironment,
-                            environment);
-                    if (diff.isEmpty()) {
-                        //throw new RuntimeException("Python environment changes nothing:" +
-                        // pythonEnvironment.get());
-                    }
-                }
-
                 return environment;
             }
 
