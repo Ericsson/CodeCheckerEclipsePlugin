@@ -15,8 +15,8 @@ import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
-    private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
-
+	private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
+	
     public final Optional<String> pythonEnvironment;
     public final String codeCheckerParameter; // as specified by the user
     public final String codeCheckerCommand; // used by us
@@ -26,8 +26,6 @@ public class CodeCheckEnvironmentChecker {
     public final ImmutableMap<String, String> environmentBefore; // with specific python. This
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentDuringChecks; // this can be added to
-    // the build processes
-    public final ImmutableList<EnvironmentDifference> environmentDifference;
 
     public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment,
             String codeCheckerParameter, String workspaceName, String checkerCommand) {
@@ -37,14 +35,10 @@ public class CodeCheckEnvironmentChecker {
         this.checkerCommand = checkerCommand;
 
         environmentBefore = getInitialEnvironment(pythonEnvironment);
-
         codeCheckerCommand = getCodeCheckerCommand(environmentBefore, codeCheckerParameter);
 
         environmentDuringChecks = modifyLogfileName(getCheckerEnvironment(environmentBefore,
                 codeCheckerCommand, workspaceName));
-        EnvironmentDifferenceGenerator gen = new EnvironmentDifferenceGenerator();
-        environmentDifference = (gen).difference(getInitialEnvironment(Optional.<String>absent())
-                , environmentDuringChecks);
     }
 
     private static ImmutableMap<String, String> getCheckerEnvironment(
@@ -58,12 +52,12 @@ public class CodeCheckEnvironmentChecker {
                 workspaceName + " -n dummy -b env | grep =");
         double test = 1;
         do {
-            ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
+        	ccEnvOutput = she.quickReturnOutput(codeCheckerCommand + " check -w " +
                     workspaceName + " -n dummy -b env | grep =", Math.pow( 2.0 , test ) * 1000);
-            ++test;
+        	++test;
         } while(!ccEnvOutput.isPresent() && test <= 2);
         if (!ccEnvOutput.isPresent() && test > 2) {
-            logger.log(Level.ERROR, "Couldn't run the specified CodeChecker for " +
+        	logger.log(Level.ERROR, "Couldn't run the specified CodeChecker for " +
                     "environment testing!");
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
@@ -77,36 +71,15 @@ public class CodeCheckEnvironmentChecker {
         if (pythonEnvironment.isPresent()) {
             ShellExecutorHelper she = new ShellExecutorHelper(System.getenv());
 
-            if (!pythonEnvironment.get().endsWith("/bin/activate")) {
-                pythonEnvironment = Optional.of(pythonEnvironment.get() + "/bin/activate");
-            }
-            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() +
+            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() + "/bin/activate" + 
                     " ; env");
 
             if (!output.isPresent()) {
-                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
+            	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
                         .get());
-
-                if (pythonEnvironment.isPresent()) {
-                    // sanity check
-                    ShellExecutorHelper originalEnv = new ShellExecutorHelper(System.getenv());
-                    Optional<String> originalOutput = she.quickReturnOutput("source " +
-                            pythonEnvironment.get() + " ; env");
-                    ImmutableMap<String, String> originalEnvironment = (new EnvironmentParser())
-                            .parse(originalOutput.get());
-
-                    ImmutableList<EnvironmentDifference> diff = (new
-                            EnvironmentDifferenceGenerator()).difference(originalEnvironment,
-                                    environment);
-                    if (diff.isEmpty()) {
-                        //throw new RuntimeException("Python environment changes nothing:" +
-                        // pythonEnvironment.get());
-                    }
-                }
-
                 return environment;
             }
 
@@ -202,12 +175,12 @@ public class CodeCheckEnvironmentChecker {
         try {
             locator = new CodeCheckerLocator(she, Optional.of(codeCheckerPath));
         } catch (IOException e) {
-            logger.log(Level.ERROR, "SERVER_SER_MSG >> Error wile locating CodeChecker! " + e);
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> Error wile locating CodeChecker! " + e);
             throw new RuntimeException("Error while locating CodeChecker!");
         }
 
         if (!locator.getRunnerCommand().isPresent()) {
-            logger.log(Level.ERROR, "SERVER_SER_MSG >> CodeChecker not found: " + codeCheckerParameter);
+        	logger.log(Level.ERROR, "SERVER_SER_MSG >> CodeChecker not found: " + codeCheckerParameter);
             throw new IllegalArgumentException("CodeChecker not found: " + codeCheckerParameter);
         }
 
