@@ -12,7 +12,7 @@
     </extension>
     <extension point="org.eclipse.ui.propertyPages">
         <page
-                class="cc.codechecker.plugin.config.project.CcProperties"
+                class="cc.codechecker.plugin.config.project.CcProjectProperties"
                 id="cc.codechecker.plugin.config.ccProperties"
                 name="CodeChecker">
             <enabledWhen>
@@ -21,6 +21,12 @@
                           value="cc.codechecker.plugin.CodeCheckerNature"/>
                 </adapt>
             </enabledWhen>
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.preferencePages">
+        <page id="CcConfiguration"
+            name="CodeChecker Configuration"
+            class="cc.codechecker.plugin.config.global.CcGlobalProperties">
         </page>
     </extension>
     <extension point="org.eclipse.ui.menus">
@@ -82,6 +88,14 @@
                 class="cc.codechecker.plugin.views.report.list.ReportListViewCustom"
                 id="cc.codechecker.plugin.views.ReportListViewCustom">
         </view>
+    </extension>
+    <extension
+        point="org.eclipse.ui.console.consoleFactories">
+        <consoleFactory
+             class="cc.codechecker.plugin.views.console.ConsoleFactory"
+             icon="icons/sample.gif"
+             label="CodeChecker Console">
+        </consoleFactory>
     </extension>
     <extension
             point="org.eclipse.help.contexts">

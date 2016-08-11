@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -23,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -73,16 +75,18 @@ public class StartupJob extends Job {
                     logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built!");
                     try {
                         final HashSet<IProject> changedProjects = new HashSet<>();
-                        event.getDelta().accept(new IResourceDeltaVisitor() {
-                            public boolean visit(final IResourceDelta delta) throws
-                            CoreException {
-                                IResource resource = delta.getResource();
-                                changedProjects.add(resource.getProject());
-                                return true;
+                        if(event.getBuildKind() != IncrementalProjectBuilder.CLEAN_BUILD) {
+                            event.getDelta().accept(new IResourceDeltaVisitor() {
+                                public boolean visit(final IResourceDelta delta) throws
+                                CoreException {
+                                    IResource resource = delta.getResource();
+                                    changedProjects.add(resource.getProject());
+                                    return true;
+                                }
+                            });
+                            for (IProject p : changedProjects) {
+                                onProjectBuilt(p);
                             }
-                        });
-                        for (IProject p : changedProjects) {
-                            onProjectBuilt(p);
                         }
                     } catch (CoreException e) {
                         // TODO Auto-generated catch block
@@ -132,7 +136,8 @@ public class StartupJob extends Job {
 
     private void onProjectBuilt(IProject project) {
         if (project == null) return;
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project changed event!");
+        ConsoleFactory.consoleWrite(project.getName() + " CodeChecker Check Data Transport Started!"); 
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + project.getName() + " CodeChecker Check Data Transport Started!");
         try {
             if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
                 return;
@@ -145,10 +150,11 @@ public class StartupJob extends Job {
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
         if (project.isOpen()) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project built event! - good natured!");
             if (!server.isRunning()) server.start(); // ensure started!
             server.recheck();
         }
+        ConsoleFactory.consoleWrite(project.getName() + " CodeChecker Check Data Transport Complete!"); 
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + project.getName() + " CodeChecker Check Data Transport Complete!");
     }
 
     private void projectOpened(IProject project) {

@@ -21,28 +21,24 @@ public class CodeCheckEnvironmentChecker {
     public final String codeCheckerParameter; // as specified by the user
     public final String codeCheckerCommand; // used by us
     public final String workspaceName;
+    public String checkerCommand;
 
     public final ImmutableMap<String, String> environmentBefore; // with specific python. This
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentDuringChecks; // this can be added to
-    // the build processes
-    public final ImmutableList<EnvironmentDifference> environmentDifference;
 
     public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment,
-            String codeCheckerParameter, String workspaceName) {
+            String codeCheckerParameter, String workspaceName, String checkerCommand) {
         this.pythonEnvironment = pythonEnvironment;
         this.codeCheckerParameter = codeCheckerParameter;
         this.workspaceName = workspaceName;
+        this.checkerCommand = checkerCommand;
 
         environmentBefore = getInitialEnvironment(pythonEnvironment);
-
         codeCheckerCommand = getCodeCheckerCommand(environmentBefore, codeCheckerParameter);
 
         environmentDuringChecks = modifyLogfileName(getCheckerEnvironment(environmentBefore,
                 codeCheckerCommand, workspaceName));
-        EnvironmentDifferenceGenerator gen = new EnvironmentDifferenceGenerator();
-        environmentDifference = (gen).difference(getInitialEnvironment(Optional.<String>absent())
-                , environmentDuringChecks);
     }
 
     private static ImmutableMap<String, String> getCheckerEnvironment(
@@ -75,10 +71,7 @@ public class CodeCheckEnvironmentChecker {
         if (pythonEnvironment.isPresent()) {
             ShellExecutorHelper she = new ShellExecutorHelper(System.getenv());
 
-            if (!pythonEnvironment.get().endsWith("/bin/activate")) {
-                pythonEnvironment = Optional.of(pythonEnvironment.get() + "/bin/activate");
-            }
-            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() +
+            Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() + "/bin/activate" + 
                     " ; env");
 
             if (!output.isPresent()) {
@@ -87,24 +80,6 @@ public class CodeCheckEnvironmentChecker {
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
                         .get());
-
-                if (pythonEnvironment.isPresent()) {
-                    // sanity check
-                    ShellExecutorHelper originalEnv = new ShellExecutorHelper(System.getenv());
-                    Optional<String> originalOutput = she.quickReturnOutput("source " +
-                            pythonEnvironment.get() + " ; env");
-                    ImmutableMap<String, String> originalEnvironment = (new EnvironmentParser())
-                            .parse(originalOutput.get());
-
-                    ImmutableList<EnvironmentDifference> diff = (new
-                            EnvironmentDifferenceGenerator()).difference(originalEnvironment,
-                            environment);
-                    if (diff.isEmpty()) {
-                        //throw new RuntimeException("Python environment changes nothing:" +
-                        // pythonEnvironment.get());
-                    }
-                }
-
                 return environment;
             }
 
@@ -122,7 +97,11 @@ public class CodeCheckEnvironmentChecker {
         CodeCheckEnvironmentChecker other = (CodeCheckEnvironmentChecker) obj;
         return Objects.equals(pythonEnvironment, other.pythonEnvironment) && Objects.equals
                 (codeCheckerCommand, other.codeCheckerCommand) && Objects.equals(workspaceName,
-                other.workspaceName);
+                        other.workspaceName);
+    }
+    
+    public void setCheckerCommand(String checkerCommand) {
+        this.checkerCommand = checkerCommand;
     }
 
     public String getLogFileLocation() {
@@ -144,9 +123,9 @@ public class CodeCheckEnvironmentChecker {
     public String processLog(String fileName) { // returns the log
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ codeCheckerCommand + " check -n javarunner -w " 
-        		+ workspaceName + " -l " + fileName);
-        String cmd = codeCheckerCommand + " check -n javarunner -w " + workspaceName + " -l " +
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ codeCheckerCommand + " check " + this.checkerCommand + " -n javarunner -w " + workspaceName + " -l " +
+                fileName);
+        String cmd = codeCheckerCommand + " check " + this.checkerCommand + " -n javarunner -w " + workspaceName + " -l " +
                 fileName;
 
         Optional<String> ccOutput = she.waitReturnOutput(cmd);
@@ -156,6 +135,16 @@ public class CodeCheckEnvironmentChecker {
             File f = new File(fileName);
             f.delete();
         }
+
+        return ccOutput.or("");
+    }
+
+    public String checkerList() {
+        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+
+        String cmd = codeCheckerCommand + " checkers";
+
+        Optional<String> ccOutput = she.waitReturnOutput(cmd);
 
         return ccOutput.or("");
     }

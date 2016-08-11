@@ -10,8 +10,8 @@ import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchRequest;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckedCallback;
-import cc.codechecker.plugin.config.project.CcConfiguration;
 import cc.codechecker.plugin.markers.MarkerListener;
+import cc.codechecker.plugin.views.console.ConsoleFactory;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
@@ -132,8 +132,10 @@ public class CodeCheckerContext {
                 public void built() {
                     cleanCache(project);
                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
                         public void run() {
-                            CodeCheckerContext.getInstance().refreshAfterBuild();
+                            ConsoleFactory.consoleWrite(project.getName() + " to built CodeChecker Data Transport Complete!");
+                            CodeCheckerContext.getInstance().refreshAfterBuild(project);
                         }
                     });
                 }
@@ -151,7 +153,7 @@ public class CodeCheckerContext {
     }
 
 
-    public void refreshAfterBuild() {
+    public void refreshAfterBuild(final IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
@@ -162,20 +164,9 @@ public class CodeCheckerContext {
         IWorkbenchPage[] pages = activeWindow.getPages();
 
         //All Files Refreshing!
-        if(activeWindow.getSelectionService() == null) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> activeWindow getSelectionService is null!");
-        } else {
-            IStructuredSelection selection = (IStructuredSelection) activeWindow.getSelectionService().getSelection();
-            if(selection != null) {
-                Object firstElement = selection.getFirstElement();
-                if (firstElement instanceof IAdaptable) {
-                    IProject project = (IProject)((IAdaptable)firstElement).getAdapter(IProject.class);
-                    this.refreshProject(pages, project, false);
-                    this.refreshCustom(pages, project, "", false);
-                    this.activeProject = project;
-                }
-            }
-        }
+        this.refreshProject(pages, project, false);
+        this.refreshCustom(pages, project, "", false);
+        this.activeProject = project;
 
         //Current File Refreshing!
         IWorkbenchPage activePage = activeWindow.getActivePage();
@@ -194,7 +185,9 @@ public class CodeCheckerContext {
 
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-        IProject project = file.getProject();
+        if(project != file.getProject()) {
+            return;
+        }
 
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) {
