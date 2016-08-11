@@ -105,7 +105,7 @@ public class CheckerView extends Dialog {
     }
 
     private void createItemsTable() {
-        this.itemsTable = createTable("Not Selection Items");
+        this.itemsTable = createTable("Disabled checkers");
         this.itemsTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDoubleClick(final MouseEvent event) {
@@ -141,7 +141,7 @@ public class CheckerView extends Dialog {
     }
 
     private void createSelectionTable() {
-        selectionTable = createTable("Selection Items");
+        selectionTable = createTable("Enabled checkers");
         selectionTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDoubleClick(final MouseEvent event) {
