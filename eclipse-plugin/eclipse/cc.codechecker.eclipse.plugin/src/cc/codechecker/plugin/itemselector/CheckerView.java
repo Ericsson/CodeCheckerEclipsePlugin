@@ -61,12 +61,7 @@ public class CheckerView extends Dialog {
         for(CheckerItem it : deselection) {
             result.add(new CheckerItem(it.getText(), it.getLastAction()));
         }
-        Collections.sort(result, new Comparator<CheckerItem>() {
-            @Override
-            public int compare(CheckerItem o1, CheckerItem o2) {
-                return o1.getText().compareTo(o2.getText());
-            }
-        });
+        Collections.sort(result);
         return result;
     }
     

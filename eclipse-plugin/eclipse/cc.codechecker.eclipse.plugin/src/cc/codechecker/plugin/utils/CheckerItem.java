@@ -1,6 +1,6 @@
 package cc.codechecker.plugin.utils;
 
-public class CheckerItem {
+public class CheckerItem implements Comparable<CheckerItem>{
 
     public enum LAST_ACTION {
         NONE, SELECTION, DESELECTION
@@ -37,6 +37,11 @@ public class CheckerItem {
             return this.text.equals(ci.getText()) && this.lastAction.equals(ci.getLastAction());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(CheckerItem o) {
+        return this.text.compareTo(o.getText());
     }
 }
 

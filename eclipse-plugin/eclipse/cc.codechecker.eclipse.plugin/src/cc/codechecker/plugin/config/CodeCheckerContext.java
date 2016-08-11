@@ -141,7 +141,7 @@ public class CodeCheckerContext {
                 }
             });
             CcConfiguration config = new CcConfiguration(project);
-            config.updateServer(project, serverObj, "");
+            config.updateServer(project, serverObj);
             servers.put(project, serverObj);
         }
         return servers.get(project);

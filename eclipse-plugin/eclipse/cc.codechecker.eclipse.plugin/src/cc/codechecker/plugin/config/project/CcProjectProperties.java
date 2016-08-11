@@ -12,8 +12,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
@@ -38,23 +40,27 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 
 public class CcProjectProperties extends PropertyPage implements IWorkbenchPropertyPage {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(CcProjectProperties.class);
-	
+    //Logger
+    private static final Logger logger = LogManager.getLogger(CcProjectProperties.class);
+
     IProject project;
     private Text codeCheckerDirectoryField;
     private Text pythonEnvField;
     private ArrayList<CheckerItem> checkersList = new ArrayList<>();
-    private ArrayList<CheckerItem> diffCheckersList = new ArrayList<>();
+    private ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
+    private String checkercommand = "";
 
     @Override
     protected Control createContents(Composite parent) {
@@ -66,7 +72,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
         Section section = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
-                        | ExpandableComposite.EXPANDED);
+                | ExpandableComposite.EXPANDED);
 
         final Composite client = toolkit.createComposite(section);
         client.setLayout(new GridLayout(3, true));
@@ -76,6 +82,17 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
         codeCheckerDirectoryField = toolkit.createText(client, "");
         codeCheckerDirectoryField.setLayoutData(new GridData(GridData.FILL));
+        codeCheckerDirectoryField.addListener(SWT.FocusOut, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                try {
+                    testToCodeChecker();
+                    form.setMessage("CodeChecker package directory is valid!", 1);
+                } catch (Exception e1) {
+                    form.setMessage("CodeChecker package directory is invalid!", 3);
+                }
+            }
+        });
 
         final Button codeCheckerDirectoryFieldBrowse = new Button(client, SWT.PUSH);
         codeCheckerDirectoryFieldBrowse.setText("Browse");
@@ -90,9 +107,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
                     codeCheckerDirectoryField.setText(dir);
                     try {
                         testToCodeChecker();
-                        form.setMessage("CodeChecker Directory Complete!", 1);
+                        form.setMessage("CodeChecker package directory is valid!", 1);
                     } catch (Exception e1) {
-                        form.setMessage("CodeChecker NOT FOUND Directory!", 3);
+                        form.setMessage("CodeChecker package directory is invalid!", 3);
                     }
                 }
             }
@@ -117,20 +134,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             }
         });
 
-        final Button busy = toolkit.createButton(client, "Codechecker check!",
-                SWT.PUSH);
-        busy.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                try {
-                    testToCodeChecker();
-                    form.setMessage("CodeChecker Directory Complete!", 1);
-                } catch (Exception e1) {
-                    form.setMessage("CodeChecker NOT FOUND Directory!", 3);
-                }
-            }
-        });
-
-        final Button checkers = toolkit.createButton(client, "Checkers!", SWT.PUSH);
+        final Button checkers = toolkit.createButton(client, "Checker configuration!", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 
             public void widgetSelected(SelectionEvent e) {
@@ -151,18 +155,22 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
                 action.run();
             }
         });
-        
-        load();
+
+        load(form);
         return form.getBody();
     }
 
     protected void diffCheckersList(List<CheckerItem> chl) {
-        diffCheckersList.clear();
+        Collections.sort(defaultCheckersList);
+        StringBuilder sb = new StringBuilder();
         for(int i = 0; i < chl.size(); ++i) {
-            if(!chl.get(i).equals(checkersList.get(i))) {
-                diffCheckersList.add(chl.get(i));
+            if(!chl.get(i).equals(defaultCheckersList.get(i))) {
+                sb.append(chl.get(i).getLastAction() == LAST_ACTION.SELECTION ? 
+                        " -e " + chl.get(i).getText() + " " : 
+                        " -d " + chl.get(i).getText() + " ");
             }
         }
+        this.checkercommand = sb.toString();
         checkersList.clear();
         checkersList.addAll(chl);
     }
@@ -190,26 +198,41 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             throw e;
         }
     }
-    
+
     private void checkerList(CodeCheckEnvironmentChecker ccec) {
+        //Clear default list
+        defaultCheckersList.clear();
+        // new Checkers List
         String s = ccec.checkerList();
-        String[] split = s.split("\n");
-        checkersList.clear();
-        for(String it : split) {
+        String[] newCheckersSplit = s.split("\n");
+        this.checkersList.clear();
+        // old Checkers Command
+        String[] checkersCommand = checkercommand.split(" ");
+        List<String> oldCheckersCommand = Arrays.asList(checkersCommand);
+        for(String it : newCheckersSplit) {
+            CheckerItem defaultCheck = new CheckerItem(it.split(" ")[2]);
             CheckerItem check = new CheckerItem(it.split(" ")[2]);
             if(it.split(" ")[1].equals("+")) {
-                check.setLastAction(LAST_ACTION.SELECTION);
+                defaultCheck.setLastAction(LAST_ACTION.SELECTION);
+                this.defaultCheckersList.add(defaultCheck);
+                if(oldCheckersCommand.contains(it.split(" ")[2]) && 
+                        !oldCheckersCommand.contains(" -e "+ it.split(" ")[2])) {
+                    check.setLastAction(LAST_ACTION.DESELECTION);
+                } else {
+                    check.setLastAction(LAST_ACTION.SELECTION);
+                }
             } else {
-                check.setLastAction(LAST_ACTION.DESELECTION);
+                defaultCheck.setLastAction(LAST_ACTION.DESELECTION);
+                this.defaultCheckersList.add(defaultCheck);
+                if(oldCheckersCommand.contains(it.split(" ")[2]) && 
+                        !oldCheckersCommand.contains(" -d "+ it.split(" ")[2])) {
+                    check.setLastAction(LAST_ACTION.SELECTION);
+                } else {
+                    check.setLastAction(LAST_ACTION.DESELECTION);
+                }
             }
             checkersList.add(check);
         }
-        Collections.sort(checkersList, new Comparator<CheckerItem>() {
-            @Override
-            public int compare(CheckerItem o1, CheckerItem o2) {
-                return o1.getText().compareTo(o2.getText());
-            }
-        });
     }
 
     private CcConfiguration getConfiguration() {
@@ -217,24 +240,23 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         return new CcConfiguration(project);
     }
 
-    public void load() {
+    public void load(ScrolledForm form) {
         CcConfiguration ccc = getConfiguration();
-
         codeCheckerDirectoryField.setText(ccc.getCodecheckerDirectory());
         pythonEnvField.setText(ccc.getPythonEnv().or(""));
+        checkercommand = ccc.getCheckerCommand();
+        try {
+            testToCodeChecker();
+            form.setMessage("CodeChecker package directory is valid!", 1);
+        } catch (Exception e1) {
+            form.setMessage("CodeChecker package directory is invalid!", 3);
+        }
     }
 
     public void save() {
         CcConfiguration ccc = getConfiguration();
-        StringBuilder sb = new StringBuilder();
-        for(CheckerItem ci : diffCheckersList) {
-            if(ci.getLastAction() == LAST_ACTION.SELECTION) {
-                sb.append(" -e " + ci.getText() + " ");
-            } else {
-                sb.append(" -d " + ci.getText() + " ");
-            }
-        }
-        ccc.update(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), sb.toString());
+        System.out.println(checkercommand);
+        ccc.update(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand);
     }
 
     @Override
@@ -244,7 +266,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
     @Override
     public boolean performOk() {
-    	logger.log(Level.INFO, "SERVER_GUI_MSG >> Saving!");
+        logger.log(Level.INFO, "SERVER_GUI_MSG >> Saving!");
         save();
         return super.performOk();
     }

@@ -21,6 +21,7 @@ import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
+import cc.codechecker.plugin.utils.CheckerItem;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import java.io.File;
@@ -33,14 +34,15 @@ import org.apache.log4j.LogManager;
 
 public class CcConfiguration {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(CcConfiguration.class);
-	
-    public static String CODECHECKER_DIRECTORY_KEY = "server_url";
-    public static String PYTHON_ENV_KEY = "location_prefix";
+    //Logger
+    private static final Logger logger = LogManager.getLogger(CcConfiguration.class);
+
+    public String CODECHECKER_DIRECTORY_KEY = "server_url";
+    public String PYTHON_ENV_KEY = "location_prefix";
     static CodecheckerServerThread ct = null;
     IProject project;
     IEclipsePreferences projectPreferences;
+    public String CHECKER_COMMAND = "checker_command";
 
     public CcConfiguration(IProject project) {
         super();
@@ -53,8 +55,8 @@ public class CcConfiguration {
                 projectPreferences = context.getNode(CodeCheckerNature.NATURE_ID);
             }
         } catch (CoreException e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
@@ -88,8 +90,8 @@ public class CcConfiguration {
         try {
             CoreModel.getDefault().setProjectDescription(project, prjd);
         } catch (CoreException e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
@@ -115,14 +117,19 @@ public class CcConfiguration {
         }
     }
 
+    public String getCheckerCommand() {
+        return projectPreferences.get(CHECKER_COMMAND, "");
+    }
+
     public void update(String serverUrl, String locationPrefix, String checkerCommand) {
         projectPreferences.put(CODECHECKER_DIRECTORY_KEY, serverUrl);
         projectPreferences.put(PYTHON_ENV_KEY, locationPrefix);
+        projectPreferences.put(CHECKER_COMMAND, checkerCommand);
 
         try {
             projectPreferences.flush();
 
-            updateServer(project, CodeCheckerContext.getInstance().getServerObject(project), checkerCommand);
+            updateServer(project, CodeCheckerContext.getInstance().getServerObject(project));
         } catch (BackingStoreException e) {
         }
     }
@@ -147,19 +154,20 @@ public class CcConfiguration {
         return !getServerUrl().equals("");
     }
 
-    public void updateServer(IProject project, CodecheckerServerThread server, String checkerCommand) {
+    public void updateServer(IProject project, CodecheckerServerThread server) {
 
         String location = getCodecheckerDirectory();
         try {
             File dir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
-                	+ "/.codechecker/");
+                    + "/.codechecker/");
             if(!dir.exists()) {
-            	dir.mkdir();
+                dir.mkdir();
             }
             logger.log(Level.INFO, "SERVER_GUI_MSG >> Workdir : " + dir);
             String workspaceName = dir + "/" + project.getName();
+            System.out.println(getCheckerCommand());
             CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getPythonEnv(),
-                    location, workspaceName, checkerCommand);
+                    location, workspaceName, getCheckerCommand());
 
             server.setCodecheckerEnvironment(ccec);
 
@@ -167,8 +175,8 @@ public class CcConfiguration {
             ConsoleFactory.consoleWrite(project.getName() + " complete to CodeChecker configuration and started server!");
         } catch (Exception e) {
             ConsoleFactory.consoleWrite(project.getName() + " failed to CodeChecker configuration and started server!");
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 
