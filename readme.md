@@ -1,5 +1,6 @@
 # About
 
+[![Build Status](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin.svg?branch=master)](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin)
 This is an Eclipse plugin for the [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker).  
 
 # Requirements
@@ -57,10 +58,11 @@ The plugin is activated on a per project basis, first you have to add the CodeCh
 
 ![CodeChecker Nature Add](docs/nature.png)
 
-#### 3. Configure CodeChecker
+#### 3. Configure CodeChecker and checkers
 After that, the settings can be customized in the project preferences window under the CodeChecker panel. For the plugin to work correctly, it is mandatory to add the correct path to the root of the CodeChecker package.
 
 ![CodeChecker Configure](docs/config.png)
+![CodeChecker Checkers Configure](docs/checkershow.png)
 
 After the plugin is successfully configured for a project, it'll listen to build events, and automatically rechecks the project with CodeChecker when needed.
 
