@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -22,7 +21,6 @@ import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
-import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
@@ -31,7 +29,6 @@ import com.google.common.base.Optional;
 
 import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.config.CcConfiguration;
-import cc.codechecker.plugin.config.global.CcGlobalProperties;
 import cc.codechecker.plugin.itemselector.CheckerView;
 import cc.codechecker.plugin.utils.CheckerItem;
 import cc.codechecker.plugin.utils.CheckerItem.LAST_ACTION;
@@ -42,10 +39,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -67,7 +61,6 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         final FormToolkit toolkit = new FormToolkit(parent.getDisplay());
 
         final ScrolledForm form = toolkit.createScrolledForm(parent);
-        form.setMessage("Not CodeChecker Check!", 1);
         form.getBody().setLayout(new GridLayout());
 
         Section section = toolkit.createSection(form.getBody(),
@@ -77,7 +70,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         final Composite client = toolkit.createComposite(section);
         client.setLayout(new GridLayout(3, true));
         section.setClient(client);
-        section.setText("CodeChecker Configuration");
+        section.setText("CodeChecker paths");
         Label codeCheckerDirectoryLabel = toolkit.createLabel(client, "CodeChecker package root directory");
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
         codeCheckerDirectoryField = toolkit.createText(client, "");
@@ -87,9 +80,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             public void handleEvent(Event event) {
                 try {
                     testToCodeChecker();
-                    form.setMessage("CodeChecker package directory is valid!", 1);
+                    form.setMessage("CodeChecker package directory is valid", 1);
                 } catch (Exception e1) {
-                    form.setMessage("CodeChecker package directory is invalid!", 3);
+                    form.setMessage("CodeChecker package directory is invalid", 3);
                 }
             }
         });
@@ -100,16 +93,15 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             public void widgetSelected(SelectionEvent event) {
                 DirectoryDialog dlg = new DirectoryDialog(client.getShell());
                 dlg.setFilterPath(codeCheckerDirectoryField.getText());
-                dlg.setText("SWT's DirectoryDialog");
-                dlg.setMessage("Select a directory");
+                dlg.setText("Browse codechecker root");
                 String dir = dlg.open();
                 if(dir != null) {
                     codeCheckerDirectoryField.setText(dir);
                     try {
                         testToCodeChecker();
-                        form.setMessage("CodeChecker package directory is valid!", 1);
+                        form.setMessage("CodeChecker package directory is valid", 1);
                     } catch (Exception e1) {
-                        form.setMessage("CodeChecker package directory is invalid!", 3);
+                        form.setMessage("CodeChecker package directory is invalid", 3);
                     }
                 }
             }
@@ -125,8 +117,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             public void widgetSelected(SelectionEvent event) {
                 DirectoryDialog dlg = new DirectoryDialog(client.getShell());
                 dlg.setFilterPath(codeCheckerDirectoryField.getText());
-                dlg.setText("SWT's DirectoryDialog");
-                dlg.setMessage("Select a directory");
+                dlg.setText("Browse python environment");
                 String dir = dlg.open();
                 if(dir != null) {
                     pythonEnvField.setText(dir);
@@ -134,7 +125,11 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             }
         });
 
-        final Button checkers = toolkit.createButton(client, "Checker configuration!", SWT.PUSH);
+        section = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
+        final Composite client2 = toolkit.createComposite(section);
+        client2.setLayout(new GridLayout(3, true));
+        section.setClient(client2);
+        final Button checkers = toolkit.createButton(client2, "Toggle enabled checkers", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 
             public void widgetSelected(SelectionEvent e) {
@@ -247,9 +242,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         checkercommand = ccc.getCheckerCommand();
         try {
             testToCodeChecker();
-            form.setMessage("CodeChecker package directory is valid!", 1);
+            form.setMessage("CodeChecker package directory is valid", 1);
         } catch (Exception e1) {
-            form.setMessage("CodeChecker package directory is invalid!", 3);
+            form.setMessage("CodeChecker package directory is invalid", 3);
         }
     }
 

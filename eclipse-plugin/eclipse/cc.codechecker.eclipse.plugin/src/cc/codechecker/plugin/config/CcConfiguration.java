@@ -15,13 +15,11 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 
 import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
-import cc.codechecker.plugin.utils.CheckerItem;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import java.io.File;
