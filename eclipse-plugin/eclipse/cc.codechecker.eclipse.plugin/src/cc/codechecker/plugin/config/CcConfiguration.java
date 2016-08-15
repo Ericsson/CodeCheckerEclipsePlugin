@@ -64,18 +64,15 @@ public class CcConfiguration {
         }
     }
 
-    public void modifyProjectEnvironmentVariables(final IProject project, final File dir) {
+    public void modifyProjectEnvironmentVariables(final IProject project, final File dir, final String location) {
         IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
                 .getContributedEnvironment();
         ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true);
         ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
-        final String location;
         boolean pythonEnvPresent;
         if(getGlobal()) {
-            location = getGlobalCodecheckerDirectory();
             pythonEnvPresent = getGlobalPythonEnv().isPresent();
         } else {
-            location = getProjectCodecheckerDirectory();
             pythonEnvPresent = getProjectPythonEnv().isPresent();
         }
         Map<String, String> environmentAdd = new HashMap<String, String>(){{
@@ -243,7 +240,7 @@ public class CcConfiguration {
 
             server.setCodecheckerEnvironment(ccec);
 
-            modifyProjectEnvironmentVariables(project, dir);
+            modifyProjectEnvironmentVariables(project, dir, location);
             ConsoleFactory.consoleWrite(project.getName() + " complete to CodeChecker configuration and started server!");
         } catch (Exception e) {
             ConsoleFactory.consoleWrite(project.getName() + " failed to CodeChecker configuration and started server!");

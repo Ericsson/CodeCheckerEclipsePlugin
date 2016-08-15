@@ -64,14 +64,14 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
         final ScrolledForm form = toolkit.createScrolledForm(parent);
         form.getBody().setLayout(new GridLayout());
 
-        Section section = toolkit.createSection(form.getBody(),
+        Section packagepath = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                 | ExpandableComposite.EXPANDED);
 
-        final Composite client = toolkit.createComposite(section);
+        final Composite client = toolkit.createComposite(packagepath);
         client.setLayout(new GridLayout(3, true));
-        section.setClient(client);
-        section.setText("CodeChecker paths");
+        packagepath.setClient(client);
+        packagepath.setText("CodeChecker paths");
 
         Label codeCheckerDirectoryLabel = toolkit.createLabel(client, "CodeChecker package root directory");
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
@@ -127,10 +127,10 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
             }
         });
 
-        section = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
-        final Composite client2 = toolkit.createComposite(section);
+        packagepath = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
+        final Composite client2 = toolkit.createComposite(packagepath);
         client2.setLayout(new GridLayout(3, true));
-        section.setClient(client2);
+        packagepath.setClient(client2);
         final Button checkers = toolkit.createButton(client2, "Toggle enabled checkers", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 

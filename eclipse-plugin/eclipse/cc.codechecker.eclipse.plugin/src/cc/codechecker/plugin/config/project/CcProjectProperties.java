@@ -65,16 +65,16 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         final ScrolledForm form = toolkit.createScrolledForm(parent);
         form.getBody().setLayout(new GridLayout());
 
-        final Section section3 = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
-        final Section section = toolkit.createSection(form.getBody(),
+        final Section configurationsourceselector = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
+        final Section packagepath = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                 | ExpandableComposite.EXPANDED);
-        final Section section2 = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
+        final Section checkerconfig = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
 
-        final Composite client = toolkit.createComposite(section);
+        final Composite client = toolkit.createComposite(packagepath);
         client.setLayout(new GridLayout(3, true));
-        section.setClient(client);
-        section.setText("CodeChecker paths");
+        packagepath.setClient(client);
+        packagepath.setText("CodeChecker paths");
         Label codeCheckerDirectoryLabel = toolkit.createLabel(client, "CodeChecker package root directory");
         codeCheckerDirectoryLabel.setLayoutData(new GridData());
         codeCheckerDirectoryField = toolkit.createText(client, "");
@@ -129,9 +129,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             }
         });
 
-        final Composite client2 = toolkit.createComposite(section2);
+        final Composite client2 = toolkit.createComposite(checkerconfig);
         client2.setLayout(new GridLayout(3, true));
-        section2.setClient(client2);
+        checkerconfig.setClient(client2);
         final Button checkers = toolkit.createButton(client2, "Toggle enabled checkers", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 
@@ -156,25 +156,25 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
         load(form);
 
-        section.setEnabled(!isGlobal);
-        section2.setEnabled(!isGlobal);
-        final Composite client3 = toolkit.createComposite(section3);
+        packagepath.setEnabled(!isGlobal);
+        checkerconfig.setEnabled(!isGlobal);
+        final Composite client3 = toolkit.createComposite(configurationsourceselector);
         client3.setLayout(new GridLayout(2, true));
-        section3.setClient(client3);
+        configurationsourceselector.setClient(client3);
         globalcc = toolkit.createButton(client3, "Use global configuration", SWT.RADIO);
         globalcc.setSelection(isGlobal);
         globalcc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                section.setEnabled(false);
-                section2.setEnabled(false);
+                packagepath.setEnabled(false);
+                checkerconfig.setEnabled(false);
             }
         });
         Button projectcc = toolkit.createButton(client3, "Use project configuration", SWT.RADIO);
         projectcc.setSelection(!isGlobal);
         projectcc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                section.setEnabled(true);
-                section2.setEnabled(true);
+                packagepath.setEnabled(true);
+                checkerconfig.setEnabled(true);
             }
         });
 
