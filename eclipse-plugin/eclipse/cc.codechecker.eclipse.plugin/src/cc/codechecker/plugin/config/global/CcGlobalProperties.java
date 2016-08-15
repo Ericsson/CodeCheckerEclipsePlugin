@@ -39,7 +39,6 @@ import org.eclipse.ui.forms.widgets.Section;
 import com.google.common.base.Optional;
 
 import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
-import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.project.CcProjectProperties;
 import cc.codechecker.plugin.itemselector.CheckerView;
@@ -52,8 +51,8 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
     private static final Logger logger = LogManager.getLogger(CcProjectProperties.class);
 
     IProject project;
-    private Text codeCheckerDirectoryField;
-    private Text pythonEnvField;
+    private static Text codeCheckerDirectoryField;
+    private static Text pythonEnvField;
     private ArrayList<CheckerItem> checkersList = new ArrayList<>();
     private ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
     private String checkercommand = "";
@@ -232,27 +231,11 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
             checkersList.add(check);
         }
     }
-    private ArrayList<CcConfiguration> getConfiguration() {
-        ArrayList<CcConfiguration> result = new ArrayList<>();
-        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-        for (IProject project : projects) {
-            try {
-                if(project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                    CcConfiguration cc = new CcConfiguration(project);
-                    result.add(cc);
-                }
-            } catch(CoreException e) {
-                //Exception thrown when no nature found!
-            }
-        }
-        return result;
-    }
 
     public void load(ScrolledForm form) {
-        CcConfiguration ccc = getConfiguration().get(0);
-        codeCheckerDirectoryField.setText(ccc.getCodecheckerDirectory());
-        pythonEnvField.setText(ccc.getPythonEnv().or(""));
-        checkercommand = ccc.getCheckerCommand();
+        codeCheckerDirectoryField.setText(CcConfiguration.getGlobalCodecheckerDirectory());
+        pythonEnvField.setText(CcConfiguration.getGlobalPythonEnv().or(""));
+        checkercommand = CcConfiguration.getGlobalCheckerCommand();
         try {
             testToCodeChecker();
             form.setMessage("CodeChecker package directory is valid", 1);
@@ -262,10 +245,7 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
     }
 
     public void save() {
-        ArrayList<CcConfiguration> ccc = getConfiguration();
-        for(CcConfiguration c : ccc) {
-            c.update(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand);
-        }
+        CcConfiguration.updateGlobal(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand);
     }
 
     @Override

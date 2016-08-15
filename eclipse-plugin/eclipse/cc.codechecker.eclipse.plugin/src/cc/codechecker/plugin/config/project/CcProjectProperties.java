@@ -54,7 +54,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
     private Text pythonEnvField;
     private ArrayList<CheckerItem> checkersList = new ArrayList<>();
     private ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
+    private Button globalcc;
     private String checkercommand = "";
+    private boolean isGlobal;
 
     @Override
     protected Control createContents(Composite parent) {
@@ -63,9 +65,11 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         final ScrolledForm form = toolkit.createScrolledForm(parent);
         form.getBody().setLayout(new GridLayout());
 
-        Section section = toolkit.createSection(form.getBody(),
+        final Section section3 = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
+        final Section section = toolkit.createSection(form.getBody(),
                 ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE
                 | ExpandableComposite.EXPANDED);
+        final Section section2 = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
 
         final Composite client = toolkit.createComposite(section);
         client.setLayout(new GridLayout(3, true));
@@ -125,10 +129,9 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
             }
         });
 
-        section = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
-        final Composite client2 = toolkit.createComposite(section);
+        final Composite client2 = toolkit.createComposite(section2);
         client2.setLayout(new GridLayout(3, true));
-        section.setClient(client2);
+        section2.setClient(client2);
         final Button checkers = toolkit.createButton(client2, "Toggle enabled checkers", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 
@@ -152,6 +155,29 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
         });
 
         load(form);
+
+        section.setEnabled(!isGlobal);
+        section2.setEnabled(!isGlobal);
+        final Composite client3 = toolkit.createComposite(section3);
+        client3.setLayout(new GridLayout(2, true));
+        section3.setClient(client3);
+        globalcc = toolkit.createButton(client3, "Use global configuration", SWT.RADIO);
+        globalcc.setSelection(isGlobal);
+        globalcc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                section.setEnabled(false);
+                section2.setEnabled(false);
+            }
+        });
+        Button projectcc = toolkit.createButton(client3, "Use project configuration", SWT.RADIO);
+        projectcc.setSelection(!isGlobal);
+        projectcc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                section.setEnabled(true);
+                section2.setEnabled(true);
+            }
+        });
+
         return form.getBody();
     }
 
@@ -237,9 +263,10 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
     public void load(ScrolledForm form) {
         CcConfiguration ccc = getConfiguration();
-        codeCheckerDirectoryField.setText(ccc.getCodecheckerDirectory());
-        pythonEnvField.setText(ccc.getPythonEnv().or(""));
-        checkercommand = ccc.getCheckerCommand();
+        codeCheckerDirectoryField.setText(ccc.getProjectCodecheckerDirectory());
+        pythonEnvField.setText(ccc.getProjectPythonEnv().or(""));
+        checkercommand = ccc.getProjectCheckerCommand();
+        isGlobal = ccc.getGlobal();
         try {
             testToCodeChecker();
             form.setMessage("CodeChecker package directory is valid", 1);
@@ -250,8 +277,7 @@ public class CcProjectProperties extends PropertyPage implements IWorkbenchPrope
 
     public void save() {
         CcConfiguration ccc = getConfiguration();
-        System.out.println(checkercommand);
-        ccc.update(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand);
+        ccc.updateProject(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand, globalcc.getSelection());
     }
 
     @Override
