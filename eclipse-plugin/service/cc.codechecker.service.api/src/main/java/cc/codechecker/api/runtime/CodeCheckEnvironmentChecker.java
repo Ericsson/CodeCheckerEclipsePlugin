@@ -100,6 +100,17 @@ public class CodeCheckEnvironmentChecker {
                         other.workspaceName);
     }
     
+    public boolean isJavaRunner(int serverPort) {
+        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+
+        String cmd = codeCheckerCommand + " cmd runs -p " + serverPort + " -o json";
+        Optional<String> ccOutput = she.waitReturnOutput(cmd);
+        if (ccOutput.isPresent()) {
+            return ccOutput.get().contains("javarunner");
+        }
+        return false;
+    }
+
     public void setCheckerCommand(String checkerCommand) {
         this.checkerCommand = checkerCommand;
     }
