@@ -11,7 +11,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -56,12 +55,13 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
     private ArrayList<CheckerItem> checkersList = new ArrayList<>();
     private ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
     private String checkercommand = "";
+    private ScrolledForm form;
 
     @Override
     protected Control createContents(final Composite parent) {
         final FormToolkit toolkit = new FormToolkit(parent.getDisplay());
 
-        final ScrolledForm form = toolkit.createScrolledForm(parent);
+        form = toolkit.createScrolledForm(parent);
         form.getBody().setLayout(new GridLayout());
 
         Section packagepath = toolkit.createSection(form.getBody(),
@@ -153,7 +153,7 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
             }
         });
 
-        load(form);
+        load();
         return form.getBody();
     }
 
@@ -232,7 +232,7 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
         }
     }
 
-    public void load(ScrolledForm form) {
+    public void load() {
         codeCheckerDirectoryField.setText(CcConfiguration.getGlobalCodecheckerDirectory());
         pythonEnvField.setText(CcConfiguration.getGlobalPythonEnv().or(""));
         checkercommand = CcConfiguration.getGlobalCheckerCommand();
@@ -246,6 +246,14 @@ public class CcGlobalProperties extends PreferencePage implements IWorkbenchPref
 
     public void save() {
         CcConfiguration.updateGlobal(codeCheckerDirectoryField.getText(), pythonEnvField.getText(), checkercommand);
+    }
+
+    @Override
+    public void performDefaults() {
+        this.checkersList.clear();
+        this.checkersList.addAll(defaultCheckersList);
+        form.setText("Enabled checkers have been reset to defaults");
+        super.performDefaults();;
     }
 
     @Override
