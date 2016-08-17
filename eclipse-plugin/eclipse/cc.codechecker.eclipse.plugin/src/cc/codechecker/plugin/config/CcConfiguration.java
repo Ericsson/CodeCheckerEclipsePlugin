@@ -113,7 +113,7 @@ public class CcConfiguration {
         try {
             return CodeCheckerContext.getInstance().getServerObject(project).getServerUrl();
         } catch (Exception e) {
-            return "http://localhost:11444/";
+            return "";
         }
     }
 
@@ -210,7 +210,18 @@ public class CcConfiguration {
     }
 
     public boolean isConfigured() {
-        return !getServerUrl().equals("");
+        try {
+            if(project.hasNature(CodeCheckerNature.NATURE_ID)) {
+                CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project).getCodecheckerEnvironment();
+                if(ccec != null) {
+                    return ccec.isJavaRunner(CodeCheckerContext.getInstance().getServerObject(project).serverPort);
+                }
+                return false;
+            }
+            return false;
+        } catch (CoreException e) {
+            return false;
+        }
     }
 
     public void updateServer(IProject project, CodecheckerServerThread server) {
