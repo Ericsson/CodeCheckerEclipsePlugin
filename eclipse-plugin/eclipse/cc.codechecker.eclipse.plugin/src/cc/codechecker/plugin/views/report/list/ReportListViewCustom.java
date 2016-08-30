@@ -11,16 +11,6 @@ public class ReportListViewCustom extends ReportListView {
 
     public static final String ID = "cc.codechecker.plugin.views.ReportListViewCustom";
 
-    public ReportListViewCustom() {
-        Filter all = new Filter();
-        all.setFilepath("*");
-        LinkedList<Filter> filter = new LinkedList<>();
-        filter.add(all);
-        this.activeConfiguration = new FilterConfiguration();
-        activeConfiguration.setFilters(filter);
-        activeConfiguration.setLinkToCurrentEditorByDefalt(false);
-    }
-
     public void onEditorChanged(IProject project) {
         super.onEditorChanged(project, "");
     }
