@@ -136,7 +136,6 @@ public class StartupJob extends Job {
 
     private void onProjectBuilt(IProject project) {
         if (project == null) return;
-        ConsoleFactory.consoleWrite(project.getName() + " CodeChecker Check Data Transport Started!"); 
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + project.getName() + " CodeChecker Check Data Transport Started!");
         try {
             if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
@@ -153,7 +152,6 @@ public class StartupJob extends Job {
             if (!server.isRunning()) server.start(); // ensure started!
             server.recheck();
         }
-        ConsoleFactory.consoleWrite(project.getName() + " CodeChecker Check Data Transport Complete!"); 
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + project.getName() + " CodeChecker Check Data Transport Complete!");
     }
 

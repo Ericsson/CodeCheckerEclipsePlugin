@@ -252,9 +252,9 @@ public class CcConfiguration {
             server.setCodecheckerEnvironment(ccec);
 
             modifyProjectEnvironmentVariables(project, dir, location);
-            ConsoleFactory.consoleWrite(project.getName() + " complete to CodeChecker configuration and started server!");
+            ConsoleFactory.consoleWrite(project.getName() + ": Started server for project (port: "+ server.serverPort + ")");
         } catch (Exception e) {
-            ConsoleFactory.consoleWrite(project.getName() + " failed to CodeChecker configuration and started server!");
+            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server");
             logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
