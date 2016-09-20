@@ -134,7 +134,6 @@ public class CodeCheckerContext {
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            ConsoleFactory.consoleWrite(project.getName() + " to built CodeChecker Data Transport Complete!");
                             CodeCheckerContext.getInstance().refreshAfterBuild(project);
                         }
                     });

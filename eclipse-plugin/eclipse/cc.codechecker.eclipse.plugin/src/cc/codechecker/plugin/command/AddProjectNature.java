@@ -60,7 +60,7 @@ public class AddProjectNature extends AbstractHandler {
 
                     IProgressMonitor monitor = null;
                     project.setDescription(description, monitor);
-                    ConsoleFactory.consoleWrite(project.getName() + " added CodeChecker nature!");
+                    ConsoleFactory.consoleWrite(project.getName() + ": Sucessfully added CodeChecker Nature");
                     logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project nature added!");
 
                 } catch (CoreException e) {
