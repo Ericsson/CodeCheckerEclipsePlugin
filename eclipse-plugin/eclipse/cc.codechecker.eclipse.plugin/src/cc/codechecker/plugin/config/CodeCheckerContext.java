@@ -182,7 +182,7 @@ public class CodeCheckerContext {
 
                 @Override
                 public void built() {
-                    cleanCache(project);
+                    cleanCache();
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -200,10 +200,8 @@ public class CodeCheckerContext {
 
     /**
      * Clean cache.
-     *
-     * @param project the project, the user change his/her view to
      */
-    public void cleanCache(IProject project) {
+    public void cleanCache() {
         jobRunner.getActionCacheFilter().removeAll();
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CLEARING CACHE");
     }

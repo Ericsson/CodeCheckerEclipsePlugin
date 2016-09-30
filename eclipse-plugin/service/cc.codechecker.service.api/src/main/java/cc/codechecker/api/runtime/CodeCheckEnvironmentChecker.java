@@ -1,7 +1,6 @@
 package cc.codechecker.api.runtime;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.log4j.Logger;
@@ -10,6 +9,8 @@ import org.apache.log4j.Level;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.lang.Math;
 
@@ -27,8 +28,10 @@ public class CodeCheckEnvironmentChecker {
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentDuringChecks; // this can be added to
 
-    public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment,
-            String codeCheckerParameter, String workspaceName, String checkerCommand) {
+    public Map<String, String> environmentAddList;
+
+    public CodeCheckEnvironmentChecker(Optional<String> pythonEnvironment, final String codeCheckerParameter,
+            final String workspaceName, String checkerCommand) {
         this.pythonEnvironment = pythonEnvironment;
         this.codeCheckerParameter = codeCheckerParameter;
         this.workspaceName = workspaceName;
@@ -39,6 +42,21 @@ public class CodeCheckEnvironmentChecker {
 
         environmentDuringChecks = modifyLogfileName(getCheckerEnvironment(environmentBefore,
                 codeCheckerCommand, workspaceName));
+
+        environmentAddList = new HashMap<String, String>(){{
+            put("LD_LIBRARY_PATH", codeCheckerParameter + "/ld_logger/lib");
+            put("_", codeCheckerParameter + "/bin/CodeChecker");
+            put("CC_LOGGER_GCC_LIKE", "gcc:g++:clang:clang++:cc:c++");
+            put("LD_PRELOAD","ldlogger.so");
+            put("CC_LOGGER_FILE", workspaceName + "/compilation_commands.json.javarunner");
+            put("CC_LOGGER_BIN", codeCheckerParameter + "/bin/ldlogger");
+        }};
+
+        if(pythonEnvironment.isPresent()) {
+            String pythonEnv = pythonEnvironment.get();
+            environmentAddList.put("PATH", pythonEnv + "/bin:");
+            environmentAddList.put("VIRTUAL_ENV", pythonEnv);
+        }
     }
 
     private static ImmutableMap<String, String> getCheckerEnvironment(
@@ -116,7 +134,7 @@ public class CodeCheckEnvironmentChecker {
     }
 
     public String getLogFileLocation() {
-        return environmentDuringChecks.get("CC_LOGGER_FILE"); // hackis ...
+        return workspaceName + "/compilation_commands.json.javarunner";
     }
 
     // renames the logfile, to avoid concurrency issues
