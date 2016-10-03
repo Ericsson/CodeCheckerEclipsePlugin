@@ -47,17 +47,32 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 
+/**
+ * The Class CodeCheckerContext.
+ */
 public class CodeCheckerContext {
 
-    //Logger
+    /** The Constant logger. */
     private static final Logger logger = LogManager.getLogger(CodeCheckerContext.class);
 
+    /** The instance. */
     static CodeCheckerContext instance;
+
+    /** The job runner. */
     JobRunner jobRunner;
+
+    /** The active editor part. */
     IEditorPart activeEditorPart;
+
+    /** The servers. */
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
+
+    /** The active project. */
     private IProject activeProject = null;
 
+    /**
+     * Class constructor.
+     */
     private CodeCheckerContext() {
         PerServerActionRunner<ThriftCommunicationInterface> actionRunner;
         actionRunner = new PerServerSimpleActionRunner<ThriftCommunicationInterface>(new
@@ -66,6 +81,13 @@ public class CodeCheckerContext {
         jobRunner = new SimpleJobRunner(actionRunner);
     }
 
+    /**
+     * The refresher for Project ReportList View.
+     * 
+     * @param pages the page list for the currently active workbench windows.
+     * @param project the project, the user change the his/her view to
+     * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
+     */
     private void refreshProject(IWorkbenchPage[] pages, IProject project, boolean considerProjectChange) {
         for(IWorkbenchPage page : pages) {
             for (IViewReference vp : page.getViewReferences()) {
@@ -79,6 +101,14 @@ public class CodeCheckerContext {
         }
     }
 
+    /**
+     * The refresher for Current ReportList View. 
+     *
+     * @param pages the page list for the currently active workbench windows
+     * @param project the project, the user change the his/her view to
+     * @param filename the filename
+     * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
+     */
     private void refreshCurrent(IWorkbenchPage[] pages, IProject project, String filename,
             boolean considerViewerRefresh) {
         for(IWorkbenchPage page : pages) {
@@ -95,27 +125,43 @@ public class CodeCheckerContext {
         }
     }
 
+    /**
+     * The refresher for Custom ReportList View. If secondary id is empty, 
+     * it checks if a refresh really needs to happen and if so updates every 
+     * custom view for the current project. If secondary-id is not empty, 
+     * it will search for the secondary-id custom view and 
+     * updates that particular one.
+     *
+     * @param pages the page list for the currently active workbench windows.
+     * @param project the project, the user change the his/her view to
+     * @param secondaryId id of the {@link ReportListViewCustom} the refresh
+     * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
+     */
     private void refreshCustom(IWorkbenchPage[] pages, IProject project, String secondaryId,
             boolean considerProjectChange) {
         for(IWorkbenchPage page : pages) {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListViewCustom.ID)) {
                     ReportListViewCustom rlvc = (ReportListViewCustom) vp.getView(true);
-                    if(secondaryId.equals("")) {
+                    if(secondaryId.equals("") && rlvc.getViewSite().getSecondaryId() != null) {
                         if (!considerProjectChange || this.activeProject != project) {
                             rlvc.onEditorChanged(project);
                         }
-                    } else {
-                        if (rlvc.getViewSite().getSecondaryId() != null && rlvc.getViewSite().getSecondaryId().equals(secondaryId)) {
-                            rlvc.onEditorChanged(project);
-                            return;
-                        }
+                    } else if(rlvc.getViewSite().getSecondaryId() != null && 
+                            rlvc.getViewSite().getSecondaryId().equals(secondaryId)){
+                        rlvc.onEditorChanged(project);
+                        return;
                     }
                 }
             }
         }
     }
 
+    /**
+     * Gets the single instance of CodeCheckerContext.
+     *
+     * @return CodeCheckerContext
+     */
     public static CodeCheckerContext getInstance() {
         if (instance == null) {
             instance = new CodeCheckerContext();
@@ -123,6 +169,12 @@ public class CodeCheckerContext {
         return instance;
     }
 
+    /**
+     * Gets the server object.
+     *
+     * @param project the project which the user change there view to.
+     * @return CodecheckerServerThread
+     */
     public synchronized CodecheckerServerThread getServerObject(final IProject project) {
         if (!servers.containsKey(project)) {
             CodecheckerServerThread serverObj = new CodecheckerServerThread();
@@ -146,12 +198,21 @@ public class CodeCheckerContext {
         return servers.get(project);
     }
 
+    /**
+     * Clean cache.
+     *
+     * @param project the project, the user change the his/her view to
+     */
     public void cleanCache(IProject project) {
         jobRunner.getActionCacheFilter().removeAll();
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CLEARING CACHE");
     }
 
-
+    /**
+     * Refresh after build.
+     *
+     * @param project the project, the user change the his/her view to
+     */
     public void refreshAfterBuild(final IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
@@ -161,13 +222,6 @@ public class CodeCheckerContext {
         }
 
         IWorkbenchPage[] pages = activeWindow.getPages();
-
-        //All Files Refreshing!
-        this.refreshProject(pages, project, false);
-        this.refreshCustom(pages, project, "", false);
-        this.activeProject = project;
-
-        //Current File Refreshing!
         IWorkbenchPage activePage = activeWindow.getActivePage();
         if (activePage == null) {
             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> activePage is null!");
@@ -178,6 +232,9 @@ public class CodeCheckerContext {
 
         //partRef is null or partRef NOT instanceof FileEditor!
         if (partRef == null || !(partRef.getEditorInput() instanceof IFileEditorInput)) {
+            this.refreshProject(pages, project, false);
+            this.refreshCustom(pages, project, "", false);
+            this.activeProject = project;
             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> partRef is null or partRef instanceof FileEditor!");
             return;
         }
@@ -195,8 +252,16 @@ public class CodeCheckerContext {
 
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
         this.refreshCurrent(pages, project, filename, false);
+        this.refreshProject(pages, project, false);
+        this.refreshCustom(pages, project, "", false);
+        this.activeProject = project;
     }
 
+    /**
+     * Refresh change editor part.
+     *
+     * @param partRef the IEditorPart which the user has switched.
+     */
     public void refreshChangeEditorPart(IEditorPart partRef) {
         //partRef is not instanceof IFileEditorInput or not change editorPart!
         if (!(partRef.getEditorInput() instanceof IFileEditorInput) || partRef == activeEditorPart) {
@@ -228,6 +293,11 @@ public class CodeCheckerContext {
         this.activeProject = project;
     }
 
+    /**
+     * Refresh change project.
+     *
+     * @param project the project, the user change the his/her view to
+     */
     public void refreshChangeProject(IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
@@ -243,6 +313,11 @@ public class CodeCheckerContext {
         this.activeProject = project;
     }
 
+    /**
+     * Refresh add custom report list view.
+     *
+     * @param secondaryId the ReportListCustomView secondary id
+     */
     public void refreshAddCustomReportListView(String secondaryId) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
@@ -266,6 +341,13 @@ public class CodeCheckerContext {
         this.activeProject = project;
     }
 
+    /**
+     * Run report job.
+     *
+     * @param target the target
+     * @param filters the filters
+     * @param runId the run id
+     */
     public void runReportJob(ReportListView target, ImmutableList<ResultFilter> filters,
             Optional<Long> runId) {
         IProject project = target.getCurrentProject();
@@ -280,6 +362,11 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
+    /**
+     * Run run list job.
+     *
+     * @param target the target
+     */
     public void runRunListJob(final ReportListView target) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
@@ -310,6 +397,11 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
+    /**
+     * Run analyze job.
+     *
+     * @param target the target
+     */
     public void runAnalyzeJob(ReportListView target) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
@@ -323,7 +415,9 @@ public class CodeCheckerContext {
         jobRunner.addJob(rlj);
     }
 
-
+    /**
+     * Stop servers.
+     */
     public void stopServers() {
         for (CodecheckerServerThread server : servers.values()) {
             server.stop();
