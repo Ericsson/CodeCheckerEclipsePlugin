@@ -85,7 +85,7 @@ public class CodeCheckerContext {
      * The refresher for Project ReportList View.
      * 
      * @param pages the page list for the currently active workbench windows.
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
      */
     private void refreshProject(IWorkbenchPage[] pages, IProject project, boolean considerProjectChange) {
@@ -105,7 +105,7 @@ public class CodeCheckerContext {
      * The refresher for Current ReportList View. 
      *
      * @param pages the page list for the currently active workbench windows
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      * @param filename the filename
      * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
      */
@@ -133,7 +133,7 @@ public class CodeCheckerContext {
      * updates that particular one.
      *
      * @param pages the page list for the currently active workbench windows.
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      * @param secondaryId id of the {@link ReportListViewCustom} the refresh
      * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
      */
@@ -201,7 +201,7 @@ public class CodeCheckerContext {
     /**
      * Clean cache.
      *
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      */
     public void cleanCache(IProject project) {
         jobRunner.getActionCacheFilter().removeAll();
@@ -211,7 +211,7 @@ public class CodeCheckerContext {
     /**
      * Refresh after build.
      *
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      */
     public void refreshAfterBuild(final IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
@@ -296,7 +296,7 @@ public class CodeCheckerContext {
     /**
      * Refresh change project.
      *
-     * @param project the project, the user change the his/her view to
+     * @param project the project, the user change his/her view to
      */
     public void refreshChangeProject(IProject project) {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
