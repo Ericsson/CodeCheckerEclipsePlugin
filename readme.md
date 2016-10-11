@@ -1,12 +1,13 @@
 # About
 
 [![Build Status](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin.svg?branch=master)](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin)
-This is an Eclipse plugin for the [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker).  
+This is an Eclipse plugin for the [Clang Static Analyzer](http://clang-analyzer.llvm.org/) and [Clang Tidy](http://clang.llvm.org/extra/clang-tidy/) bugs using [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker).  
 
 # Requirements
 
 * Linux operating system
 * Recent [CodeChecker](https://github.com/Ericsson/codechecker)
+* Clang 3.6
 * [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
 * Eclipse CDT
 * Java 1.7
@@ -66,7 +67,13 @@ After that, the settings can be customized in the project preferences window und
 
 After the plugin is successfully configured for a project, it'll listen to build events, and automatically rechecks the project with CodeChecker when needed.
 
-#### 4. Analyze C/C++ project and view results
+#### 4. Set up eclipse C/C++ build environment
+
+The runs only if your project can be built by Eclipse (as it intercepts gcc build commands).
+Please check that your builder is set up correctly in properties/C/C++ Build settings.
+If all goes well, you should be able to build your project from Eclipse using the Project/Build Project menu item.
+
+#### 5. Analyze C/C++ project and view results
 By default it displays the problems related to the currently selected file on the problems view, and the details for a selected bugpath in the Details view. Selecting a problem or jumping to a details item is possible with double clicking on it.
 
 The problems view can be customized: it supports custom search options with a filter editor, where saving or loading filters is also possible.
