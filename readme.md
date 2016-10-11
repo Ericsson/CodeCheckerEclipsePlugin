@@ -60,7 +60,7 @@ The plugin is activated on a per project basis, first you have to add the CodeCh
 ![CodeChecker Nature Add](docs/nature.png)
 
 #### 3. Configure CodeChecker and checkers
-After that, the settings can be customized in the project preferences window under the CodeChecker panel. For the plugin to work correctly, it is mandatory to add the correct path to the root of the CodeChecker package.
+After that, the settings can be customized in the project preferences window under the CodeChecker panel. For the plugin to work correctly, it is mandatory to add the correct path to the root of the CodeChecker package. You can download CodeChecker from [here](https://github.com/Ericsson/codechecker).
 
 ![CodeChecker Configure](docs/config.png)
 ![CodeChecker Checkers Configure](docs/checkershow.png)
@@ -75,6 +75,8 @@ If all goes well, you should be able to build your project from Eclipse using th
 
 #### 5. Analyze C/C++ project and view results
 By default it displays the problems related to the currently selected file on the problems view, and the details for a selected bugpath in the Details view. Selecting a problem or jumping to a details item is possible with double clicking on it.
+
+*Please note that codechecker will only show analysis results for files that you built. This means that if you want to see all bugs for your project you will need to do a full (clean) build. After you update a source file, analysis results will be updated when you rebuild your project.*
 
 The problems view can be customized: it supports custom search options with a filter editor, where saving or loading filters is also possible.
 
