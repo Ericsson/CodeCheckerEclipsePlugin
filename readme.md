@@ -1,7 +1,7 @@
 # About
 
 [![Build Status](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin.svg?branch=master)](https://travis-ci.org/Ericsson/CodeCheckerEclipsePlugin)
-This is an Eclipse plugin for the [Clang Static Analyzer](http://clang-analyzer.llvm.org/) and [Clang Tidy](http://clang.llvm.org/extra/clang-tidy/) bugs using [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker).  
+This C/C++ Code Analysis plugin for for Eclipse showing [Clang Static Analyzer](http://clang-analyzer.llvm.org/) and [Clang Tidy](http://clang.llvm.org/extra/clang-tidy/) detected bugs. The tool is built on the [Ericsson Codechecker Project]( https://github.com/Ericsson/codechecker) project.  
 
 # Requirements
 
