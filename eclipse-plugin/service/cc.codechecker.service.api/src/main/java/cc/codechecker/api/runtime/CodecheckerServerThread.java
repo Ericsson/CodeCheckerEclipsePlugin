@@ -42,8 +42,8 @@ public class CodecheckerServerThread {
             this.ccec = ccec;
             if (running) start(); // restart
         }
-        if(!this.ccec.checkerCommand.equals(ccec.checkerCommand)) {
-            this.ccec.setCheckerCommand(ccec.checkerCommand);
+        if(!this.ccec.checkerList.equals(ccec.checkerList)) {
+            this.ccec.setCheckerCommand(ccec.checkerList);
         }
     }
 

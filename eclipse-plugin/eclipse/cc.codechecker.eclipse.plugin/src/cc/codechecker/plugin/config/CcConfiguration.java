@@ -67,7 +67,8 @@ public class CcConfiguration {
     public void modifyProjectEnvironmentVariables(final IProject project, final Map<String, String> environmentAdd) {
         IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
                 .getContributedEnvironment();
-        ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true);
+        //we assume that the project is CDT
+        ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true); 
         ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
         for(String key : environmentAdd.keySet()) {
             if(key.equals("PATH")) {
@@ -229,7 +230,9 @@ public class CcConfiguration {
             modifyProjectEnvironmentVariables(project, ccec.environmentAddList);
             ConsoleFactory.consoleWrite(project.getName() + ": Started server for project (port: "+ server.serverPort + ")");
         } catch (Exception e) {
-            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server");
+            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server "+e.getStackTrace().toString());
+            System.out.println("Failed to start server:");
+            e.printStackTrace();
             logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
