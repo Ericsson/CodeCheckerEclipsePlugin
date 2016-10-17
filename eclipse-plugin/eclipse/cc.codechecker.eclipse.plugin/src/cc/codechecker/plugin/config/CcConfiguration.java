@@ -64,35 +64,11 @@ public class CcConfiguration {
         }
     }
 
-    public void modifyProjectEnvironmentVariables(final IProject project, final File dir, final String location) {
+    public void modifyProjectEnvironmentVariables(final IProject project, final Map<String, String> environmentAdd) {
         IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
                 .getContributedEnvironment();
         ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true);
         ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
-        boolean pythonEnvPresent;
-        if(getGlobal()) {
-            pythonEnvPresent = getGlobalPythonEnv().isPresent();
-        } else {
-            pythonEnvPresent = getProjectPythonEnv().isPresent();
-        }
-        Map<String, String> environmentAdd = new HashMap<String, String>(){{
-            put("LD_LIBRARY_PATH", location + "/ld_logger/lib");
-            put("_", location + "/bin/CodeChecker");
-            put("CC_LOGGER_GCC_LIKE", "gcc:g++:clang:cc:c++");
-            put("LD_PRELOAD","ldlogger.so");
-            put("CC_LOGGER_FILE", dir.toString() + "/" + project.getName() + "/compilation_commands.json.javarunner");
-            put("CC_LOGGER_BIN", location + "/bin/ldlogger");
-        }};
-        if(pythonEnvPresent) {
-            String pythonEnvironment;
-            if(getGlobal()) {
-                pythonEnvironment = getGlobalPythonEnv().get();
-            } else {
-                pythonEnvironment = getProjectPythonEnv().get();
-            }
-            environmentAdd.put("PATH", pythonEnvironment + "/bin:");
-            environmentAdd.put("VIRTUAL_ENV", pythonEnvironment);
-        }
         for(String key : environmentAdd.keySet()) {
             if(key.equals("PATH")) {
                 ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_PREPEND,"", cfgd);
@@ -100,7 +76,6 @@ public class CcConfiguration {
                 ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_REPLACE,"", cfgd);
             }
         }
-
         try {
             CoreModel.getDefault().setProjectDescription(project, prjd);
         } catch (CoreException e) {
@@ -251,7 +226,7 @@ public class CcConfiguration {
 
             server.setCodecheckerEnvironment(ccec);
 
-            modifyProjectEnvironmentVariables(project, dir, location);
+            modifyProjectEnvironmentVariables(project, ccec.environmentAddList);
             ConsoleFactory.consoleWrite(project.getName() + ": Started server for project (port: "+ server.serverPort + ")");
         } catch (Exception e) {
             ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server");
