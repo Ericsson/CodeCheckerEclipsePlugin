@@ -19,6 +19,6 @@ deploy:
   provider: releases
   api_key:
     secure: PKQXSde1+GfeTJBQlYGCXFoXGy9LpMbD0oagpQtHk6d9NtZ9T9stx0gC3BODE9rGPCtKyQjOnOQ2V0GIMQMt0Qx22zSvGN4bwAYn0BHHXV56HLyZV2U8eW3a5eLt+yB7OhkARg7nflo9Yh1HDmxFtovsAz1TJ0Ri1UGmMMj03wNdc8CHJy6vuN3YljxBtZFLAH7sYkL5QC0jjFkF9/7bd9lF6nyLqBU5VqQcbGO3gRFnE46+KHkw0tC3F3H7HcYJJydRWAoTwD88UEzrJnCNGnYarwFRwix5/O2Wgjk5CbEie9IxtjeiBiiVbAS+/OxKEKw+4E2TV9ThyX4BwapcalBKoQqYAXDnZwD9EAT3+N+vKRHk/OI3IsD4lM8h2E5HrVEURY/wMvXH9dYrSnYGPmrAks1Ef3X1iMxCxqiR7k+vvKRAG2XXn92Dq9A3fMEZYQvh6YtBp7nC022Cpr11HyriC/C8WD4arfDekI7ICAZfWnaAwdUvr4u991DIRmApUC905lcP5NB/mGfc0rMeSwK2fpGcWqDkxYo7bDDoQHkImiLC3NRCY80NSO3tpcH3AlHRtF/WIy2Ln626PMIt98nDAiWZf+35GW0HoCyjo3SYbRtQMdQD85ZhbqVva+rtzN1j4AuoP/pCbChsICs0ebAdOavjOb/8cwFxBMuOPYA=
-  file: "eclipse-plugin/eclipse/cc.codechecker.eclipse.plugin/target/cc.codechecker.eclipse.plugin-0.0.1-SNAPSHOT.jar"
+  file: "/home/travis/build/Ericsson/CodeCheckerEclipsePlugin/eclipse-plugin/service/cc.service.scl/target/scl-0.0.1-SNAPSHOT.jar"
   on:
     repo: Ericsson/CodeCheckerEclipsePlugin
