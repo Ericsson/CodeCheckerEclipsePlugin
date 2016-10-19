@@ -14,7 +14,7 @@ before_script:
 - make
 - export PATH=$PATH:$PWD/compiler/cpp/
 - cd ../CodeCheckerEclipsePlugin/eclipse-plugin/
-script: mvn clean;mvn test;mvn install
+script: mvn test install
 deploy:
   provider: releases
   api_key:
