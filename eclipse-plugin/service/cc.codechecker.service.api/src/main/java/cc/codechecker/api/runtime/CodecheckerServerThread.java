@@ -2,8 +2,11 @@ package cc.codechecker.api.runtime;
 
 import com.google.common.base.Optional;
 
+import cc.codechecker.api.config.Config.ConfigTypes;
+
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -16,20 +19,20 @@ import org.apache.log4j.Level;
 public class CodecheckerServerThread {
 	
 	//Logger
-	private final static Logger logger = LogManager.getLogger(CodecheckerServerThread.class.getName());
+	private final static Logger logger = LogManager.getLogger(CodecheckerServerThread.class.getName());	
 	
 	private static Random random = new Random();
     public final int serverPort = random.nextInt(10000) + 15000;
     final BlockingQueue<String> processingQueue = new LinkedBlockingDeque<>();
     final Set currentlyRunning = Collections.synchronizedSet(new HashSet());
     CodeCheckEnvironmentChecker ccec = null;
-    private OnCheckedCallback callback = null;
+    private OnCheckCallback callback = null;
     private ShellExecutorHelper.Executable serverExecutor = null;
     private Thread serverThread = null;
     private Thread queueThread = null;
     private boolean running = false;
 
-    public void setCallback(OnCheckedCallback callback) {
+    public void setCallback(OnCheckCallback callback) {
         this.callback = callback;
     }
 
@@ -37,22 +40,27 @@ public class CodecheckerServerThread {
         return ccec;
     }
 
-    public void setCodecheckerEnvironment(CodeCheckEnvironmentChecker ccec) {
-        if (this.ccec == null || !this.ccec.equals(ccec)) {
-            this.ccec = ccec;
-            if (running) start(); // restart
-        }
-        if(!this.ccec.checkerList.equals(ccec.checkerList)) {
-            this.ccec.setCheckerCommand(ccec.checkerList);
-        }
+    public void setCodecheckerEnvironment(CodeCheckEnvironmentChecker newEnv) {
+    	logger.log(Level.DEBUG, "setCodeCheckerEnvironment is called.");
+    	boolean restartNeeded = true;
+    	if (ccec!=null){
+    		Map<ConfigTypes, String> oldConfig = ccec.getConfig();
+    		Map<ConfigTypes, String> config=newEnv.getConfig();
+			if (config.get(ConfigTypes.CHECKER_PATH).equals(oldConfig.get(ConfigTypes.CHECKER_PATH))
+				&& config.get(ConfigTypes.PYTHON_PATH).equals(oldConfig.get(ConfigTypes.PYTHON_PATH)))
+			restartNeeded = false;    		
+    	}
+    	
+    	this.ccec=newEnv;
+    	if (restartNeeded)
+    		start();//restart    	
     }
 
     public synchronized void start() {
         if (running) stop();
         logger.log(Level.DEBUG, "SERVER_SER_MSG >> Starting CC");
         if (ccec != null && serverExecutor == null) {
-            final String cmd = ccec.codeCheckerCommand + " server --not-host-only -w " + ccec
-                    .workspaceName + " --view-port " + serverPort;
+            final String cmd = ccec.createServerCommand(String.valueOf(serverPort));
             ShellExecutorHelper she = new ShellExecutorHelper(ccec.environmentBefore);
             serverExecutor = she.getServerObject(cmd);
             serverThread = new Thread(new Runnable() {
@@ -80,11 +88,13 @@ public class CodecheckerServerThread {
                         	break;
                         }
                         if (currentlyRunning.add(s)) {
+                        	callback.analysisStarted(ccec.createCheckCommmand(s));
                             logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
-                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + ccec.processLog(s));
+                            String checkResult=ccec.processLog(s);
+                            logger.log(Level.INFO, "SERVER_SER_MSG >> " + checkResult);
                             currentlyRunning.remove(s);
-                            if (callback != null) callback.built();
+                            if (callback != null) callback.analysisFinished(checkResult);
                         }
                     }
                 } catch (InterruptedException e) {
@@ -125,6 +135,7 @@ public class CodecheckerServerThread {
     }
 
     public void recheck() {
+    	logger.log(Level.DEBUG, "Recheck called");
         if (ccec != null) {
             Optional<String> newF = ccec.moveLogFile();
             if (newF.isPresent()) {
@@ -137,7 +148,8 @@ public class CodecheckerServerThread {
                 	logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + e.getStackTrace());
                 }
             }
-        }
+        }else
+        	logger.log(Level.ERROR, "CodeChecker env is null!");
     }
 
     public String getServerUrl() {

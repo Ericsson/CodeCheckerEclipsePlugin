@@ -35,30 +35,30 @@ public class CheckerView extends Dialog {
     private static final String ARROW_LEFT_IMAGE = "arrow_left.png";
     private static final String ARROW_RIGHT_IMAGE = "arrow_right.png";
 
-    private final List<CheckerItem> deselection;
-    private final List<CheckerItem> selection;
+    private final List<CheckerItem> disabled;
+    private final List<CheckerItem> enabled;
     private final ArrayList<CheckerItem> checkersList;
 
     Composite container;
 
-    private Table itemsTable;
-    private Table selectionTable;
+    private Table disabledCheckersTable;
+    private Table enabledCheckersTables;
 
     public CheckerView(Shell parentShell, ArrayList<CheckerItem> checkersList) {
         super(parentShell);
         setShellStyle(SWT.SHELL_TRIM | SWT.APPLICATION_MODAL);
         this.checkersList = new ArrayList<CheckerItem>();
-        this.selection = new ArrayList<CheckerItem>();
-        this.deselection = new ArrayList<CheckerItem>();
+        this.enabled = new ArrayList<CheckerItem>();
+        this.disabled = new ArrayList<CheckerItem>();
         this.checkersList.addAll(checkersList);
     }
     
     public List<CheckerItem> getCheckersList() {
         ArrayList<CheckerItem> result = new ArrayList<>();
-        for(CheckerItem it : selection) {
+        for(CheckerItem it : enabled) {
             result.add(new CheckerItem(it.getText(), it.getLastAction()));
         }
-        for(CheckerItem it : deselection) {
+        for(CheckerItem it : disabled) {
             result.add(new CheckerItem(it.getText(), it.getLastAction()));
         }
         Collections.sort(result);
@@ -71,42 +71,42 @@ public class CheckerView extends Dialog {
             @Override
             public void setBounds(final int x, final int y, final int width, final int height) {
                 super.setBounds(x, y, width, height);
-                final Point itemsTableDefaultSize = itemsTable.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-                final Point selectionTableDefaultSize = selectionTable.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+                final Point itemsTableDefaultSize = disabledCheckersTable.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+                final Point selectionTableDefaultSize = enabledCheckersTables.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 
-                int itemsTableSize = itemsTable.getSize().x;
-                if (itemsTableDefaultSize.y > itemsTable.getSize().y) {
-                    itemsTableSize -= itemsTable.getVerticalBar().getSize().x;
+                int dTableSize = disabledCheckersTable.getSize().x;
+                if (itemsTableDefaultSize.y > disabledCheckersTable.getSize().y) {
+                    dTableSize -= disabledCheckersTable.getVerticalBar().getSize().x;
                 }
 
-                int selectionTableSize = selectionTable.getSize().x;
-                if (selectionTableDefaultSize.y > selectionTable.getSize().y) {
-                    selectionTableSize -= selectionTable.getVerticalBar().getSize().x;
+                int eTableSize = enabledCheckersTables.getSize().x;
+                if (selectionTableDefaultSize.y > enabledCheckersTables.getSize().y) {
+                    eTableSize -= enabledCheckersTables.getVerticalBar().getSize().x;
                 }
-                itemsTable.getColumn(0).setWidth(itemsTableSize);
-                selectionTable.getColumn(0).setWidth(selectionTableSize);
-                itemsTable.getColumn(0).pack();
-                selectionTable.getColumn(0).pack();
+                disabledCheckersTable.getColumn(0).setWidth(dTableSize);
+                enabledCheckersTables.getColumn(0).setWidth(eTableSize);
+                disabledCheckersTable.getColumn(0).pack();
+                enabledCheckersTables.getColumn(0).pack();
             }
         };
         container.setLayout(new GridLayout(3, true));
         container.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 
-        createItemsTable();
+        createDisabledCheckersTable();
         createButtonSelectAll();
-        createSelectionTable();
+        createEnabledCheckersTable();
         createButtonSelect();
         createButtonDeselect();
         createButtonDeselectAll();
         
-        this.setItems(checkersList);
+        setItems(checkersList);
         
         return container;
     }
 
-    private void createItemsTable() {
-        this.itemsTable = createTable("Disabled checkers");
-        this.itemsTable.addMouseListener(new MouseAdapter() {
+    private void createDisabledCheckersTable() {
+        this.disabledCheckersTable = createTable("Disabled checkers");
+        this.disabledCheckersTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDoubleClick(final MouseEvent event) {
                 CheckerView.this.selectItem();
@@ -140,9 +140,9 @@ public class CheckerView extends Dialog {
         });
     }
 
-    private void createSelectionTable() {
-        selectionTable = createTable("Enabled checkers");
-        selectionTable.addMouseListener(new MouseAdapter() {
+    private void createEnabledCheckersTable() {
+        enabledCheckersTables = createTable("Enabled checkers");
+        enabledCheckersTables.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDoubleClick(final MouseEvent event) {
                 CheckerView.this.deselectItem();
@@ -194,31 +194,31 @@ public class CheckerView extends Dialog {
         if (items == null) {
             SWT.error(SWT.ERROR_NULL_ARGUMENT);
         }
-        this.deselection.clear();
-        this.selection.clear();
+        disabled.clear();
+        enabled.clear();
         for (final CheckerItem item : items) {
             if (item == null) {
                 SWT.error(SWT.ERROR_INVALID_ARGUMENT);
             }
             if(item.getLastAction() == LAST_ACTION.SELECTION) {
-                this.selection.add(new CheckerItem(item.getText(),item.getLastAction()));
+                enabled.add(new CheckerItem(item.getText(),item.getLastAction()));
             } else {
-                this.deselection.add(new CheckerItem(item.getText(), item.getLastAction()));
+                disabled.add(new CheckerItem(item.getText(), item.getLastAction()));
             }
         }
         redrawTables();
     }
 
     private void redrawTables() {
-        redrawTable(itemsTable, false);
-        redrawTable(selectionTable, true);
+        redrawTable(disabledCheckersTable, disabled);
+        redrawTable(enabledCheckersTables, enabled);
         container.setRedraw(true);
         container.setBounds(container.getBounds());
     }
 
-    private void redrawTable(final Table table, final boolean isSelected) {
+    private void redrawTable(final Table table, List<CheckerItem> checkers) {
         clean(table);
-        fillData(table, isSelected ? selection : deselection);
+        fillData(table, checkers);
     }
 
     private void clean(final Table table) {
@@ -231,68 +231,72 @@ public class CheckerView extends Dialog {
         }
     }
 
-    private void fillData(final Table table, List<CheckerItem> listOfData) {
-        Collections.sort(listOfData, new Comparator<CheckerItem>() {
+    private void fillData(final Table table, List<CheckerItem> checkers) {
+        Collections.sort(checkers, new Comparator<CheckerItem>() {
             @Override
             public int compare(CheckerItem o1, CheckerItem o2) {
                 return o1.getText().compareTo(o2.getText());
             }
         });
-        for (final CheckerItem item : listOfData) {
+        for (final CheckerItem item : checkers) {
             final TableItem tableItem = new TableItem(table, SWT.NONE);
             tableItem.setData(item);
             tableItem.setText(item.getText());
         }
+        if (checkers.isEmpty()){
+        	final TableItem tableItem = new TableItem(table, SWT.NONE);
+        }
+        	
     }
 
     protected void deselectAll() {
-        deselection.addAll(selection);
+        disabled.addAll(enabled);
         final List<CheckerItem> deselectedItems = new ArrayList<CheckerItem>();
-        for (final CheckerItem item : selection) {
+        for (final CheckerItem item : enabled) {
             item.setLastAction(LAST_ACTION.DESELECTION);
             deselectedItems.add(item);
         }
-        selection.clear();
+        enabled.clear();
         redrawTables();
     }
 
     protected void selectAll() {
-        selection.addAll(deselection);
+        enabled.addAll(disabled);
         final List<CheckerItem> selectedItems = new ArrayList<CheckerItem>();
-        for (final CheckerItem item : deselection) {
+        for (final CheckerItem item : disabled) {
             item.setLastAction(LAST_ACTION.SELECTION);
             selectedItems.add(item);
         }
-        deselection.clear();
+        disabled.clear();
         redrawTables();
     }
 
     protected void selectItem() {
-        if (itemsTable.getSelectionCount() == 0) {
+        if (disabledCheckersTable.getSelectionCount() == 0) {
             return;
         }
         final List<CheckerItem> selectedItems = new ArrayList<CheckerItem>();
-        for (final TableItem tableItem : itemsTable.getSelection()) {
+        for (final TableItem tableItem : disabledCheckersTable.getSelection()) {
             final CheckerItem item = (CheckerItem) tableItem.getData();
             item.setLastAction(LAST_ACTION.SELECTION);
             selectedItems.add(item);
-            selection.add(item);
-            deselection.remove(item);
+            enabled.add(item);
+            disabled.remove(item);
         }
         redrawTables();
     }
 
     protected void deselectItem() {
-        if (selectionTable.getSelectionCount() == 0) {
+        if (enabledCheckersTables.getSelectionCount() == 0) {
             return;
         }
         final List<CheckerItem> deselectedItems = new ArrayList<CheckerItem>();
-        for (final TableItem tableItem : selectionTable.getSelection()) {
+        for (final TableItem tableItem : enabledCheckersTables.getSelection()) {
             final CheckerItem item = (CheckerItem) tableItem.getData();
             item.setLastAction(LAST_ACTION.DESELECTION);
             deselectedItems.add(item);
-            deselection.add(item);
-            selection.remove(item);
+            disabled.add(item);
+            enabled.remove(item);
         }
         redrawTables();
     }

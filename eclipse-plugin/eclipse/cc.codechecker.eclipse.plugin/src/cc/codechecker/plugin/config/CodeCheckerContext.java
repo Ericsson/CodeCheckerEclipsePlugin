@@ -9,7 +9,7 @@ import cc.codechecker.api.job.analyze.AnalyzeJob;
 import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchRequest;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.OnCheckedCallback;
+import cc.codechecker.api.runtime.OnCheckCallback;
 import cc.codechecker.plugin.markers.MarkerListener;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
 import cc.codechecker.plugin.views.report.list.ReportListView;
@@ -178,10 +178,11 @@ public class CodeCheckerContext {
     public synchronized CodecheckerServerThread getServerObject(final IProject project) {
         if (!servers.containsKey(project)) {
             CodecheckerServerThread serverObj = new CodecheckerServerThread();
-            serverObj.setCallback(new OnCheckedCallback() {
+            serverObj.setCallback(new OnCheckCallback() {
 
                 @Override
-                public void built() {
+                public void analysisFinished(String result) {
+                	ConsoleFactory.consoleWrite(project.getName() + " Analysis finished."+result);
                     cleanCache();
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
@@ -189,7 +190,11 @@ public class CodeCheckerContext {
                             CodeCheckerContext.getInstance().refreshAfterBuild(project);
                         }
                     });
-                }
+                 }                    
+                 @Override
+                 public void analysisStarted(String msg) {
+                	 ConsoleFactory.consoleWrite(project.getName() + " Analysis Started. "+msg);
+                 }                
             });
             CcConfiguration config = new CcConfiguration(project);
             config.updateServer(project, serverObj);

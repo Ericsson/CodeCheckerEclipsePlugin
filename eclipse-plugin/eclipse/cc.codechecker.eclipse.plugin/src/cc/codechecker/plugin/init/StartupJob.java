@@ -23,6 +23,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.api.runtime.CodecheckerServerThread;
+import cc.codechecker.api.runtime.OnCheckCallback;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
@@ -114,7 +115,7 @@ public class StartupJob extends Job {
 							if (((resource.getType() & IResource.PROJECT) != 0) && resource.getProject().isOpen()
 									&& delta.getKind() == IResourceDelta.CHANGED
 									&& ((delta.getFlags() & IResourceDelta.OPEN) != 0)) {
-								logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project visit called for project:"
+								logger.log(Level.DEBUG, "Project visit called for project:"
 										+ resource.getProject().getName());
 								IProject project = (IProject) resource;
 								projectOpened(project);
@@ -130,17 +131,18 @@ public class StartupJob extends Job {
 
 		}, IResourceChangeEvent.POST_BUILD | IResourceChangeEvent.POST_CHANGE | IResourceDelta.OPEN);
 
+		logger.log(Level.DEBUG, "Starting CodeChecker Servers.");
 		// check all open projects
-
 		for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 			projectOpened(project);
 		}
+		logger.log(Level.DEBUG, "CodeChecker servers started");
 
 		// check all open windows
 		for (IWorkbenchWindow win : wb.getWorkbenchWindows()) {
 			addListenerToWorkbenchWindow(win);
 		}
-
+		logger.log(Level.DEBUG, "returning.");
 		return Status.OK_STATUS;
 	}
 
@@ -187,11 +189,16 @@ public class StartupJob extends Job {
 		try {
 			CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
 			if (project.isOpen()) {
-				if (!server.isRunning())
+				if (!server.isRunning()){
+					logger.log(Level.DEBUG, "Starting server+"+project.getName());
 					server.start(); // ensure started!
+					logger.log(Level.DEBUG, "server started+"+project.getName());
+				}
 			} else {
 				if (server.isRunning())
+					logger.log(Level.DEBUG, "Stopping server+"+project.getName());
 					server.stop();
+					logger.log(Level.DEBUG, "Server stopped:+"+project.getName());
 			}
 		} catch (Exception e) {
 		}
