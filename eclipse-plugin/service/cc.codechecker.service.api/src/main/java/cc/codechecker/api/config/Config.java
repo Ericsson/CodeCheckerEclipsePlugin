@@ -1,0 +1,12 @@
+package cc.codechecker.api.config;
+
+import java.util.Map;
+
+
+public class Config {
+	  public enum ConfigTypes {
+	        CHECKER_PATH, PYTHON_PATH, COMPILERS, ANAL_THREADS,
+	        CHECKER_LIST,IS_GLOBAL,CHECKER_WORKSPACE
+	  }
+
+}
