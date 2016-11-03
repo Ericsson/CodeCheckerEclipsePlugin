@@ -52,7 +52,7 @@ public class CheckerView extends Dialog {
         this.disabled = new ArrayList<CheckerItem>();
         this.checkersList.addAll(checkersList);
     }
-    
+
     public List<CheckerItem> getCheckersList() {
         ArrayList<CheckerItem> result = new ArrayList<>();
         for(CheckerItem it : enabled) {
@@ -64,7 +64,7 @@ public class CheckerView extends Dialog {
         Collections.sort(result);
         return result;
     }
-    
+
     @Override
     protected Control createDialogArea(final Composite parent) {
         container = new Composite(parent, SWT.NULL) {
@@ -98,9 +98,9 @@ public class CheckerView extends Dialog {
         createButtonSelect();
         createButtonDeselect();
         createButtonDeselectAll();
-        
+
         setItems(checkersList);
-        
+
         return container;
     }
 
@@ -244,9 +244,9 @@ public class CheckerView extends Dialog {
             tableItem.setText(item.getText());
         }
         if (checkers.isEmpty()){
-        	final TableItem tableItem = new TableItem(table, SWT.NONE);
+            final TableItem tableItem = new TableItem(table, SWT.NONE);
         }
-        	
+
     }
 
     protected void deselectAll() {

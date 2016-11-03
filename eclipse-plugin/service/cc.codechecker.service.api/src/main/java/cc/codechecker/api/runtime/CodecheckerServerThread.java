@@ -41,19 +41,19 @@ public class CodecheckerServerThread {
     }
 
     public void setCodecheckerEnvironment(CodeCheckEnvironmentChecker newEnv) {
-    	logger.log(Level.DEBUG, "setCodeCheckerEnvironment is called.");
-    	boolean restartNeeded = true;
-    	if (ccec!=null){
-    		Map<ConfigTypes, String> oldConfig = ccec.getConfig();
-    		Map<ConfigTypes, String> config=newEnv.getConfig();
-			if (config.get(ConfigTypes.CHECKER_PATH).equals(oldConfig.get(ConfigTypes.CHECKER_PATH))
-				&& config.get(ConfigTypes.PYTHON_PATH).equals(oldConfig.get(ConfigTypes.PYTHON_PATH)))
-			restartNeeded = false;    		
-    	}
-    	
-    	this.ccec=newEnv;
-    	if (restartNeeded)
-    		start();//restart    	
+        logger.log(Level.DEBUG, "setCodeCheckerEnvironment is called.");
+        boolean restartNeeded = true;
+        if (ccec!=null){
+            Map<ConfigTypes, String> oldConfig = ccec.getConfig();
+            Map<ConfigTypes, String> config=newEnv.getConfig();
+            if (config.get(ConfigTypes.CHECKER_PATH).equals(oldConfig.get(ConfigTypes.CHECKER_PATH))
+                    && config.get(ConfigTypes.PYTHON_PATH).equals(oldConfig.get(ConfigTypes.PYTHON_PATH)))
+                restartNeeded = false;
+        }
+
+        this.ccec=newEnv;
+        if (restartNeeded)
+            start();//restart	
     }
 
     public synchronized void start() {

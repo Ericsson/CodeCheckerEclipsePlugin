@@ -32,8 +32,6 @@ import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewReference;
@@ -182,7 +180,7 @@ public class CodeCheckerContext {
 
                 @Override
                 public void analysisFinished(String result) {
-                	ConsoleFactory.consoleWrite(project.getName() + " Analysis finished."+result);
+                    ConsoleFactory.consoleWrite(project.getName() + " Analysis finished."+result);
                     cleanCache();
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
@@ -190,11 +188,11 @@ public class CodeCheckerContext {
                             CodeCheckerContext.getInstance().refreshAfterBuild(project);
                         }
                     });
-                 }                    
-                 @Override
-                 public void analysisStarted(String msg) {
-                	 ConsoleFactory.consoleWrite(project.getName() + " Analysis Started. "+msg);
-                 }                
+                }
+                @Override
+                public void analysisStarted(String msg) {
+                    ConsoleFactory.consoleWrite(project.getName() + " Analysis Started. "+msg);
+                }
             });
             CcConfiguration config = new CcConfiguration(project);
             config.updateServer(project, serverObj);
