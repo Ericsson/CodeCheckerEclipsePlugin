@@ -18,13 +18,13 @@ import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
-	private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
-	
+    private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
+
     public final Optional<String> pythonEnvironment;
     public final String checkerDir; // root directory of CodeChecker
     public final String codeCheckerCommand; // CodecCheker executable path   
     private Map<ConfigTypes,String> config;
-    
+
     private String checkerList;
 
     public final ImmutableMap<String, String> environmentBefore; // with specific python. This
@@ -34,36 +34,36 @@ public class CodeCheckEnvironmentChecker {
     public Map<String, String> environmentAddList;
 
     public Map<String, String> getEnvironmentAddList() {
-		return environmentAddList;
-	}
-    
-    public  Map<ConfigTypes,String> getConfig(){
-    	return config;
+        return environmentAddList;
     }
 
-	private String getConfigValue(ConfigTypes key) {
-		if (config.containsKey(key))
-			return config.get(key);
-		else
-			return "";
-	}
+    public  Map<ConfigTypes,String> getConfig(){
+        return config;
+    }
 
-	public CodeCheckEnvironmentChecker(Map<ConfigTypes,String> config_m) {
+    private String getConfigValue(ConfigTypes key) {
+        if (config.containsKey(key))
+            return config.get(key);
+        else
+            return "";
+    }
+
+    public CodeCheckEnvironmentChecker(Map<ConfigTypes,String> config_m) {
         config=config_m;
         if (!config.containsKey(ConfigTypes.PYTHON_PATH) || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
-        	pythonEnvironment=Optional.absent();
-    		logger.log(Level.DEBUG, "pythonenv is not set");    		    		        	
+            pythonEnvironment=Optional.absent();
+            logger.log(Level.DEBUG, "pythonenv is not set");
         }
         else{
-        	logger.log(Level.DEBUG, "pythonenv is set to:"+config.get("PYTHON_PATH"));        	
-        	pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
+            logger.log(Level.DEBUG, "pythonenv is set to:"+config.get("PYTHON_PATH"));
+            pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
         }
-        
+
         checkerList=getConfigValue(ConfigTypes.CHECKER_LIST);
-        checkerDir=getConfigValue(ConfigTypes.CHECKER_PATH);        
+        checkerDir=getConfigValue(ConfigTypes.CHECKER_PATH);
         environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
-               
+
         getCheckerEnvironment(environmentBefore,
                 codeCheckerCommand);
 
@@ -82,23 +82,23 @@ public class CodeCheckEnvironmentChecker {
             environmentAddList.put("VIRTUAL_ENV", pythonEnv);
         }
     }
-    
+
 
     private static void getCheckerEnvironment(
             ImmutableMap<String, String> environmentBefore, String codeCheckerCommand) {
-    	    	
+
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
-        
+
         String cmd=codeCheckerCommand + " -h";
         logger.log(Level.DEBUG, "Testing " + cmd);
         Optional<String> ccEnvOutput = she.quickReturnOutput(cmd);
         double test = 0;
         while(!ccEnvOutput.isPresent() && test <= 2){
-        	ccEnvOutput = she.quickReturnOutput(cmd, Math.pow( 2.0 , test ) * 1000);
-        	++test;
+            ccEnvOutput = she.quickReturnOutput(cmd, Math.pow( 2.0 , test ) * 1000);
+            ++test;
         } 
         if (!ccEnvOutput.isPresent()) {
-        	logger.log(Level.ERROR, "Cannot run CodeChecker command:"+cmd);
+            logger.log(Level.ERROR, "Cannot run CodeChecker command:"+cmd);
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
         }
@@ -112,7 +112,7 @@ public class CodeCheckEnvironmentChecker {
             Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() + "/bin/activate" + 
                     " ; env");
             if (!output.isPresent()) {
-            	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
+                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
@@ -121,21 +121,21 @@ public class CodeCheckEnvironmentChecker {
             }
 
         } else {
-        	logger.log(Level.DEBUG, "Python Env not specified. Using original system env.");
+            logger.log(Level.DEBUG, "Python Env not specified. Using original system env.");
             return ImmutableMap.copyOf(System.getenv());
         }
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;        
+        if (obj == null) return false;
         if (obj.getClass() != getClass()) {
             return false;
         }
         CodeCheckEnvironmentChecker other = (CodeCheckEnvironmentChecker) obj;
-        return this.config.equals(other.getConfig());        
+        return this.config.equals(other.getConfig());
     }
-    
+
     public boolean isJavaRunner(int serverPort) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
@@ -166,18 +166,18 @@ public class CodeCheckEnvironmentChecker {
         }
         return Optional.absent();
     }
-    
+
     public String createCheckCommmand(String buildLog){
-    	return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + "-j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
-                buildLog;    	
-    }
-    
-    public String createServerCommand(String port){
-    	return codeCheckerCommand + " server --not-host-only -w " + 
-    	        getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " --view-port " + port;    	    
+        return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + "-j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
+                buildLog;
     }
 
-    
+    public String createServerCommand(String port){
+        return codeCheckerCommand + " server --not-host-only -w " + 
+                getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " --view-port " + port;
+    }
+
+
     /**
      * Executes CodeChecker check command
      * on the build log received in the fileName parameter.
@@ -187,8 +187,8 @@ public class CodeCheckEnvironmentChecker {
     public String processLog(String fileName) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = createCheckCommmand(fileName);
-        
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ cmd);        
+
+        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ cmd);
         Optional<String> ccOutput = she.waitReturnOutput(cmd);
 
         if (ccOutput.isPresent()) {
@@ -206,6 +206,6 @@ public class CodeCheckEnvironmentChecker {
         Optional<String> ccOutput = she.waitReturnOutput(cmd);
         return ccOutput.or("");
     }
-    
+
 
 }
