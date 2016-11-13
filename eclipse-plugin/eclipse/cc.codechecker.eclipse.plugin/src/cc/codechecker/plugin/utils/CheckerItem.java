@@ -12,16 +12,16 @@ public class CheckerItem implements Comparable<CheckerItem>{
         this.text = text;
         this.lastAction = LAST_ACTION.NONE;
     }
-    
+
     public CheckerItem(final String text, LAST_ACTION lastaction) {
         this.text = text;
         this.lastAction = lastaction;
     }
-    
+
     public String getText() {
         return this.text;
     }
-    
+
     public LAST_ACTION getLastAction() {
         return this.lastAction;
     }

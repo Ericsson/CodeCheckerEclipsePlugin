@@ -37,7 +37,7 @@ public class ListList {
     void addReports(ImmutableList<ReportInfo> reports) {
         for (ReportInfo report : reports) {
             if (this.reports.containsValue(report)) {
-            	logger.log(Level.WARN, "Duplicate report in the result list: " + report);
+                logger.log(Level.WARN, "Duplicate report in the result list: " + report);
             }
             this.reports.put(report.getCheckerId(), report);
         }

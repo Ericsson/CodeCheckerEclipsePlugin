@@ -124,9 +124,9 @@ public class ReportListView extends ViewPart {
         manager.add(this.showfilterconfigurationdialog);
         /*
         manager.add(new Separator());
-        
+
         manager.add(new NewInstanceAction(this));
-        
+
         MenuManager bugPathMenu = new MenuManager("Default bug path window", null);
         bugPathMenu.add(new Action(){}); // dummy
         bugPathMenu.setRemoveAllWhenShown(true);

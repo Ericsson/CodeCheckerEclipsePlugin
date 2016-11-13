@@ -33,7 +33,7 @@ public class ConsoleFactory implements IConsoleFactory{
             page.showView(console.getName());
         } catch (PartInitException e) {}
     }
-    
+
     @Override
     public void openConsole() {
         console = getConsole();

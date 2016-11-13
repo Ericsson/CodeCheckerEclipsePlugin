@@ -37,8 +37,8 @@ public class ListJob extends AbstractJob<ListJob, ListListener> {
     protected List<ActionRequest> startActions() {
         return Arrays.asList(new ActionRequest(new ListCountAction(new ListCountRequest(request
                 .getServer(), request.getFilename())), 2), new ActionRequest(new ListAction(new
-                cc.codechecker.api.action.result.list.ListRequest(request.getServer(), 0,
-                REQ_SIZE, request.getFilename())), 1));
+                        cc.codechecker.api.action.result.list.ListRequest(request.getServer(), 0,
+                                REQ_SIZE, request.getFilename())), 1));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ListJob extends AbstractJob<ListJob, ListListener> {
             for (int i = (int) requestsNeeded; i >= 1; i--) {
                 requests.add(new ActionRequest(new ListAction(new cc.codechecker.api.action
                         .result.list.ListRequest(request.getServer(), i * REQ_SIZE, (i + 1) *
-                        REQ_SIZE, request.getFilename()))));
+                                REQ_SIZE, request.getFilename()))));
             }
 
             // note: total count reported by the server is currently buggy :(

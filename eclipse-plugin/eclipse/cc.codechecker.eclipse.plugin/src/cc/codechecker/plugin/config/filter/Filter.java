@@ -8,9 +8,9 @@ import org.apache.log4j.LogManager;
 
 public class Filter {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(Filter.class);
-	
+    //Logger
+    private static final Logger logger = LogManager.getLogger(Filter.class);
+
     private String filepath = "";
     private String checkerMsg = "";
     private Severity severity = Severity.ANY;
@@ -31,8 +31,8 @@ public class Filter {
         this.buildTarget = buildTarget;
         this.showSuppressedErrors = showSuppressedErrors;
         logger.log(Level.DEBUG, "SERVER_GUI_MSG >> filePath : " + filepath + " checkerMsg: " + checkerMsg + 
-    			" severity: " + severity + " checkerId: " + checkerId + " buildTarget: " + buildTarget + 
-    			" showSuppressedErrors: " + showSuppressedErrors);
+                " severity: " + severity + " checkerId: " + checkerId + " buildTarget: " + buildTarget + 
+                " showSuppressedErrors: " + showSuppressedErrors);
     }
 
     public Filter dup() {

@@ -10,10 +10,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Level;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
@@ -115,9 +113,14 @@ public class CodeCheckEnvironmentChecker {
                 logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
-                ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
-                        .get());
-                return environment;
+                ImmutableMap.Builder<String, String> environment = new ImmutableMap.Builder<>();
+                for (String line : output.get().split("\n")) {
+                    String[] entry = line.trim().split("=", 2);
+                    if (entry.length == 2) {
+                        environment.put(entry[0], entry[1]);
+                    }
+                }
+                return environment.build();
             }
 
         } else {

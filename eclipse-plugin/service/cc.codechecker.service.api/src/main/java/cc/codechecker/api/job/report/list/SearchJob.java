@@ -38,8 +38,8 @@ public class SearchJob extends AbstractJob<SearchJob, SearchListener> {
         return Arrays.asList(new ActionRequest(new SearchCountAction(new SearchCountRequest
                 (request.getServer(), request.getId(), request.getFilters())), 2), new
                 ActionRequest(new SearchAction(new cc.codechecker.api.action.result.list
-                .SearchRequest(request.getServer(), request.getId(), 0, REQ_SIZE, request
-                .getFilters())), 1));
+                        .SearchRequest(request.getServer(), request.getId(), 0, REQ_SIZE, request
+                                .getFilters())), 1));
     }
 
     @Override
@@ -57,7 +57,7 @@ public class SearchJob extends AbstractJob<SearchJob, SearchListener> {
             for (int i = (int) requestsNeeded; i >= 1; i--) {
                 requests.add(new ActionRequest(new SearchAction(new cc.codechecker.api.action
                         .result.list.SearchRequest(request.getServer(), request.getId(), i *
-                        REQ_SIZE, (i + 1) * REQ_SIZE, request.getFilters()))));
+                                REQ_SIZE, (i + 1) * REQ_SIZE, request.getFilters()))));
             }
 
             // note: total count reported by the server is currently buggy :(

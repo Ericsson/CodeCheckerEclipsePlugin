@@ -21,14 +21,14 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 
 public class AddProjectNature extends AbstractHandler {
-	
-	//Logger
-	private static final Logger logger = LogManager.getLogger(AddProjectNature.class);
-	
+
+    //Logger
+    private static final Logger logger = LogManager.getLogger(AddProjectNature.class);
+
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         // TODO Auto-generated method stub
-    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Adding project nature.");
+        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Adding project nature.");
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null) {
@@ -39,7 +39,7 @@ public class AddProjectNature extends AbstractHandler {
                 IProject project = (IProject) ((IAdaptable) firstElement).getAdapter(IProject
                         .class);
                 if (project == null) {
-                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Not a project.");
+                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Not a project.");
                     return null;
                 }
                 IPath path = project.getFullPath();
@@ -47,7 +47,7 @@ public class AddProjectNature extends AbstractHandler {
 
                 try {
                     if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project already has nature.");
+                        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project already has nature.");
                         return null;
                     }
 
@@ -65,8 +65,8 @@ public class AddProjectNature extends AbstractHandler {
 
                 } catch (CoreException e) {
                     // TODO Auto-generated catch block
-                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                    logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                 }
 
             }

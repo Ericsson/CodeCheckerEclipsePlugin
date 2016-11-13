@@ -12,9 +12,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Level;
 
 public class ShellExecutorHelper {
-	
-	private static final Logger logger = LogManager.getLogger(ShellExecutorHelper.class.getName());
-	
+
+    private static final Logger logger = LogManager.getLogger(ShellExecutorHelper.class.getName());
+
     final Map<String, String> environment;
 
     public ShellExecutorHelper(Map<String, String> environment) {
@@ -44,9 +44,9 @@ public class ShellExecutorHelper {
      * Returns the full output.
      */
     public Optional<String> quickReturnOutput(String script) {
-    	return this.quickReturnOutput(script, 1000);
+        return this.quickReturnOutput(script, 1000);
     }
-    
+
     public Optional<String> quickReturnOutput(String script, double timeOut) {
         Executor ec = build(new Double(timeOut).longValue());
         try {
@@ -141,17 +141,17 @@ public class ShellExecutorHelper {
         }
 
         public void kill() {
-        	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Killing PID " + this.pidObject.pid);
+            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Killing PID " + this.pidObject.pid);
             if (pidObject.pid > 1000) {
                 // Slightly less AWFUL BASH MAGIC, which gets the pids of the pidObject process and
                 //     all its descendant processes and kills them.
                 // The pidObject process should always be the main CodeChecker process this plugin
                 //     starts.
-        		String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")").get().replace("\n", "");
-            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
-            	try {
-            		waitReturnOutput("kill " + cpid);
-            	} catch(Exception e) {}
+                String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")").get().replace("\n", "");
+                logger.log(Level.DEBUG, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
+                try {
+                    waitReturnOutput("kill " + cpid);
+                } catch(Exception e) {}
             }
         }
 
