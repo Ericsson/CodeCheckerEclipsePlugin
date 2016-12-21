@@ -18,8 +18,11 @@ public class ProjectExplorerSelectionListener implements ISelectionListener{
             Object element = ((IStructuredSelection) selection).getFirstElement();
             if(element instanceof IAdaptable) {
                 IResource resource = (IResource)((IAdaptable) element).getAdapter(IResource.class);
-                final IProject project = resource.getProject();
-                CodeCheckerContext.getInstance().refreshChangeProject(project);
+                if (resource!=null){
+                    final IProject project = resource.getProject();
+                    if (project!=null)
+                        CodeCheckerContext.getInstance().refreshChangeProject(project);
+                }
             }
         }
     }
