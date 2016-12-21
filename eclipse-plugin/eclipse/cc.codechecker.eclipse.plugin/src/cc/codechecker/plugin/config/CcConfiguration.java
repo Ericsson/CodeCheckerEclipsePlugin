@@ -183,8 +183,7 @@ public class CcConfiguration {
 
     public void updateProject(Map<ConfigTypes,String> newConfig){
         for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet())
-        {
-            System.out.println(configKeys.get(entry.getKey()) + ":" + entry.getValue());
+        {            
             logger.log(Level.DEBUG, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
             projectPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
         }
@@ -207,8 +206,7 @@ public class CcConfiguration {
     }
 
     public static void updateGlobal(Map<ConfigTypes, String> newConfig) {
-        for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {
-            System.out.println(configKeys.get(entry.getKey()) + ":" + entry.getValue());
+        for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {            
             logger.log(Level.DEBUG, "updateGlobal(): " + configKeys.get(entry.getKey()) + ":" + entry.getValue());
             globalPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
         }
@@ -284,8 +282,7 @@ public class CcConfiguration {
                     project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
 
         } catch (Exception e) {
-            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());
-            System.out.println("Failed to start server:");
+            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());            
             e.printStackTrace();
             logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
