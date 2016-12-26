@@ -22,8 +22,8 @@ import org.apache.log4j.LogManager;
 
 public class FilterStore {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(FilterStore.class);
+    //Logger
+    private static final Logger logger = LogManager.getLogger(FilterStore.class);
 
     private final String projectName;
 
@@ -107,8 +107,8 @@ public class FilterStore {
             }
 
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
 
     }
@@ -131,8 +131,8 @@ public class FilterStore {
             outputStream.write(gson.toJson(subList).getBytes());
             outputStream.close();
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
         }
     }
 }

@@ -23,8 +23,8 @@ import org.apache.log4j.Level;
 
 public class ShowFilterConfigurationDialog extends TreeAwareAction {
 
-	private static final Logger logger = LogManager.getLogger(ShowFilterConfigurationDialog.class.getName());
-	
+    private static final Logger logger = LogManager.getLogger(ShowFilterConfigurationDialog.class.getName());
+
     public ShowFilterConfigurationDialog(ReportListView listView) {
         super(listView, "Show Filter Configurators", IAction.AS_PUSH_BUTTON);
         setToolTipText("Show Filter Configurators");

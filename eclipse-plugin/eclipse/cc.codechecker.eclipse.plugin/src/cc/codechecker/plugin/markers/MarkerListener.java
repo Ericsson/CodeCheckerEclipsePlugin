@@ -20,9 +20,9 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 
 public class MarkerListener implements SearchListener {
-	
-	//Logger
-	private static final Logger logger = LogManager.getLogger(MarkerListener.class);	
+
+    //Logger
+    private static final Logger logger = LogManager.getLogger(MarkerListener.class);	
 
     CcConfiguration config;
     private IProject project;
@@ -73,8 +73,8 @@ public class MarkerListener implements SearchListener {
                                     IResource.DEPTH_INFINITE);
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                         }
 
                         try {
@@ -90,8 +90,8 @@ public class MarkerListener implements SearchListener {
                             logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
+                            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
                         }
                     }
                 }

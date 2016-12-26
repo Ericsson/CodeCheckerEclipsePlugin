@@ -23,10 +23,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.OnCheckCallback;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
-import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;

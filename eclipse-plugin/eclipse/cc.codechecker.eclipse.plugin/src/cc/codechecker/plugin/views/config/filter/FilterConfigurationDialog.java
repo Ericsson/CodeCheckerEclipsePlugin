@@ -47,7 +47,7 @@ public class FilterConfigurationDialog extends Dialog {
      * Create the dialog.
      */
     public FilterConfigurationDialog(Shell parentShell, FilterConfiguration currentConfiguration,
-                                     String projectName) {
+            String projectName) {
         super(parentShell);
         setShellStyle(SWT.SHELL_TRIM | SWT.APPLICATION_MODAL);
         this.currentConfiguration = currentConfiguration;
@@ -92,7 +92,7 @@ public class FilterConfigurationDialog extends Dialog {
 		fd_btnSaveGlobal.top = new FormAttachment(lblName, -5, SWT.TOP);
 		btnSaveGlobal.setLayoutData(fd_btnSaveGlobal);
 		btnSaveGlobal.setText("Save global filter");
-		*/
+         */
         Button btnSaveProject = new Button(container, SWT.NONE);
         FormData fd_btnSaveProject = new FormData();
         fd_btnSaveProject.left = new FormAttachment(lblName, 158);
@@ -146,7 +146,7 @@ public class FilterConfigurationDialog extends Dialog {
 		fd_btnDelete.left = new FormAttachment(btnLoad, 6);
 		btnDelete.setLayoutData(fd_btnDelete);
 		btnDelete.setText("Delete");
-		*/
+         */
         tableViewer = new TableViewer(container, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT
                 .FULL_SELECTION);
         createColumns(tableViewer);
@@ -201,7 +201,7 @@ public class FilterConfigurationDialog extends Dialog {
 		fd_btnNew.left = new FormAttachment(btnDelete, 6);
 		btnNew.setLayoutData(fd_btnNew);
 		btnNew.setText("New");
-		 */
+         */
         return container;
     }
 

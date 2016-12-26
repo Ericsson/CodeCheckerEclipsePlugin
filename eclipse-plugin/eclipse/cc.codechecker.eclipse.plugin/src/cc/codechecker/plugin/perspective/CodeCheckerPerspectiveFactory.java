@@ -32,7 +32,7 @@ public class CodeCheckerPerspectiveFactory implements IPerspectiveFactory {
                 0.33, "left");
         middleLeft.addView(ReportListView.ID);
         middleLeft.addView(ReportListViewProject.ID);
-        
+
         IFolderLayout right = layout.createFolder("right", IPageLayout.RIGHT, (float) 0.8,
                 editorArea);
         right.addView(IConsoleConstants.ID_CONSOLE_VIEW);

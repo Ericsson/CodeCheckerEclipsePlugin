@@ -21,7 +21,7 @@ public class FilterConfiguration {
     }
 
     public FilterConfiguration(String name, boolean linkToCurrentEditorByDefalt,
-                               LinkedList<Filter> filters) {
+            LinkedList<Filter> filters) {
         super();
         this.name = name;
         this.linkToCurrentEditorByDefalt = linkToCurrentEditorByDefalt;
@@ -72,11 +72,11 @@ public class FilterConfiguration {
 
         for (Filter f : filters) {
             builder.add(new ResultFilter(f.getFilepath().equals("") ? Optional.<String>absent() :
-                    Optional.of(f.getFilepath()), f.getCheckerMsg().equals("") ? Optional
-                    .<String>absent() : Optional.of(f.getCheckerMsg()), f.getSeverity(), f
-                    .getCheckerId().equals("") ? Optional.<String>absent() : Optional.of(f
-                    .getCheckerId()), f.getBuildTarget().equals("") ? Optional.<String>absent() :
-                    Optional.of(f.getBuildTarget()), f.isShowSuppressedErrors()));
+                Optional.of(f.getFilepath()), f.getCheckerMsg().equals("") ? Optional
+                        .<String>absent() : Optional.of(f.getCheckerMsg()), f.getSeverity(), f
+                        .getCheckerId().equals("") ? Optional.<String>absent() : Optional.of(f
+                                .getCheckerId()), f.getBuildTarget().equals("") ? Optional.<String>absent() :
+                                    Optional.of(f.getBuildTarget()), f.isShowSuppressedErrors()));
         }
 
         return builder.build();

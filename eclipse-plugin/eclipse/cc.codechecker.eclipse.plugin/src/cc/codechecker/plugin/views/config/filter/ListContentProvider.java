@@ -15,8 +15,8 @@ import org.apache.log4j.Level;
 
 public class ListContentProvider implements IContentProvider, IStructuredContentProvider {
 
-	private static final Logger logger = LogManager.getLogger(ListContentProvider.class.getName());
-	
+    private static final Logger logger = LogManager.getLogger(ListContentProvider.class.getName());
+
     @Override
     public Object[] getElements(Object inputElement) {
         if (inputElement instanceof List) {

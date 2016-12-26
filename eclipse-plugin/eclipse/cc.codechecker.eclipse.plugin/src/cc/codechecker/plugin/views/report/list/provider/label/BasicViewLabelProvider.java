@@ -31,10 +31,10 @@ public class BasicViewLabelProvider extends LabelProvider {
                     .getLastBugPathItem().getStartPosition().getColumn() + "]";
         }
         if(obj instanceof BugPathItem) {
-        	BugPathItem bpi = (BugPathItem) obj;
+            BugPathItem bpi = (BugPathItem) obj;
             Path path = new Path(bpi.getFile());
             IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-            
+
             return file.getName() + " : " + bpi.getStartPosition().getLine() + " : " + bpi.getMessage();
         }
         if (obj instanceof String) {
