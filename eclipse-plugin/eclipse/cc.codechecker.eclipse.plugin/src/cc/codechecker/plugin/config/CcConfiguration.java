@@ -26,24 +26,21 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class CcConfiguration {
 
     //Logger
-    private static final Logger logger = LogManager.getLogger(CcConfiguration.class);
-    IProject project;
-    IEclipsePreferences projectPreferences;
-    static final IEclipsePreferences globalPreferences = ConfigurationScope.INSTANCE.getNode(CodeCheckerNature.NATURE_ID);
+    IProject project=null;
+    IEclipsePreferences projectPreferences=null;
+    IEclipsePreferences globalPreferences = null;
 
-    private static  Map<ConfigTypes,String> defaults;//default config values
-    private static Map<ConfigTypes,String> configKeys;//textual values of config variables
+    private  Map<ConfigTypes,String> defaults;//default config values
+    private  Map<ConfigTypes,String> configKeys;//textual values of config variables
 
-    public CcConfiguration(IProject project) {
-        super();
-
+    public void init() {        
+        globalPreferences = ConfigurationScope.INSTANCE.getNode(CodeCheckerNature.NATURE_ID);
         defaults=new HashMap<ConfigTypes,String>();
         defaults.put(ConfigTypes.COMPILERS,"gcc:g++:clang");
         defaults.put(ConfigTypes.ANAL_THREADS,"4");
@@ -56,8 +53,15 @@ public class CcConfiguration {
         configKeys.put(ConfigTypes.ANAL_THREADS,"analthreads");
         configKeys.put(ConfigTypes.CHECKER_LIST,"global_checker_command");
         configKeys.put(ConfigTypes.IS_GLOBAL,"is_global");
-        configKeys.put(ConfigTypes.CHECKER_WORKSPACE,"checker_workspace");
+        configKeys.put(ConfigTypes.CHECKER_WORKSPACE,"checker_workspace");        
+    }
 
+    public CcConfiguration() {
+        init();        
+    }
+    public CcConfiguration(IProject project) {
+        super();
+        init();
         this.project = project;
 
         try {
@@ -66,29 +70,31 @@ public class CcConfiguration {
                 projectPreferences = context.getNode(CodeCheckerNature.NATURE_ID);
             }
         } catch (CoreException e) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            Logger.log(IStatus.ERROR, "" + e);
+            Logger.log(IStatus.INFO, "" + e.getStackTrace());
         }
     }
 
-    public void modifyProjectEnvironmentVariables(final IProject project, final Map<String, String> environmentAdd) {
-        IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
-                .getContributedEnvironment();
-        //we assume that the project is CDT
-        ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true); 
-        ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
-        for(String key : environmentAdd.keySet()) {
-            if(key.equals("PATH")) {
-                ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_PREPEND,"", cfgd);
-            } else {
-                ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_REPLACE,"", cfgd);
+    public void modifyProjectEnvironmentVariables(final Map<String, String> environmentAdd) {
+        if (project!=null){
+            IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
+                    .getContributedEnvironment();
+            //we assume that the project is CDT
+            ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true); 
+            ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
+            for(String key : environmentAdd.keySet()) {
+                if(key.equals("PATH")) {
+                    ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_PREPEND,"", cfgd);
+                } else {
+                    ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_REPLACE,"", cfgd);
+                }
             }
-        }
-        try {
-            CoreModel.getDefault().setProjectDescription(project, prjd);
-        } catch (CoreException e) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            try {
+                CoreModel.getDefault().setProjectDescription(project, prjd);
+            } catch (CoreException e) {
+                Logger.log(IStatus.ERROR, "" + e);
+                Logger.log(IStatus.INFO, "" + e.getStackTrace());
+            }
         }
     }
 
@@ -100,31 +106,33 @@ public class CcConfiguration {
         }
     }
 
-    public IEclipsePreferences getProjectPreferences(){
-        return projectPreferences;
+    public IEclipsePreferences getActivePreferences(){
+        if (project!=null && !isGlobal() )
+            return 
+                    projectPreferences;
+        else
+            return
+                    globalPreferences;
     }
 
-    public static IEclipsePreferences getGlobalPreferences(){
+    public IEclipsePreferences getGlobalPreferences(){
         return globalPreferences;
     }
 
-    public IEclipsePreferences getActivePreferences(){
-        if (getGlobal())
-            return globalPreferences;
-        else
-            return projectPreferences;
-    }        
 
-    public Map<ConfigTypes, String> getProjectConfig() {
-        logger.log(Level.DEBUG, "returning project config");
-        return getConfig(projectPreferences);
+    public Map<ConfigTypes, String> getConfig() {
+        if (project!=null && !isGlobal()){
+            Logger.log(IStatus.INFO, "returning project config");
+            return getConfigEclipse(projectPreferences);
+        }
+        else{
+            Logger.log(IStatus.INFO, "returning global config");
+            return getConfigEclipse(globalPreferences);            
+        }
+
     }
 
-    public static Map<ConfigTypes, String> getGlobalConfig() {
-        logger.log(Level.DEBUG, "returning global config");
-        return getConfig(globalPreferences);		
-    }
-    public static Map<ConfigTypes, String> getDefaultConfig() {
+    public Map<ConfigTypes, String> getDefaultConfig() {
         Map<ConfigTypes, String> ret = new HashMap<ConfigTypes, String>();
         for (ConfigTypes k:ConfigTypes.values()){
             if (defaults.containsKey(k))
@@ -135,7 +143,7 @@ public class CcConfiguration {
         return ret;
     }
 
-    public static Map<ConfigTypes, String> getConfig(IEclipsePreferences pref ) {
+    private  Map<ConfigTypes, String> getConfigEclipse(IEclipsePreferences pref ) {
         Map<ConfigTypes, String> ret = new HashMap<ConfigTypes, String>();
         for (ConfigTypes k:ConfigTypes.values()){
             if (defaults.containsKey(k))
@@ -156,78 +164,80 @@ public class CcConfiguration {
         }
 
 
-        for (ConfigTypes c : configKeys.keySet()) {
-            logger.log(Level.DEBUG, "Config "+configKeys.get(c)+":"+pref.get(configKeys.get(c), ""));
-        }
-
         return ret;
     }
 
-    public Map<ConfigTypes, String> getActiveConfig() {
-        if (getGlobal())
-            return getGlobalConfig();
-        else
-            return getProjectConfig();
-    }
 
     public void dumpConfig(Map<ConfigTypes, String> config) {
-        logger.log(Level.DEBUG, "Config:");
+        Logger.log(IStatus.INFO, "Config:");
         for (Map.Entry<ConfigTypes, String> entry : config.entrySet()) {
-            logger.log(Level.DEBUG, configKeys.get(entry.getKey()) + ":" + entry.getValue());
+            Logger.log(IStatus.INFO, configKeys.get(entry.getKey()) + ":" + entry.getValue());
         }
     }
 
-    public boolean getGlobal() {
-        return (projectPreferences.get(configKeys.get(ConfigTypes.IS_GLOBAL), "true").equals("true"));
+    public boolean isGlobal() {
+        if (project!=null)
+            return (projectPreferences.get(configKeys.get(ConfigTypes.IS_GLOBAL), "true").equals("true"));
+        else
+            return true;
     }
 
     public void updateProject(Map<ConfigTypes,String> newConfig){
         for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet())
         {            
-            logger.log(Level.DEBUG, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
+            Logger.log(IStatus.INFO, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
             projectPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
         }
         try {
             projectPreferences.flush();
-            updateServer(project, CodeCheckerContext.getInstance().getServerObject(project));
+            updateServer(CodeCheckerContext.getInstance().getServerObject(project));
         } catch (BackingStoreException e) {
         }    	
     }
 
 
-    //adds invariable configuration
-    public  void addConstatConfig(){
-        String workDir=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()+ "/.codechecker/"+
-                project.getName();
+    //updates configuration in eclipse
+    //and restarts the corresponding CodeChecker server(s)
+    public void updateConfig(Map<ConfigTypes, String> newConfig) {        
+        if (project==null){//updating global configuration and all running servers
+            for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {            
+                Logger.log(IStatus.INFO, "updateGlobal(): " + configKeys.get(entry.getKey()) + ":" + entry.getValue());
+                globalPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
+            }
 
+            IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+            for (IProject project : projects) {
+                try {
+                    if (project.hasNature(CodeCheckerNature.NATURE_ID) && isCDTProject(project) ) {
+                        CcConfiguration cc = new CcConfiguration(project);
+                        if (cc.isGlobal()) {
+                            cc.updateServer(CodeCheckerContext.getInstance().getServerObject(project));
+                        }
+                    }
+                } catch (CoreException e) {
+                    // TODO Auto-generated catch block
+                }
+            }
+            try {
+                globalPreferences.flush();
+            } catch (BackingStoreException e) {
+            }
+        }else{//updating the config of the current project only
+            for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet())
+            {            
+                Logger.log(IStatus.INFO, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
+                projectPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
+            }
+            try {
+                projectPreferences.flush();
+                updateServer(CodeCheckerContext.getInstance().getServerObject(project));
+            } catch (BackingStoreException e) {
+            }       
+        }
     }
+
     public static boolean isCDTProject(IProject p){
         return CoreModel.getDefault().getProjectDescription(p, true)!=null;
-    }
-
-    public static void updateGlobal(Map<ConfigTypes, String> newConfig) {
-        for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {            
-            logger.log(Level.DEBUG, "updateGlobal(): " + configKeys.get(entry.getKey()) + ":" + entry.getValue());
-            globalPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
-        }
-
-        IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-        for (IProject project : projects) {
-            try {
-                if (project.hasNature(CodeCheckerNature.NATURE_ID) && isCDTProject(project) ) {
-                    CcConfiguration cc = new CcConfiguration(project);
-                    if (cc.getGlobal()) {
-                        cc.updateServer(project, CodeCheckerContext.getInstance().getServerObject(project));
-                    }
-                }
-            } catch (CoreException e) {
-                // TODO Auto-generated catch block
-            }
-        }
-        try {
-            globalPreferences.flush();
-        } catch (BackingStoreException e) {
-        }
     }
 
     public String convertFilenameToServer(String projectRelativeFile) {
@@ -248,7 +258,7 @@ public class CcConfiguration {
 
     public boolean isConfigured() {
         try {
-            if(project.hasNature(CodeCheckerNature.NATURE_ID)&& isCDTProject(project) ) {
+            if(project!=null && project.hasNature(CodeCheckerNature.NATURE_ID)&& isCDTProject(project) ) {
                 CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project)
                         .getCodecheckerEnvironment();
                 if (ccec != null) {
@@ -262,31 +272,32 @@ public class CcConfiguration {
         }
     }
 
-    public void updateServer(IProject project, CodecheckerServerThread server) {
-        logger.log(Level.DEBUG, "Updating Server" + project.getName());
-        Map<ConfigTypes, String> config = getActiveConfig();		
-        config.put(ConfigTypes.CHECKER_WORKSPACE, ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
-                + "/.codechecker/" + project.getName());// codechecker workspace
-        dumpConfig(config);
-        try {
-            File workDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
-                    + project.getName());
-            if (!workDir.exists()) {
-                workDir.mkdir();
-            }
-            logger.log(Level.INFO, "Restarting server : " + project.getName());
-            CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(config);
-            modifyProjectEnvironmentVariables(project, ccec.getEnvironmentAddList());
-            server.setCodecheckerEnvironment(ccec);
-            ConsoleFactory.consoleWrite(
-                    project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
+    public void updateServer(CodecheckerServerThread server) {
+        if (project!=null){
+            Logger.log(IStatus.INFO, "Updating Server" + project.getName());
+            Map<ConfigTypes, String> config = getConfig();		
+            config.put(ConfigTypes.CHECKER_WORKSPACE, ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
+                    + "/.codechecker/" + project.getName());// codechecker workspace
+            dumpConfig(config);
+            try {
+                File workDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
+                        + project.getName());
+                if (!workDir.exists()) {
+                    workDir.mkdir();
+                }
+                Logger.log(IStatus.INFO, "Restarting server : " + project.getName());
+                CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(config);
+                modifyProjectEnvironmentVariables(ccec.getEnvironmentAddList());
+                server.setCodecheckerEnvironment(ccec);
+                ConsoleFactory.consoleWrite(
+                        project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
 
-        } catch (Exception e) {
-            ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());            
-            e.printStackTrace();
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            } catch (Exception e) {
+                ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());            
+                e.printStackTrace();
+                Logger.log(IStatus.ERROR, "" + e);
+                Logger.log(IStatus.INFO, "" + e.getStackTrace());
+            }
         }
     }
-
 }
