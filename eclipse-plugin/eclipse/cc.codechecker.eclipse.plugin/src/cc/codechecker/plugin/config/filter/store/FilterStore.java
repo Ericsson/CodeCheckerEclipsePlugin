@@ -15,15 +15,10 @@ import com.google.gson.reflect.TypeToken;
 
 import cc.codechecker.plugin.Activator;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class FilterStore {
-
-	//Logger
-	private static final Logger logger = LogManager.getLogger(FilterStore.class);
 
     private final String projectName;
 
@@ -107,8 +102,8 @@ public class FilterStore {
             }
 
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e.getStackTrace());
+        	Logger.log(IStatus.ERROR, " " + e);
+        	Logger.log(IStatus.ERROR, " " + e.getStackTrace());
         }
 
     }
@@ -131,8 +126,8 @@ public class FilterStore {
             outputStream.write(gson.toJson(subList).getBytes());
             outputStream.close();
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+        	Logger.log(IStatus.ERROR, " " + e);
+        	Logger.log(IStatus.INFO, " " + e.getStackTrace());
         }
     }
 }

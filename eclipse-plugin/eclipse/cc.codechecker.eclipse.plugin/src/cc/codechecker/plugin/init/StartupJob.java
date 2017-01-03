@@ -23,19 +23,13 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.OnCheckCallback;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
-import cc.codechecker.plugin.views.console.ConsoleFactory;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+import cc.codechecker.plugin.Logger;
 
 public class StartupJob extends Job {
 
-    // Logger
-    private static final Logger logger = LogManager.getLogger(StartupJob.class);
 
     EditorPartListener partListener;
     ProjectExplorerSelectionListener projectexplorerselectionlistener;
@@ -47,10 +41,8 @@ public class StartupJob extends Job {
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> IStatus:run ");
-        if (PlatformUI.isWorkbenchRunning()) {
-            logger.log(Level.DEBUG, "isWorkBenchRunning:true ");
+    protected IStatus run(IProgressMonitor monitor) {                         
+        if (PlatformUI.isWorkbenchRunning()) {            
             runInUIThread(monitor);
         } else {
             schedule(1000);
@@ -66,16 +58,16 @@ public class StartupJob extends Job {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            Logger.log(IStatus.ERROR, " " + e);
+            Logger.log(IStatus.INFO, " " + e.getStackTrace());
         }
 
-        logger.log(Level.DEBUG, "adding addResourceChangeListener ");
+        Logger.log(IStatus.INFO, "adding addResourceChangeListener ");
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
 
             @Override
             public void resourceChanged(IResourceChangeEvent event) {
-                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> resourcechangedEvent"+event.getType());
+                Logger.log(IStatus.INFO, " resourcechangedEvent"+event.getType());
                 switch (event.getType()) {
                 case IResourceChangeEvent.POST_BUILD: {
                     try {
@@ -86,13 +78,8 @@ public class StartupJob extends Job {
                                     IResource resource = delta.getResource();
                                     IProject project=resource.getProject();
                                     if (project!=null && project.hasNature(CodeCheckerNature.NATURE_ID)){
-                                        changedProjects.add(project);
-                                        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built:"
-                                                + project.getName());
-                                    }
-                                    else{
-                                        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project was built is nul!!?");
-                                    }
+                                        changedProjects.add(project);                                        
+                                    }                                    
                                     return true;
                                 }
                             });
@@ -102,8 +89,8 @@ public class StartupJob extends Job {
                         }
                     } catch (CoreException e) {
                         // TODO Auto-generated catch block
-                        logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                        Logger.log(IStatus.ERROR, " " + e);
+                        Logger.log(IStatus.INFO, " " + e.getStackTrace());
                     }
                     break;
                 }
@@ -115,7 +102,7 @@ public class StartupJob extends Job {
                             if (((resource.getType() & IResource.PROJECT) != 0) && resource.getProject().isOpen()
                                     && delta.getKind() == IResourceDelta.CHANGED
                                     && ((delta.getFlags() & IResourceDelta.OPEN) != 0)) {
-                                logger.log(Level.DEBUG, "Project visit called for project:"
+                                Logger.log(IStatus.INFO, "Project visit called for project:"
                                         + resource.getProject().getName());
                                 IProject project = (IProject) resource;
                                 projectOpened(project);
@@ -124,41 +111,40 @@ public class StartupJob extends Job {
                         }
                     });
                 } catch (CoreException e) {
-                    logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                    Logger.log(IStatus.ERROR, " " + e);
+                    Logger.log(IStatus.INFO, " " + e.getStackTrace());
                 }
             }
 
         }, IResourceChangeEvent.POST_BUILD | IResourceChangeEvent.POST_CHANGE | IResourceDelta.OPEN);
 
-        logger.log(Level.DEBUG, "Starting CodeChecker Servers.");
+        Logger.log(IStatus.INFO, "Starting CodeChecker Servers.");
         // check all open projects
         for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
             projectOpened(project);
         }
-        logger.log(Level.DEBUG, "CodeChecker servers started");
+        Logger.log(IStatus.INFO, "CodeChecker servers started");
 
         // check all open windows
         for (IWorkbenchWindow win : wb.getWorkbenchWindows()) {
             addListenerToWorkbenchWindow(win);
         }
-        logger.log(Level.DEBUG, "returning.");
         return Status.OK_STATUS;
     }
 
     private void onProjectBuilt(IProject project) {
         if (project == null)
             return;
-        logger.log(Level.DEBUG,
-                "SERVER_GUI_MSG >> " + project.getName() + " onProjectBuilt called.");
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + " onProjectBuilt called.");
         try {
             if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
                 return;
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            Logger.log(IStatus.ERROR, "" + e);
+            Logger.log(IStatus.INFO, "" + e.getStackTrace());
         }
 
         CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
@@ -166,15 +152,13 @@ public class StartupJob extends Job {
             if (!server.isRunning())
                 server.start(); // ensure started!
             server.recheck();
-        }
-        logger.log(Level.DEBUG,
-                "SERVER_GUI_MSG >> " + project.getName() + " CodeChecker Check Data Transport Complete!");
+        }        
     }
 
     private void projectOpened(IProject project) {
         if (project == null)
             return;
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> projectOpened!" + project.getName());
+        Logger.log(IStatus.INFO, "projectOpened!" + project.getName());
         try {
             //if CodecheCker nature is not set or the project is non-CDT we don launch CodeChecker server
             if (!project.hasNature(CodeCheckerNature.NATURE_ID) || 
@@ -183,23 +167,23 @@ public class StartupJob extends Job {
             }
         } catch (CoreException e) {
             // TODO Auto-generated catch block
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            Logger.log(IStatus.ERROR, "" + e);
+            Logger.log(IStatus.INFO, "" + e.getStackTrace());
         }
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CodeChecker nature found!");
+        Logger.log(IStatus.INFO, "CodeChecker nature found!");
         try {
             CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
             if (project.isOpen()) {
                 if (!server.isRunning()){
-                    logger.log(Level.DEBUG, "Starting server+"+project.getName());
+                    Logger.log(IStatus.INFO, "Starting server+"+project.getName());
                     server.start(); // ensure started!
-                    logger.log(Level.DEBUG, "server started+"+project.getName());
+                    Logger.log(IStatus.INFO, "server started+"+project.getName());
                 }
             } else {
                 if (server.isRunning())
-                    logger.log(Level.DEBUG, "Stopping server+"+project.getName());
+                    Logger.log(IStatus.INFO, "Stopping server+"+project.getName());
                 server.stop();
-                logger.log(Level.DEBUG, "Server stopped:+"+project.getName());
+                Logger.log(IStatus.INFO, "Server stopped:+"+project.getName());
             }
         } catch (Exception e) {
         }
@@ -212,8 +196,8 @@ public class StartupJob extends Job {
             ss.addPostSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, projectexplorerselectionlistener);
             win.getActivePage().addPartListener(partListener);
         } catch (Exception e) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+            Logger.log(IStatus.ERROR, "" + e);
+            Logger.log(IStatus.INFO, "" + e.getStackTrace());
         }
     }
 

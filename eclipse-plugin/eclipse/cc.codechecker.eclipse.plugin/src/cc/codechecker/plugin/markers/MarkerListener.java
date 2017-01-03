@@ -15,15 +15,11 @@ import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchListener;
 import cc.codechecker.plugin.config.CcConfiguration;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 public class MarkerListener implements SearchListener {
 	
-	//Logger
-	private static final Logger logger = LogManager.getLogger(MarkerListener.class);	
-
     CcConfiguration config;
     private IProject project;
 
@@ -63,7 +59,7 @@ public class MarkerListener implements SearchListener {
                 for (ReportInfo ri : list) {
                     String relName = config.convertFilenameFromServer(ri.getLastBugPathItem()
                             .getFile());
-                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Filename : " + relName);
+                    Logger.log(IStatus.INFO, " Filename : " + relName);
                     IFile fileinfo = project.getFile(relName);
 
                     if (fileinfo != null && fileinfo.exists()) {
@@ -73,12 +69,12 @@ public class MarkerListener implements SearchListener {
                                     IResource.DEPTH_INFINITE);
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                        	Logger.log(IStatus.ERROR, " " + e);
+                        	Logger.log(IStatus.INFO, " " + e.getStackTrace());
                         }
 
                         try {
-                            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> ReportInfo : " + ri);
+                            Logger.log(IStatus.INFO, " ReportInfo : " + ri);
                             IMarker marker = fileinfo.createMarker("cc.codechecker.markers" + "" +
                                     ".problemmarker");
                             marker.setAttribute(IMarker.LINE_NUMBER, (int) ri.getLastBugPathItem
@@ -87,11 +83,11 @@ public class MarkerListener implements SearchListener {
                                     .getStartPosition().getColumn());
                             marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
                             marker.setAttribute(IMarker.MESSAGE, ri.getCheckerMsg());
-                            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
+                            Logger.log(IStatus.INFO, " Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
-                        	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                        	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                        	Logger.log(IStatus.ERROR, " " + e);
+                        	Logger.log(IStatus.INFO, " " + e.getStackTrace());
                         }
                     }
                 }

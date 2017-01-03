@@ -9,15 +9,9 @@ import cc.codechecker.api.job.report.list.SearchList;
 import cc.codechecker.api.job.report.list.SearchJob;
 import cc.codechecker.api.job.report.list.SearchListener;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-
 public class ReportListViewListener implements SearchListener {
 
-	//Logger
-	private static final Logger logger = LogManager.getLogger(ReportListViewListener.class);
-	
+
     private final ReportListView target;
 
     public ReportListViewListener(ReportListView target) {
@@ -47,8 +41,7 @@ public class ReportListViewListener implements SearchListener {
     }
 
     @Override
-    public void onPartsArrived(SearchJob arg0, SearchList arg1, ImmutableList<ReportInfo> arg2) {
-    	logger.log(Level.INFO, "SERVER_GUI_MSG >> Report size: " + arg2.size());
+    public void onPartsArrived(SearchJob arg0, SearchList arg1, ImmutableList<ReportInfo> arg2) {    	
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {

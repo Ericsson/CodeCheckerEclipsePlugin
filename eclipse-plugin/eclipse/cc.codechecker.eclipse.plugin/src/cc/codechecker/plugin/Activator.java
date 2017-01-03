@@ -18,18 +18,12 @@ import cc.codechecker.plugin.views.console.ConsoleFactory;
 
 import java.net.URL;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 /**
  * The activator class controls the plug-in life cycle
  */
 public class Activator extends AbstractUIPlugin implements IStartup {
-
-	//Logger
-	private static final Logger logger = LogManager.getLogger(Activator.class);
 	
     // The plug-in ID
     public static final String PLUGIN_ID = "cc.codechecker.eclipse.plugin"; //$NON-NLS-1$
@@ -46,7 +40,6 @@ public class Activator extends AbstractUIPlugin implements IStartup {
     	Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
         final URL fullPathString = FileLocator.find(bundle, new Path("log4j.properties"), null);
     	PropertyConfigurator.configure(fullPathString);
-    	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator Created");
     }
 
     public static IPath getPreferencesPath() {
@@ -78,7 +71,6 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      */
     public void start(BundleContext context) throws Exception {
         ConsoleFactory.consoleWrite("CodeChecker Plugin Started");
-    	logger.log(Level.DEBUG,"SERVER_GUI_MSG >> Activator started");
         super.start(context);
 
 

@@ -41,17 +41,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.joda.time.Instant;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 /**
  * The Class CodeCheckerContext.
  */
 public class CodeCheckerContext {
-
-    /** The Constant logger. */
-    private static final Logger logger = LogManager.getLogger(CodeCheckerContext.class);
 
     /** The instance. */
     static CodeCheckerContext instance;
@@ -195,7 +190,7 @@ public class CodeCheckerContext {
                 }
             });
             CcConfiguration config = new CcConfiguration(project);
-            config.updateServer(project, serverObj);
+            config.updateServer(serverObj);
             servers.put(project, serverObj);
         }
         return servers.get(project);
@@ -206,7 +201,7 @@ public class CodeCheckerContext {
      */
     public void cleanCache() {
         jobRunner.getActionCacheFilter().removeAll();
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> CLEARING CACHE");
+        Logger.log(IStatus.INFO, " CLEARING CACHE");
     }
 
     /**
@@ -218,14 +213,14 @@ public class CodeCheckerContext {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, " Error activeWindow is null!");
             return;
         }
 
         IWorkbenchPage[] pages = activeWindow.getPages();
         IWorkbenchPage activePage = activeWindow.getActivePage();
         if (activePage == null) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> activePage is null!");
+            Logger.log(IStatus.INFO, " activePage is null!");
             return;
         }
 
@@ -236,7 +231,7 @@ public class CodeCheckerContext {
             this.refreshProject(pages, project, false);
             this.refreshCustom(pages, project, "", false);
             this.activeProject = project;
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> partRef is null or partRef instanceof FileEditor!");
+            Logger.log(IStatus.INFO, " partRef is null or partRef instanceof FileEditor!");
             return;
         }
 
@@ -266,7 +261,7 @@ public class CodeCheckerContext {
     public void refreshChangeEditorPart(IEditorPart partRef) {
         //partRef is not instanceof IFileEditorInput or not change editorPart!
         if (!(partRef.getEditorInput() instanceof IFileEditorInput) || partRef == activeEditorPart) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> partRef is not instanceof IFileEditorInput or not change editorPart!");
+            Logger.log(IStatus.INFO, " partRef is not instanceof IFileEditorInput or not change editorPart!");
             return;
         }
 
@@ -283,7 +278,7 @@ public class CodeCheckerContext {
 
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if(activeWindow == null) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, " Error activeWindow is null!");
             return;
         }
         IWorkbenchPage[] pages = activeWindow.getPages();
@@ -303,7 +298,7 @@ public class CodeCheckerContext {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, "Error activeWindow is null!");
             return;
         }
 
@@ -323,13 +318,13 @@ public class CodeCheckerContext {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            logger.log(Level.ERROR, "SERVER_GUI_MSG >> Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, "Error activeWindow is null!");
             return;
         }
 
         IEditorPart partRef = activeWindow.getActivePage().getActiveEditor();
         if(partRef == null) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> partRef is null!");
+            Logger.log(IStatus.INFO, "partRef is null!");
             return;
         }
         activeEditorPart = partRef;

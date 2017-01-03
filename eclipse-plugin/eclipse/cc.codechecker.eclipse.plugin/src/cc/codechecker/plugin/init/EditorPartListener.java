@@ -5,22 +5,17 @@ import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 
 import cc.codechecker.plugin.config.CodeCheckerContext;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class EditorPartListener implements IPartListener {
-
-    //Logger
-    private static final Logger logger = LogManager.getLogger(EditorPartListener.class);
 
     @Override
     public void partActivated(IWorkbenchPart partRef) {
         if (!(partRef instanceof IEditorPart)) {
             return;
         }
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Editor changed : " + partRef.getClass().getName());
+        Logger.log(IStatus.INFO, "Editor changed : " + partRef.getClass().getName());
         CodeCheckerContext.getInstance().refreshChangeEditorPart((IEditorPart) partRef);
     }
 

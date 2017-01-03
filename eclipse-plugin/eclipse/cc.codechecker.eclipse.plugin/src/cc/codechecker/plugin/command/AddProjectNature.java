@@ -16,19 +16,15 @@ import org.eclipse.ui.PlatformUI;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class AddProjectNature extends AbstractHandler {
 	
-	//Logger
-	private static final Logger logger = LogManager.getLogger(AddProjectNature.class);
-	
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        // TODO Auto-generated method stub
-    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Adding project nature.");
+        // TODO Auto-generated method stub    	
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null) {
@@ -39,15 +35,14 @@ public class AddProjectNature extends AbstractHandler {
                 IProject project = (IProject) ((IAdaptable) firstElement).getAdapter(IProject
                         .class);
                 if (project == null) {
-                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Not a project.");
+                	Logger.log(IStatus.INFO, "Not a project.");
                     return null;
                 }
                 IPath path = project.getFullPath();
-                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + path);
+                Logger.log(IStatus.INFO, "" + path);
 
                 try {
-                    if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                    	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project already has nature.");
+                    if (project.hasNature(CodeCheckerNature.NATURE_ID)) {                    	
                         return null;
                     }
 
@@ -61,12 +56,12 @@ public class AddProjectNature extends AbstractHandler {
                     IProgressMonitor monitor = null;
                     project.setDescription(description, monitor);
                     ConsoleFactory.consoleWrite(project.getName() + ": Sucessfully added CodeChecker Nature");
-                    logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Project nature added!");
+                    Logger.log(IStatus.INFO, "Project nature added!");
 
                 } catch (CoreException e) {
                     // TODO Auto-generated catch block
-                	logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                	logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                	Logger.log(IStatus.ERROR,  e.toString());
+                	Logger.log(IStatus.INFO, e.getStackTrace().toString());
                 }
 
             }

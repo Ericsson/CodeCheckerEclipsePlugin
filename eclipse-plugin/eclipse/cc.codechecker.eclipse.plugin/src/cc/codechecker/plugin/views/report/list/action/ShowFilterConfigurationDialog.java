@@ -14,16 +14,11 @@ import cc.codechecker.plugin.views.config.filter.FilterConfigurationDialog;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.action.showas.TreeAwareAction;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
 
 import java.net.URL;
 
-import org.apache.log4j.Level;
-
 public class ShowFilterConfigurationDialog extends TreeAwareAction {
 
-	private static final Logger logger = LogManager.getLogger(ShowFilterConfigurationDialog.class.getName());
 	
     public ShowFilterConfigurationDialog(ReportListView listView) {
         super(listView, "Show Filter Configurators", IAction.AS_PUSH_BUTTON);
@@ -42,12 +37,10 @@ public class ShowFilterConfigurationDialog extends TreeAwareAction {
 
         int result = dialog.open();
 
-        if (result == 0) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Setting: " + dialog.getCurrentConfiguration().getName());
+        if (result == 0) {            
             listView.setActiveConfiguration(dialog.getCurrentConfiguration());
         }
 
-        logger.log(Level.DEBUG, "SERVER_GUI_MSG >> RESULT: " + result);
     }
 
 }

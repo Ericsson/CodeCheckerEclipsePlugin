@@ -1,21 +1,13 @@
 package cc.codechecker.plugin.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -31,7 +23,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -44,19 +35,20 @@ import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.api.config.Config.ConfigTypes;
 
-import cc.codechecker.plugin.config.project.CcProjectProperties;
 import cc.codechecker.plugin.itemselector.CheckerView;
 import cc.codechecker.plugin.utils.CheckerItem;
 import cc.codechecker.plugin.utils.CheckerItem.LAST_ACTION;
 
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
+
 public class CommonGui {
 
-	// Logger
-	private static final Logger logger = LogManager.getLogger(CommonGui.class);
 
 	boolean global;//whether this class is for global or project specific preferences
-	boolean useGlobalSettings;//if this is project specific page, wheter to use global preferences 
+	boolean useGlobalSettings;//if this is project specific page, whether to use global preferences 
 	IProject project;
+	CcConfiguration config;
 	private  Text codeCheckerDirectoryField;// codechecker dir
 	private  Text pythonEnvField;// CodeChecker python env
 	private  Text numThreads;// #of analysis threads
@@ -72,10 +64,12 @@ public class CommonGui {
     
 	public CommonGui(){		
 		global=true;
+		config=new CcConfiguration();
 	}
 	public CommonGui(IProject proj){		
 		project=proj;
-		global=false;
+		config=new CcConfiguration(proj);
+		global=false;		       
 	}	
 	
 	protected Text addTextField(FormToolkit toolkit, Composite comp, String labelText, String def) {
@@ -88,7 +82,6 @@ public class CommonGui {
 	}
 	
 	public Control createContents(final Composite parent) {
-		logger.log(Level.DEBUG, "createContents called");		
 		final FormToolkit toolkit = new FormToolkit(parent.getDisplay());
 
 		form = toolkit.createScrolledForm(parent);
@@ -181,17 +174,15 @@ public class CommonGui {
 						try{
 							CodeCheckEnvironmentChecker checkerEnv = new CodeCheckEnvironmentChecker(config);
 							ArrayList<CheckerItem> checkersList=getCheckerList(checkerEnv);
-							logger.log(Level.DEBUG, "checker list was "+checkerListArg);
 							CheckerView dialog = new CheckerView(activeShell, checkersList);
 	
 							int result = dialog.open();
 	
 							if (result == 0) {
 								checkerListArg=checkerListToCheckerListArg(dialog.getCheckersList());
-								logger.log(Level.DEBUG, "checker list set to "+checkerListArg);							
 							}
 						}catch(IllegalArgumentException e){
-							logger.log(Level.DEBUG, "Codechecker environment is invalid"+e);							
+							Logger.log(IStatus.INFO, "Codechecker environment is invalid"+e);							
 						}						
 					}
 				};
@@ -279,74 +270,48 @@ public class CommonGui {
 	}
 
 	public Map<ConfigTypes, String> loadConfig(boolean resetToDefault) {
-		Map<ConfigTypes, String> config;		
-		if (!resetToDefault){
-		if (global)			
-			config = CcConfiguration.getGlobalConfig();
-		else{			
-	        CcConfiguration c=new CcConfiguration(project);
-			config = c.getProjectConfig();
-			useGlobalSettings = config.get(ConfigTypes.IS_GLOBAL).equals("true");
-			if (useGlobalSettings)
-				config=CcConfiguration.getGlobalConfig();
-		}}
-		else
-			config=CcConfiguration.getDefaultConfig();
-		
-		codeCheckerDirectoryField.setText(config.get(ConfigTypes.CHECKER_PATH));
-		pythonEnvField.setText(config.get(ConfigTypes.PYTHON_PATH));
-		checkerListArg = config.get(ConfigTypes.CHECKER_LIST);
-		cLoggers.setText(config.get(ConfigTypes.COMPILERS));
-		numThreads.setText(config.get(ConfigTypes.ANAL_THREADS));
-		return config;
+	    Map<ConfigTypes, String> ret;		
+	    if (!resetToDefault){
+	        ret=config.getConfig();
+	        useGlobalSettings = config.isGlobal();
+	    }
+	    else
+	        ret=config.getDefaultConfig();
+
+	    codeCheckerDirectoryField.setText(ret.get(ConfigTypes.CHECKER_PATH));
+	    pythonEnvField.setText(ret.get(ConfigTypes.PYTHON_PATH));
+	    checkerListArg = ret.get(ConfigTypes.CHECKER_LIST);
+	    cLoggers.setText(ret.get(ConfigTypes.COMPILERS));
+	    numThreads.setText(ret.get(ConfigTypes.ANAL_THREADS));
+	    return ret;
 	}
 	
 	public Map<ConfigTypes, String> getConfig() {				
-		Map<ConfigTypes, String> config;		
-		if (global){			
-			config = CcConfiguration.getGlobalConfig();
-		}
-		else{
-			CcConfiguration c=new CcConfiguration(project);
-			config = c.getProjectConfig();
-		}
-		
-		config.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-		config.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
-		config.put(ConfigTypes.CHECKER_LIST, checkerListArg);
-		config.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
-		config.put(ConfigTypes.COMPILERS, cLoggers.getText());
-		return config;
+		Map<ConfigTypes, String> conf;				
+		conf = config.getConfig();		
+		conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
+		conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
+		conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
+		conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
+		conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
+		return conf;
 	}
 
 	public void saveConfig() {				
-		Map<ConfigTypes, String> config;		
-		if (global){			
-			config = CcConfiguration.getGlobalConfig();
-		}
-		else{
-			CcConfiguration c=new CcConfiguration(project);
-			config = c.getProjectConfig();
-		}
-		
-		config.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-		config.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
-		config.put(ConfigTypes.CHECKER_LIST, checkerListArg);
-		config.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
-		config.put(ConfigTypes.COMPILERS, cLoggers.getText());
-		if (global)
-			CcConfiguration.updateGlobal(config);
-		else{
-			String g="true";
-			if (!useGlobalSettings)
-				g="false";			
-			config.put(ConfigTypes.IS_GLOBAL, g);
-			logger.log(Level.DEBUG, "Saving project settings: IS_GLOBAL:"+g);
-			CcConfiguration c=new CcConfiguration(project);
-			c.updateProject(config);
-		}			
-	}
+	    Map<ConfigTypes, String> conf=new HashMap<ConfigTypes,String>();						
+	    conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
+	    conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
+	    conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
+	    conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
+	    conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
 
+	    String g="true";
+	    if (!useGlobalSettings)
+	        g="false";			
+	    conf.put(ConfigTypes.IS_GLOBAL, g);
+	    Logger.log(IStatus.INFO, "Saving project settings: IS_GLOBAL:"+g);			
+	    config.updateConfig(conf);				
+	}
 
 	public void performDefaults() {
 		loadConfig(true);
@@ -358,7 +323,7 @@ public class CommonGui {
 
 	
 	public void performOk() {
-		logger.log(Level.INFO, "SERVER_GUI_MSG >> Saving!");
+		Logger.log(IStatus.INFO, "Saving!");
 		saveConfig();
 		
 	}

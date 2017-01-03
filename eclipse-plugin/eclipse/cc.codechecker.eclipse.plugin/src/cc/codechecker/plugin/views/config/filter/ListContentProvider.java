@@ -7,20 +7,15 @@ import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import cc.codechecker.api.runtime.ShellExecutorHelper;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Level;
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class ListContentProvider implements IContentProvider, IStructuredContentProvider {
-
-	private static final Logger logger = LogManager.getLogger(ListContentProvider.class.getName());
 	
     @Override
     public Object[] getElements(Object inputElement) {
         if (inputElement instanceof List) {
-            logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Displaying list");
+            Logger.log(IStatus.INFO, "SERVER_GUI_MSG >> Displaying list");
             return ((List) inputElement).toArray();
         }
         return ArrayUtils.toArray();

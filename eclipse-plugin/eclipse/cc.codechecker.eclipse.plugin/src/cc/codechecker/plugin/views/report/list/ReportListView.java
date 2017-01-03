@@ -20,10 +20,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
+
 
 import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.action.run.RunInfo;
 import cc.codechecker.api.job.report.list.SearchList;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
@@ -35,27 +34,19 @@ import cc.codechecker.plugin.views.report.list.action.showas.CheckerGroupAction;
 import cc.codechecker.plugin.views.report.list.action.showas.CheckerTreeAction;
 import cc.codechecker.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
 import cc.codechecker.plugin.views.report.list.provider.label.BasicViewLabelProvider;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
+import cc.codechecker.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 public class ReportListView extends ViewPart {
 
-    //Logger
-    private static final Logger logger = LogManager.getLogger(ReportListView.class);
-
     public static final String ID = "cc.codechecker.plugin.views.ReportList";
     FilterConfiguration activeConfiguration = new FilterConfiguration();
-
-    ;
     Optional<SearchList> reportList = Optional.<SearchList>absent();
     private TreeViewer viewer;
     private boolean viewerRefresh = true;
     private Composite parent;
     private String currentFilename;
     private IProject currentProject;
-    private ImmutableList<RunInfo> runList;
     private ShowFilterConfigurationDialog showfilterconfigurationdialog;
 
     public ReportListView() {
@@ -213,8 +204,8 @@ public class ReportListView extends ViewPart {
                 IDE.gotoMarker(page.getActiveEditor(), marker);
                 marker.delete();
             } catch (CoreException e) {
-                logger.log(Level.ERROR, "SERVER_GUI_MSG >> " + e);
-                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> " + e.getStackTrace());
+                Logger.log(IStatus.ERROR, " " + e);
+                Logger.log(IStatus.INFO, " " + e.getStackTrace());
             }
         }
     }
@@ -283,7 +274,6 @@ public class ReportListView extends ViewPart {
 
     public void onEditorChanged(IProject project, String filename) {
         if (project != currentProject) {
-            logger.log(Level.INFO, "SERVER_GUI_MSG >> PreChanging runList!");
             this.currentProject = project;
             //CodeCheckerContext.getInstance().runRunListJob(this);
         }
