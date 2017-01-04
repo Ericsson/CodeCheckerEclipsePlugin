@@ -7,13 +7,8 @@ import org.apache.commons.exec.*;
 import java.io.*;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Level;
-
 public class ShellExecutorHelper {
 	
-	private static final Logger logger = LogManager.getLogger(ShellExecutorHelper.class.getName());
 	
     final Map<String, String> environment;
 
@@ -92,7 +87,7 @@ public class ShellExecutorHelper {
         Executor ec = build();
         PidObject pidObject = new PidObject();
         ec.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
-        ServerLoggerReader olr = new ServerLoggerReader(pidObject);
+        ServerSLoggerReader olr = new ServerSLoggerReader(pidObject);
         ec.setStreamHandler(new PumpStreamHandler(olr));
         return new Executable(ec, buildScriptCommandLine("echo \"PID> $BASHPID\" ; " + cmd),
                 pidObject);
@@ -141,14 +136,14 @@ public class ShellExecutorHelper {
         }
 
         public void kill() {
-        	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Killing PID " + this.pidObject.pid);
+        	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Killing PID " + this.pidObject.pid);
             if (pidObject.pid > 1000) {
                 // Slightly less AWFUL BASH MAGIC, which gets the pids of the pidObject process and
                 //     all its descendant processes and kills them.
                 // The pidObject process should always be the main CodeChecker process this plugin
                 //     starts.
         		String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")").get().replace("\n", "");
-            	logger.log(Level.DEBUG, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
+            	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
             	try {
             		waitReturnOutput("kill " + cpid);
             	} catch(Exception e) {}
@@ -191,12 +186,12 @@ public class ShellExecutorHelper {
         }
     }
 
-    class ServerLoggerReader extends LogOutputStream {
+    class ServerSLoggerReader extends LogOutputStream {
 
         boolean firstLine = true;
         private PidObject pidObject;
 
-        public ServerLoggerReader(PidObject pidObject) {
+        public ServerSLoggerReader(PidObject pidObject) {
             this.pidObject = pidObject;
         }
 
@@ -208,13 +203,13 @@ public class ShellExecutorHelper {
                 String[] a = s.split(" ");
                 if (pidObject != null) {
                     pidObject.pid = Integer.parseInt(a[a.length - 1]);
-                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> Server PID: " + pidObject.pid);
+                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Server PID: " + pidObject.pid);
                 }
                 firstLine = false;
             }
 
             // TODO: log to file!
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + s);
+            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + s);
         }
     }
 }

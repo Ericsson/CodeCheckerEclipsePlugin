@@ -3,15 +3,13 @@ package cc.codechecker.api.job.report.list;
 import cc.codechecker.api.action.bug.path.ProblemInfoRequest;
 import cc.codechecker.api.action.result.ReportInfo;
 import cc.codechecker.api.job.ProblemInfoJob;
+import cc.codechecker.api.runtime.LogI;
+import cc.codechecker.api.runtime.SLogger;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Level;
 
 import org.joda.time.Instant;
 
@@ -19,8 +17,6 @@ import java.util.Collection;
 import java.util.Set;
 
 public class ListList {
-
-    private final static Logger logger = LogManager.getLogger(ListList.class.getName());
 
     private final ListRequest request;
 
@@ -37,7 +33,7 @@ public class ListList {
     void addReports(ImmutableList<ReportInfo> reports) {
         for (ReportInfo report : reports) {
             if (this.reports.containsValue(report)) {
-            	logger.log(Level.WARN, "Duplicate report in the result list: " + report);
+            	SLogger.log(LogI.WARNING, "Duplicate report in the result list: " + report);
             }
             this.reports.put(report.getCheckerId(), report);
         }

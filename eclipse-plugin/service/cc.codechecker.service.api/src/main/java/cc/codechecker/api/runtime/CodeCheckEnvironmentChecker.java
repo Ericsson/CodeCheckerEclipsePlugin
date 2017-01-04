@@ -4,10 +4,7 @@ import cc.codechecker.api.config.Config.ConfigTypes;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Level;
+import cc.codechecker.api.runtime.SLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +15,6 @@ import java.lang.Math;
 
 public class CodeCheckEnvironmentChecker {
 
-    private static final Logger logger = LogManager.getLogger(CodeCheckEnvironmentChecker.class.getName());
 
     public final Optional<String> pythonEnvironment;
     public final String checkerDir; // root directory of CodeChecker
@@ -52,10 +48,10 @@ public class CodeCheckEnvironmentChecker {
         config=config_m;
         if (!config.containsKey(ConfigTypes.PYTHON_PATH) || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
             pythonEnvironment=Optional.absent();
-            logger.log(Level.DEBUG, "pythonenv is not set");
+            SLogger.log(LogI.INFO, "pythonenv is not set");
         }
         else{
-            logger.log(Level.DEBUG, "pythonenv is set to:"+config.get("PYTHON_PATH"));
+            SLogger.log(LogI.INFO, "pythonenv is set to:"+config.get("PYTHON_PATH"));
             pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
         }
 
@@ -70,10 +66,10 @@ public class CodeCheckEnvironmentChecker {
         environmentAddList = new HashMap<String, String>(){{
             put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
             put("_", checkerDir + "/bin/CodeChecker");
-            put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
+            put("CC_logger_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
             put("LD_PRELOAD","ldlogger.so");
-            put("CC_LOGGER_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
-            put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
+            put("CC_logger_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
+            put("CC_logger_BIN", checkerDir + "/bin/ldlogger");
         }};
 
         if(pythonEnvironment.isPresent()) {
@@ -90,7 +86,7 @@ public class CodeCheckEnvironmentChecker {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
         String cmd=codeCheckerCommand + " -h";
-        logger.log(Level.DEBUG, "Testing " + cmd);
+        SLogger.log(LogI.INFO, "Testing " + cmd);
         Optional<String> ccEnvOutput = she.quickReturnOutput(cmd);
         double test = 0;
         while(!ccEnvOutput.isPresent() && test <= 2){
@@ -98,7 +94,7 @@ public class CodeCheckEnvironmentChecker {
             ++test;
         } 
         if (!ccEnvOutput.isPresent()) {
-            logger.log(Level.ERROR, "Cannot run CodeChecker command:"+cmd);
+            SLogger.log(LogI.ERROR, "Cannot run CodeChecker command:"+cmd);
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
         }
@@ -112,7 +108,7 @@ public class CodeCheckEnvironmentChecker {
             Optional<String> output = she.quickReturnOutput("source " + pythonEnvironment.get() + "/bin/activate" + 
                     " ; env");
             if (!output.isPresent()) {
-                logger.log(Level.DEBUG, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
+                SLogger.log(LogI.INFO, "SERVER_GUI_MSG >> Couldn't check the given python environment!");
                 throw new IllegalArgumentException("Couldn't check the given python environment!");
             } else {
                 ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
@@ -121,7 +117,7 @@ public class CodeCheckEnvironmentChecker {
             }
 
         } else {
-            logger.log(Level.DEBUG, "Python Env not specified. Using original system env.");
+            SLogger.log(LogI.INFO, "Python Env not specified. Using original system env.");
             return ImmutableMap.copyOf(System.getenv());
         }
     }
@@ -188,7 +184,7 @@ public class CodeCheckEnvironmentChecker {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = createCheckCommmand(fileName);
 
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> processLog >> "+ cmd);
+        SLogger.log(LogI.INFO, "SERVER_SER_MSG >> processLog >> "+ cmd);
         Optional<String> ccOutput = she.waitReturnOutput(cmd);
 
         if (ccOutput.isPresent()) {

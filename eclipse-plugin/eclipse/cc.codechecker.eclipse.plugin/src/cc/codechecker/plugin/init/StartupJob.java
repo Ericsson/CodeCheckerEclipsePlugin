@@ -21,27 +21,33 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
-import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
 import cc.codechecker.plugin.Logger;
+import cc.codechecker.plugin.ExternalLogger;
+
+import cc.codechecker.api.runtime.SLogger;
+import cc.codechecker.api.runtime.CodecheckerServerThread;
+import cc.codechecker.api.runtime.LogI;
+
 
 public class StartupJob extends Job {
 
+    
 
     EditorPartListener partListener;
-    ProjectExplorerSelectionListener projectexplorerselectionlistener;
+    ProjectExplorerSelectionListener projectexplorerselectionlistener;    
 
     public StartupJob() {
         super("CodeChecker Startup Job");
         partListener = new EditorPartListener();
         projectexplorerselectionlistener = new ProjectExplorerSelectionListener();
+        SLogger.setLogger(new ExternalLogger());//setting up the eclips logger for the external service
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {                         
+    protected IStatus run(IProgressMonitor monitor) {        
         if (PlatformUI.isWorkbenchRunning()) {            
             runInUIThread(monitor);
         } else {

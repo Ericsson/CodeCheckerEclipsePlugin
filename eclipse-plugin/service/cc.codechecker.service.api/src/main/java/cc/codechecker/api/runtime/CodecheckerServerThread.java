@@ -12,14 +12,9 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Level;
 
 public class CodecheckerServerThread {
 	
-	//Logger
-	private final static Logger logger = LogManager.getLogger(CodecheckerServerThread.class.getName());	
 	
 	private static Random random = new Random();
     public final int serverPort = random.nextInt(10000) + 15000;
@@ -41,7 +36,7 @@ public class CodecheckerServerThread {
     }
 
     public void setCodecheckerEnvironment(CodeCheckEnvironmentChecker newEnv) {
-        logger.log(Level.DEBUG, "setCodeCheckerEnvironment is called.");
+        SLogger.log(LogI.INFO, "setCodeCheckerEnvironment is called.");
         boolean restartNeeded = true;
         if (ccec!=null){
             Map<ConfigTypes, String> oldConfig = ccec.getConfig();
@@ -58,16 +53,16 @@ public class CodecheckerServerThread {
 
     public synchronized void start() {
         if (running) stop();
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> Starting CC");
+        SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Starting CC");
         if (ccec != null && serverExecutor == null) {
             final String cmd = ccec.createServerCommand(String.valueOf(serverPort));
             ShellExecutorHelper she = new ShellExecutorHelper(ccec.environmentBefore);
             serverExecutor = she.getServerObject(cmd);
             serverThread = new Thread(new Runnable() {
                 public void run() {
-                	logger.log(Level.DEBUG, "SERVER_SER_MSG >> started server thread");
-                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> HTTP server command: " + cmd);
-                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> HTTP server URL: " + getServerUrl());
+                	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started server thread");
+                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server command: " + cmd);
+                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server URL: " + getServerUrl());
                     serverExecutor.start();
                 }
             });
@@ -78,7 +73,7 @@ public class CodecheckerServerThread {
             @Override
             public void run() {
                 try {
-                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> started queue thread");
+                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started queue thread");
                     while (true) {
                     	if(Thread.interrupted()) {
                     		break;
@@ -89,16 +84,16 @@ public class CodecheckerServerThread {
                         }
                         if (currentlyRunning.add(s)) {
                         	callback.analysisStarted(ccec.createCheckCommmand(s));
-                            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
+                            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
                             String checkResult=ccec.processLog(s);
-                            logger.log(Level.INFO, "SERVER_SER_MSG >> " + checkResult);
+                            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + checkResult);
                             currentlyRunning.remove(s);
                             if (callback != null) callback.analysisFinished(checkResult);
                         }
                     }
                 } catch (InterruptedException e) {
-                	logger.log(Level.ERROR, "SERVER_SER_MSG >> queueThread >> " + e);
+                	SLogger.log(LogI.ERROR, "SERVER_SER_MSG >> queueThread >> " + e);
                 }
             }
         });
@@ -107,49 +102,49 @@ public class CodecheckerServerThread {
     }
 
     public synchronized void stop() {
-        logger.log(Level.DEBUG, "SERVER_SER_MSG >> stopping CC");
+        SLogger.log(LogI.INFO, "SERVER_SER_MSG >> stopping CC");
         if (serverExecutor != null) {
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing server thread");
+            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> killing server thread");
             serverExecutor.kill();
             serverThread.interrupt();
             serverThread = null;
             serverExecutor = null;
         }
         if (queueThread != null) {
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> killing queue thread");
+            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> killing queue thread");
             processingQueue.add("STOP!");
             queueThread.interrupt();
             queueThread = null;
         }
 
         try {
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Waiting...");
+            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Waiting...");
             Thread.sleep(1000);
-            logger.log(Level.DEBUG, "SERVER_SER_MSG >> Done");
+            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Done");
         } catch (Exception e) {
-        	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
-        	logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + e.getStackTrace());
+        	SLogger.log(LogI.ERROR, "SERVER_SER_MSG >> " + e);
+        	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + e.getStackTrace());
         }
 
         running = false;
     }
 
     public void recheck() {
-    	logger.log(Level.DEBUG, "Recheck called");
+    	SLogger.log(LogI.INFO, "Recheck called");
         if (ccec != null) {
             Optional<String> newF = ccec.moveLogFile();
             if (newF.isPresent()) {
                 try {
                     processingQueue.put(newF.get());
-                    logger.log(Level.DEBUG, "SERVER_SER_MSG >> Queue size (+1): " + processingQueue.size() +
+                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Queue size (+1): " + processingQueue.size() +
                             " << " + newF.get());
                 } catch (InterruptedException e) {
-                	logger.log(Level.ERROR, "SERVER_SER_MSG >> " + e);
-                	logger.log(Level.DEBUG, "SERVER_SER_MSG >> " + e.getStackTrace());
+                	SLogger.log(LogI.ERROR, "SERVER_SER_MSG >> " + e);
+                	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + e.getStackTrace());
                 }
             }
         }else
-        	logger.log(Level.ERROR, "CodeChecker env is null!");
+        	SLogger.log(LogI.ERROR, "CodeChecker env is null!");
     }
 
     public String getServerUrl() {
