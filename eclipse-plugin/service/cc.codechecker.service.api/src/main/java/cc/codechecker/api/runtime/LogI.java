@@ -8,5 +8,6 @@ public interface LogI {
     static int OK=0;
     static int WARNING=2;
     public void log(int severity,String message);
+    public void consoleLog(String message);
 
 }

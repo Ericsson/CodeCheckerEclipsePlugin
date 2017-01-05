@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
 
 
 public class CodecheckerServerThread {
@@ -63,6 +64,7 @@ public class CodecheckerServerThread {
                 	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started server thread");
                     SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server command: " + cmd);
                     SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server URL: " + getServerUrl());
+                    SLogger.consoleLog("Server started on URL:" + getServerUrl());
                     serverExecutor.start();
                 }
             });
@@ -86,7 +88,7 @@ public class CodecheckerServerThread {
                         	callback.analysisStarted(ccec.createCheckCommmand(s));
                             SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
-                            String checkResult=ccec.processLog(s);
+                            String checkResult=ccec.processLog(s,true);
                             SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + checkResult);
                             currentlyRunning.remove(s);
                             if (callback != null) callback.analysisFinished(checkResult);
@@ -145,6 +147,15 @@ public class CodecheckerServerThread {
             }
         }else
         	SLogger.log(LogI.ERROR, "CodeChecker env is null!");
+    }
+    
+    //cleans the codechecker database
+    public void cleanDB() {
+        SLogger.log(LogI.INFO, "Reset called. Removing CodeChecker database.");
+        if (ccec != null) {            
+            ccec.dropDB();
+        }else
+            SLogger.log(LogI.ERROR, "CodeChecker env is null!");
     }
 
     public String getServerUrl() {

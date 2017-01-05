@@ -3,6 +3,8 @@ package cc.codechecker.plugin;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 
+import cc.codechecker.plugin.views.console.ConsoleFactory;
+
 
 public class Logger {
     private static ILog logger = Activator.getDefault().getLog();
@@ -21,5 +23,9 @@ public class Logger {
             String place=caller.getFileName()+":"+caller.getLineNumber()+" "+caller.getMethodName()+"(): ";
             logger.log(new Status(level,Activator.PLUGIN_ID,place+message));
         }
+    }
+    //logs to CodeChecker console
+    public static void consoleLog(String message){
+        ConsoleFactory.consoleWrite(message);
     }
 }

@@ -11,4 +11,10 @@ public class SLogger {
             logger.log(level,message);
         }
     }
+    public static void consoleLog(String message){
+        if (logger!=null){
+            logger.consoleLog(message);
+        }
+    }
+    
 }

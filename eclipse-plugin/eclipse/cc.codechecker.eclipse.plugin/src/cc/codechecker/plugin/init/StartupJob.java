@@ -29,12 +29,10 @@ import cc.codechecker.plugin.ExternalLogger;
 
 import cc.codechecker.api.runtime.SLogger;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.LogI;
-
 
 public class StartupJob extends Job {
 
-    
+
 
     EditorPartListener partListener;
     ProjectExplorerSelectionListener projectexplorerselectionlistener;    
@@ -72,27 +70,46 @@ public class StartupJob extends Job {
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
 
             @Override
-            public void resourceChanged(IResourceChangeEvent event) {
-                Logger.log(IStatus.INFO, " resourcechangedEvent"+event.getType());
+            public void resourceChanged(final IResourceChangeEvent event) {                
                 switch (event.getType()) {
                 case IResourceChangeEvent.POST_BUILD: {
-                    try {
-                        final HashSet<IProject> changedProjects = new HashSet<>();
-                        if (event.getBuildKind() != IncrementalProjectBuilder.CLEAN_BUILD) {
+                    //On Eclipse FULL_BUILD and INCREMENTAL build, recheck the project
+                    //on clean build drop the checker database
+                    //ignore AUTO_BUILD
+                    try{
+                        if (event.getBuildKind() != IncrementalProjectBuilder.AUTO_BUILD){                        
+                            Logger.log(IStatus.INFO, "Build called. type:"+event.getBuildKind());                            
+                            final HashSet<IProject> builtProjects = new HashSet<>();
+                            final HashSet<IProject> cleanedProjects = new HashSet<>();
                             event.getDelta().accept(new IResourceDeltaVisitor() {
-                                public boolean visit(final IResourceDelta delta) throws CoreException {
-                                    IResource resource = delta.getResource();
-                                    IProject project=resource.getProject();
+                                public boolean visit(final IResourceDelta delta) throws CoreException {                                    
+                                    IProject project=delta.getResource().getProject();                                                                      
                                     if (project!=null && project.hasNature(CodeCheckerNature.NATURE_ID)){
-                                        changedProjects.add(project);                                        
+                                        if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
+                                                ||event.getBuildKind() == IncrementalProjectBuilder.INCREMENTAL_BUILD){
+                                            builtProjects.add(project);
+                                        }
+                                        else
+                                            if (event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD){
+                                                cleanedProjects.add(project);
+                                            }
                                     }                                    
                                     return true;
                                 }
                             });
-                            for (IProject p : changedProjects) {
+                            //re-analyze built projects
+                            for (IProject p : builtProjects) {
                                 onProjectBuilt(p);
+                            }                            
+                            //drop cleaned projects
+                            for (IProject p : cleanedProjects) {
+                                onProjectCleaned(p);
                             }
-                        }
+                        }else
+                            if (event.getBuildKind()== IncrementalProjectBuilder.CLEAN_BUILD){
+                                Logger.log(IStatus.INFO, "CLEAN_BUILD called. Resetting bug database");
+
+                            }
                     } catch (CoreException e) {
                         // TODO Auto-generated catch block
                         Logger.log(IStatus.ERROR, " " + e);
@@ -161,10 +178,39 @@ public class StartupJob extends Job {
         }        
     }
 
+    private void onProjectCleaned(IProject project) {
+        if (project == null)
+            return;
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + " onProjectCleaned called.");
+        try {
+            if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
+                return;
+            }
+        } catch (CoreException e) {
+            // TODO Auto-generated catch block
+            Logger.log(IStatus.ERROR, "" + e);
+            Logger.log(IStatus.INFO, "" + e.getStackTrace());
+        }        
+        CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + "stopping server");
+        server.stop();
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + " server stopped.");
+        server.cleanDB();
+        //FIXME: database needs to be recreated at this point.
+        //and the results should be emptied.
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + " db cleaned;");
+        server.start();
+        Logger.log(IStatus.INFO,
+                " " + project.getName() + " server started.");        
+    }
+
     private void projectOpened(IProject project) {
         if (project == null)
             return;
-        Logger.log(IStatus.INFO, "projectOpened!" + project.getName());
         try {
             //if CodecheCker nature is not set or the project is non-CDT we don launch CodeChecker server
             if (!project.hasNature(CodeCheckerNature.NATURE_ID) || 

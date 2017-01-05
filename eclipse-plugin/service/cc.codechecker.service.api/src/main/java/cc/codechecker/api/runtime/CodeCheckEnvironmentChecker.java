@@ -20,13 +20,11 @@ public class CodeCheckEnvironmentChecker {
     public final String checkerDir; // root directory of CodeChecker
     public final String codeCheckerCommand; // CodecCheker executable path   
     private Map<ConfigTypes,String> config;
-
     private String checkerList;
-
-    public final ImmutableMap<String, String> environmentBefore; // with specific python. This
+    
+    //with specific python. This
     // can be used to run CodeChecker
-    //public final ImmutableMap<String, String> environmentDuringChecks; // this can be added to
-
+    public final ImmutableMap<String, String> environmentBefore; 
     public Map<String, String> environmentAddList;
 
     public Map<String, String> getEnvironmentAddList() {
@@ -66,10 +64,10 @@ public class CodeCheckEnvironmentChecker {
         environmentAddList = new HashMap<String, String>(){{
             put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
             put("_", checkerDir + "/bin/CodeChecker");
-            put("CC_logger_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
+            put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
             put("LD_PRELOAD","ldlogger.so");
-            put("CC_logger_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
-            put("CC_logger_BIN", checkerDir + "/bin/ldlogger");
+            put("CC_LOGGER_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
+            put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
         }};
 
         if(pythonEnvironment.isPresent()) {
@@ -136,7 +134,7 @@ public class CodeCheckEnvironmentChecker {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
         String cmd = codeCheckerCommand + " cmd runs -p " + serverPort + " -o json";
-        Optional<String> ccOutput = she.waitReturnOutput(cmd);
+        Optional<String> ccOutput = she.waitReturnOutput(cmd,true);
         if (ccOutput.isPresent()) {
             return ccOutput.get().contains("javarunner");
         }
@@ -167,6 +165,25 @@ public class CodeCheckEnvironmentChecker {
         return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + "-j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
                 buildLog;
     }
+    
+
+/*
+ *     
+ *     drops codechecker Database
+ *     
+ */
+    public void dropDB(){        
+        String dbPath=getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/codechecker.sqlite";        
+        SLogger.log(LogI.INFO,"Dropping database:"+dbPath);
+        File f = new File(dbPath);
+        if (f.isFile()){
+            if (!f.delete())
+                SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. "+dbPath);
+        }
+        else
+            SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. File not exists:"+dbPath);
+    }
+
 
     public String createServerCommand(String port){
         return codeCheckerCommand + " server --not-host-only -w " + 
@@ -180,12 +197,12 @@ public class CodeCheckEnvironmentChecker {
      * @param fileName Build log in the http://clang.llvm.org/docs/JSONCompilationDatabase.html format.
      * @return CodeChecker check command output
      */
-    public String processLog(String fileName) {
+    public String processLog(String fileName, boolean logToConsole) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = createCheckCommmand(fileName);
 
         SLogger.log(LogI.INFO, "SERVER_SER_MSG >> processLog >> "+ cmd);
-        Optional<String> ccOutput = she.waitReturnOutput(cmd);
+        Optional<String> ccOutput = she.waitReturnOutput(cmd,logToConsole);
 
         if (ccOutput.isPresent()) {
             // assume it succeeded, and delete the log file...
@@ -199,7 +216,7 @@ public class CodeCheckEnvironmentChecker {
     public String getCheckerList() {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = codeCheckerCommand + " checkers";
-        Optional<String> ccOutput = she.waitReturnOutput(cmd);
+        Optional<String> ccOutput = she.waitReturnOutput(cmd,false);
         return ccOutput.or("");
     }
 

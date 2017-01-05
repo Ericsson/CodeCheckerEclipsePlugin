@@ -11,7 +11,6 @@ import cc.codechecker.api.job.report.list.SearchRequest;
 import cc.codechecker.api.runtime.CodecheckerServerThread;
 import cc.codechecker.api.runtime.OnCheckCallback;
 import cc.codechecker.plugin.markers.MarkerListener;
-import cc.codechecker.plugin.views.console.ConsoleFactory;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
@@ -78,15 +77,16 @@ public class CodeCheckerContext {
      * The refresher for Project ReportList View.
      * 
      * @param pages the page list for the currently active workbench windows.
-     * @param project the project, the user change his/her view to
-     * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
+     * @param project the project, project the buglist to be refreshed
+     * @param noFetch if true, the server will not be asked for new list 
      */
-    private void refreshProject(IWorkbenchPage[] pages, IProject project, boolean considerProjectChange) {
+    private void refreshProject(IWorkbenchPage[] pages, IProject project, boolean noFetch) {
+        Logger.log(IStatus.INFO, "Refreshing bug list for project:"+project.getName());
         for(IWorkbenchPage page : pages) {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListViewProject.ID)) {
                     ReportListViewProject rlvp = (ReportListViewProject) vp.getView(true);
-                    if (!considerProjectChange || this.activeProject != project) {
+                    if (!noFetch || this.activeProject != project) {
                         rlvp.onEditorChanged(project);
                     }
                 }
@@ -175,7 +175,7 @@ public class CodeCheckerContext {
 
                 @Override
                 public void analysisFinished(String result) {
-                    ConsoleFactory.consoleWrite(project.getName() + " Analysis finished."+result);
+                    Logger.consoleLog(project.getName() + "Analysis finished.");
                     cleanCache();
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
@@ -186,7 +186,7 @@ public class CodeCheckerContext {
                 }
                 @Override
                 public void analysisStarted(String msg) {
-                    ConsoleFactory.consoleWrite(project.getName() + " Analysis Started. "+msg);
+                    Logger.consoleLog(project.getName() + " Analysis Started. "+msg);
                 }
             });
             CcConfiguration config = new CcConfiguration(project);
@@ -210,6 +210,8 @@ public class CodeCheckerContext {
      * @param project the project, the user change his/her view to
      */
     public void refreshAfterBuild(final IProject project) {
+        Logger.log(IStatus.INFO, "refreshAfterBuild");
+
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
@@ -234,15 +236,19 @@ public class CodeCheckerContext {
             Logger.log(IStatus.INFO, " partRef is null or partRef instanceof FileEditor!");
             return;
         }
-
+       
+        
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-        if(project != file.getProject()) {
+                
+        if (project!=this.activeProject){
+            Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
             return;
         }
 
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) {
+            Logger.log(IStatus.INFO, "Codechecker not configured.");
             return;
         }
 
@@ -259,11 +265,6 @@ public class CodeCheckerContext {
      * @param partRef the IEditorPart which the user has switched.
      */
     public void refreshChangeEditorPart(IEditorPart partRef) {
-        //partRef is not instanceof IFileEditorInput or not change editorPart!
-        if (!(partRef.getEditorInput() instanceof IFileEditorInput) || partRef == activeEditorPart) {
-            Logger.log(IStatus.INFO, " partRef is not instanceof IFileEditorInput or not change editorPart!");
-            return;
-        }
 
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
@@ -350,6 +351,7 @@ public class CodeCheckerContext {
         if (project == null) return;
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) return;
+        Logger.log(IStatus.INFO, "Running search to URL:"+config.getServerUrl());
 
         SearchJob rlj = new SearchJob(1, Optional.of(new Instant().plus(500)), new SearchRequest
                 (config.getServerUrl(), runId, filters));

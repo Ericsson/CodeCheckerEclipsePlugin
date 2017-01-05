@@ -273,6 +273,7 @@ public class ReportListView extends ViewPart {
     }
 
     public void onEditorChanged(IProject project, String filename) {
+        Logger.log(IStatus.INFO, "OnEditorchanged:"+project.getName());
         if (project != currentProject) {
             this.currentProject = project;
             //CodeCheckerContext.getInstance().runRunListJob(this);

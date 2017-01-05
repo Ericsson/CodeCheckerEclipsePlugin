@@ -59,7 +59,7 @@ public class MarkerListener implements SearchListener {
                 for (ReportInfo ri : list) {
                     String relName = config.convertFilenameFromServer(ri.getLastBugPathItem()
                             .getFile());
-                    Logger.log(IStatus.INFO, " Filename : " + relName);
+                    //Logger.log(IStatus.INFO, " Filename : " + relName);
                     IFile fileinfo = project.getFile(relName);
 
                     if (fileinfo != null && fileinfo.exists()) {
@@ -74,7 +74,7 @@ public class MarkerListener implements SearchListener {
                         }
 
                         try {
-                            Logger.log(IStatus.INFO, " ReportInfo : " + ri);
+                            //Logger.log(IStatus.INFO, " ReportInfo : " + ri);
                             IMarker marker = fileinfo.createMarker("cc.codechecker.markers" + "" +
                                     ".problemmarker");
                             marker.setAttribute(IMarker.LINE_NUMBER, (int) ri.getLastBugPathItem
@@ -83,7 +83,7 @@ public class MarkerListener implements SearchListener {
                                     .getStartPosition().getColumn());
                             marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
                             marker.setAttribute(IMarker.MESSAGE, ri.getCheckerMsg());
-                            Logger.log(IStatus.INFO, " Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
+                            //Logger.log(IStatus.INFO, " Marker line: " + marker.getAttribute(IMarker.LINE_NUMBER));
                         } catch (CoreException e) {
                             // TODO Auto-generated catch block
                         	Logger.log(IStatus.ERROR, " " + e);

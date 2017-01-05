@@ -262,8 +262,11 @@ public class CcConfiguration {
                 CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project)
                         .getCodecheckerEnvironment();
                 if (ccec != null) {
-                    return ccec.isJavaRunner(CodeCheckerContext.getInstance().getServerObject(project).serverPort);
-                }
+                    int port=CodeCheckerContext.getInstance().getServerObject(project).serverPort;
+                    Logger.log(IStatus.INFO, "checking codechecker on port"+port);
+                    return ccec.isJavaRunner(port);
+                }else
+                    Logger.log(IStatus.INFO, "CodeCheckerContext is null!");
                 return false;
             }
             return false;

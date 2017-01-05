@@ -54,10 +54,10 @@ public class ShellExecutorHelper {
         }
     }
 
-    public Optional<String> waitReturnOutput(String script) {
+    public Optional<String> waitReturnOutput(String script,boolean logToConsole) {
         Executor ec = build();
         try {
-            AllLineReader olr = new AllLineReader();
+            AllLineReader olr = new AllLineReader(logToConsole);
             ec.setStreamHandler(new PumpStreamHandler(olr));
             ec.execute(buildScriptCommandLine(script), environment);
             return Optional.of(olr.getOutput());
@@ -142,10 +142,10 @@ public class ShellExecutorHelper {
                 //     all its descendant processes and kills them.
                 // The pidObject process should always be the main CodeChecker process this plugin
                 //     starts.
-        		String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")").get().replace("\n", "");
+        		String cpid = waitReturnOutput("echo $(ps -o pid= --ppid \"" + pidObject.pid + "\")",false).get().replace("\n", "");
             	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Children CodeChecker PID is  " + cpid);
             	try {
-            		waitReturnOutput("kill " + cpid);
+            		waitReturnOutput("kill " + cpid,false);
             	} catch(Exception e) {}
             }
         }
@@ -173,16 +173,26 @@ public class ShellExecutorHelper {
     }
 
     class AllLineReader extends LogOutputStream {
+        private boolean logToConsole=false;
+        public AllLineReader(){
+            logToConsole=false;
+        }
+        public AllLineReader(boolean ltc){
+            logToConsole = ltc;
+        }
 
         public StringBuffer buffer = new StringBuffer();
 
         public String getOutput() {
             return buffer.toString();
-        }
+        }        
 
         @Override
         protected void processLine(String s, int i) {
             buffer.append(s + "\n");
+            if (logToConsole){
+                SLogger.consoleLog(s);
+            }
         }
     }
 
