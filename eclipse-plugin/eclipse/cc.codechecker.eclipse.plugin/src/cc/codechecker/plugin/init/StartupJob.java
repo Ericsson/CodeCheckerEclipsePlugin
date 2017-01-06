@@ -203,6 +203,7 @@ public class StartupJob extends Job {
         //and the results should be emptied.
         Logger.log(IStatus.INFO,
                 " " + project.getName() + " db cleaned;");
+        Logger.consoleLog(project.getName() + " checker db cleaned;");
         server.start();
         Logger.log(IStatus.INFO,
                 " " + project.getName() + " server started.");        
