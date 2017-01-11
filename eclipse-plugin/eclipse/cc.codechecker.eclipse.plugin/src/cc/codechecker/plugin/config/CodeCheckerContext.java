@@ -264,30 +264,34 @@ public class CodeCheckerContext {
      *
      * @param partRef the IEditorPart which the user has switched.
      */
-    public void refreshChangeEditorPart(IEditorPart partRef) {
+    public void refreshChangeEditorPart(IEditorPart partRef) {        
+        if (partRef.getEditorInput() instanceof IFileEditorInput){
+            //could be FileStoreEditorInput
+            //for files which are not part of the
+            //current workspace
+            activeEditorPart = partRef;
+            IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
+            IProject project = file.getProject();
 
-        activeEditorPart = partRef;
-        IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-        IProject project = file.getProject();
+            CcConfiguration config = new CcConfiguration(project);
+            if (!config.isConfigured()) {
+                return;
+            }
 
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) {
-            return;
+            String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
+
+            IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if(activeWindow == null) {
+                Logger.log(IStatus.ERROR, " Error activeWindow is null!");
+                return;
+            }
+            IWorkbenchPage[] pages = activeWindow.getPages();
+
+            this.refreshProject(pages, project, true);
+            this.refreshCurrent(pages, project, filename, true);
+            this.refreshCustom(pages, project, "", true);
+            this.activeProject = project;
         }
-
-        String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
-
-        IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if(activeWindow == null) {
-            Logger.log(IStatus.ERROR, " Error activeWindow is null!");
-            return;
-        }
-        IWorkbenchPage[] pages = activeWindow.getPages();
-
-        this.refreshProject(pages, project, true);
-        this.refreshCurrent(pages, project, filename, true);
-        this.refreshCustom(pages, project, "", true);
-        this.activeProject = project;
     }
 
     /**
