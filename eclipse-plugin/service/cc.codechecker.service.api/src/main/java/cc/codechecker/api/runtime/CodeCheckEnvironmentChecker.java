@@ -162,7 +162,7 @@ public class CodeCheckEnvironmentChecker {
     }
 
     public String createCheckCommmand(String buildLog){
-        return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + "-j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
+        return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
                 buildLog;
     }
     
