@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cc.codechecker.eclipse</groupId>
     <artifactId>aggregator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.5</version>
     <packaging>pom</packaging>
 
 

@@ -2,14 +2,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cc.codechecker.eclipse-depcopy</groupId>
     <artifactId>eclipse-depcopy</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.5</version>
     <packaging>pom</packaging>
 
     <dependencies>
         <dependency>
             <groupId>cc.codechecker.service.thrift</groupId>
             <artifactId>cc-thrift</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.5</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

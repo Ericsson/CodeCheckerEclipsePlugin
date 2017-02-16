@@ -8,7 +8,7 @@
     <parent>
         <groupId>cc.service.parent</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.5</version>
         <relativePath>../cc.service.parent</relativePath>
     </parent>
 
@@ -36,12 +36,12 @@
         <dependency>
             <groupId>cc.codechecker.service.api</groupId>
             <artifactId>cc-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.5</version>
         </dependency>
         <dependency>
             <groupId>cc.service.scl.thrift</groupId>
             <artifactId>scl-thrift</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.5</version>
         </dependency>
 
         <!-- required by cc.ecl.action.thrift -->

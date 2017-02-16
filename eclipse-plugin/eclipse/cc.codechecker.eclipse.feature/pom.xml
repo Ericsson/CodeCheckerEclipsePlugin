@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.5</version>
     <groupId>cc.codechecker.eclipse</groupId>
     <artifactId>cc.codechecker.eclipse.feature</artifactId>
     <packaging>eclipse-feature</packaging>
@@ -11,7 +11,7 @@
     <parent>
         <artifactId>cc.codechecker.eclipse.parent</artifactId>
         <groupId>cc.codechecker.eclipse</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.5</version>
         <relativePath>../cc.codechecker.eclipse.parent</relativePath>
     </parent>
 

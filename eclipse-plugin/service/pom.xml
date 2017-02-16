@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cc.service.aggregator</groupId>
     <artifactId>aggregator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.5</version>
     <packaging>pom</packaging>
 
 
@@ -46,16 +46,16 @@
                             <!--<destinationDirectory>${project.basedir}/../repository/</destinationDirectory>-->
                             <artifacts>
                                 <artifact>
-                                    <id>cc.service.scl:scl:0.0.1-SNAPSHOT</id>
+                                    <id>cc.service.scl:scl:0.0.5</id>
                                 </artifact>
                                 <artifact>
-                                    <id>cc.service.scl.thrift:scl-thrift:0.0.1-SNAPSHOT</id>
+                                    <id>cc.service.scl.thrift:scl-thrift:0.0.5</id>
                                 </artifact>
                                 <artifact>
-                                    <id>cc.codechecker.service.api:cc-api:0.0.1-SNAPSHOT</id>
+                                    <id>cc.codechecker.service.api:cc-api:0.0.5</id>
                                 </artifact>
                                 <artifact>
-                                    <id>cc.codechecker.service.thrift:cc-thrift:0.0.1-SNAPSHOT</id>
+                                    <id>cc.codechecker.service.thrift:cc-thrift:0.0.5</id>
                                 </artifact>
                             </artifacts>
                         </configuration>

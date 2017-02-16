@@ -7,7 +7,7 @@
     <parent>
         <groupId>cc.service.parent</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.5</version>
         <relativePath>../cc.service.parent</relativePath>
     </parent>
 
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>cc.service.scl</groupId>
             <artifactId>scl</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.5</version>
         </dependency>
     </dependencies>
 

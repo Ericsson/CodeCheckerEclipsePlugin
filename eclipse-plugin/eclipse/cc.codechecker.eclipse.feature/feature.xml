@@ -2,7 +2,7 @@
 <feature
         id="cc.codechecker.eclipse.feature"
         label="CodeChecker Plugin"
-        version="0.0.1.qualifier"
+        version="0.0.5"
         provider-name="Ericsson">
 
     <description>
