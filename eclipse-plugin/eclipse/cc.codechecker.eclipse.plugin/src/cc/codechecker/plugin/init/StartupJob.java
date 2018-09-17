@@ -72,6 +72,10 @@ public class StartupJob extends Job {
             @Override
             public void resourceChanged(final IResourceChangeEvent event) {                
                 switch (event.getType()) {
+                case IResourceChangeEvent.PRE_BUILD: {
+                	Logger.log(BUILD, "PreBuild");
+                	break;
+                }
                 case IResourceChangeEvent.POST_BUILD: {
                     //On Eclipse FULL_BUILD and INCREMENTAL build, recheck the project
                     //on clean build drop the checker database

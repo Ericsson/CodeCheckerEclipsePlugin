@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.lang.Math;
 
+
+/** This class does....
+ * 
+ */
 public class CodeCheckEnvironmentChecker {
 
 
@@ -21,8 +25,13 @@ public class CodeCheckEnvironmentChecker {
     public final String codeCheckerCommand; // CodecCheker executable path   
     private Map<ConfigTypes,String> config;
     private String checkerList;
+    private int serverPort;
     
-    //with specific python. This
+    public void setServerPort(int serverport) {
+		this.serverPort = serverport;
+	}
+
+	//with specific python. This
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentBefore; 
     public Map<String, String> environmentAddList;
@@ -133,8 +142,8 @@ public class CodeCheckEnvironmentChecker {
     public boolean isJavaRunner(int serverPort) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
 
-        String cmd = codeCheckerCommand + " cmd runs -p " + serverPort + " -o json";
-        Optional<String> ccOutput = she.waitReturnOutput(cmd,true);
+        String cmd = codeCheckerCommand + " cmd runs --url http://localhost:" + serverPort + "/Default -o json";
+	Optional<String> ccOutput = she.waitReturnOutput(cmd,true);
         if (ccOutput.isPresent()) {
             return ccOutput.get().contains("javarunner");
         }
@@ -161,12 +170,18 @@ public class CodeCheckEnvironmentChecker {
         return Optional.absent();
     }
 
-    public String createCheckCommmand(String buildLog){
-        return codeCheckerCommand + " check " + getConfigValue(ConfigTypes.CHECKER_LIST) + " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner -w " + getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " -l " +
-                buildLog;
+    public String createAnalyzeCommmand(String buildLog){
+     return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) + 
+    		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -c" + " -n javarunner" + 
+    		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/javarunner/ " + buildLog;
     }
     
-
+    
+    public String createStoreCommand(){
+    	// TODO eclipse project name as run name.
+    	return codeCheckerCommand + " store --url http://localhost:" + serverPort + "/Default "
+    			+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/javarunner";
+    }
 /*
  *     
  *     drops codechecker Database
@@ -199,13 +214,19 @@ public class CodeCheckEnvironmentChecker {
      */
     public String processLog(String fileName, boolean logToConsole) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
-        String cmd = createCheckCommmand(fileName);
+        String cmd = createAnalyzeCommmand(fileName);
 
         SLogger.log(LogI.INFO, "SERVER_SER_MSG >> processLog >> "+ cmd);
         Optional<String> ccOutput = she.waitReturnOutput(cmd,logToConsole);
 
         if (ccOutput.isPresent()) {
             // assume it succeeded, and delete the log file...
+        	she = new ShellExecutorHelper(environmentBefore);
+
+        	Optional<String> storeOutput = she.waitReturnOutput(createStoreCommand(), logToConsole);
+        	ccOutput.get().concat(storeOutput.or(""));
+        	//TODO delete report folder
+        	
             File f = new File(fileName);
             f.delete();
         }
