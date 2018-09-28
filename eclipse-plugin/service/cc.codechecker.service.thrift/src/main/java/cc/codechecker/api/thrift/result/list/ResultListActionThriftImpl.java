@@ -33,18 +33,18 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Level;
 
 public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, ResultList,
-        CodeCheckerDBAccess.Iface> {
+        codeCheckerDBAccess.Iface> {
 
     //Logger
     private static final Logger logger = LogManager.getLogger(ResultListActionThriftImpl.class);
 
     @Override
     protected String getProtocolUrlEnd(SearchRequest request) {
-        return "codeCheckerDBAccess";
+        return "CodeCheckerService";
     }
 
     @Override
-    protected ActionResult<ResultList> runThrift(CodeCheckerDBAccess.Iface client,
+    protected ActionResult<ResultList> runThrift(codeCheckerDBAccess.Iface client,
                                                  Action<SearchRequest, ResultList> action,
                                                  InnerRunner innerRunner) throws TException {
 
@@ -54,7 +54,7 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
                 new SortMode(SortType.FILENAME, Order.ASC)/*, new SortMode(SortType.SEVERITY,
                 Order.DESC)*/);
 
-        List<ReportFilter> filters = new LinkedList<>();
+        /*List<ReportFilter> filters = new LinkedList<>();
         for (ResultFilter f : req.getResultFilters()) {
             ReportFilter rf = new ReportFilter();
             rf.setFilepath(f.getFilepath().orNull());
@@ -63,18 +63,23 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             rf.setCheckerId(f.getCheckerId().orNull());
             rf.setSuppressed(f.isShowSuppressedErrors());
             filters.add(rf);
-        }
+        }*/
+	
+	ReportFilter filters = new ReportFilter();
 
         List<ReportData> res;
+
         if (req.getId().isPresent()) {
-            res = client.getRunResults(req.getId().get(), req.getEndId() - req.getBeginId(), req
-                    .getBeginId(), sortType, filters);
-        } else {
+	    List<Long> runIds = Arrays.asList(req.getId().get());
+            res = client.getRunResults(runIds, req.getEndId() - req.getBeginId(), req
+                    .getBeginId(), sortType, filters, null);
+	} else {
             ListRunsAction lra = new ListRunsAction(new ListRunsRequest(action.getRequest()
                     .getServer()));
             lra = innerRunner.requireResult(lra);
-            res = client.getRunResults(lra.getResult().get().getLastRun().get().getRunId(), req
-                    .getEndId() - req.getBeginId(), req.getBeginId(), sortType, filters);
+	    List<Long> runIds = Arrays.asList(lra.getResult().get().getLastRun().get().getRunId());
+            res = client.getRunResults(runIds, req
+                    .getEndId() - req.getBeginId(), req.getBeginId(), sortType, filters, null);
         }
 
         ImmutableList.Builder<ReportInfo> builder = new ImmutableList.Builder<>();
@@ -82,16 +87,27 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
         String checkerId = "";
 
         for (ReportData rd : res) {
-
-            BugPathItem lastBugItem = new BugPathItem(new BugPathItem.Position(rd
+            /*BugPathItem lastBugItem = new BugPathItem(new BugPathItem.Position(rd
                     .getLastBugPosition().getStartLine(), rd.getLastBugPosition().getStartCol()),
                     new BugPathItem.Position(rd.getLastBugPosition().getEndLine(), rd
                             .getLastBugPosition().getEndCol()), rd.getLastBugPosition().getMsg(),
-                    rd.getCheckedFile());
+                    rd.getCheckedFile());*/
 
             // BugPathItems
             ReportDetails reportdetails = client.getReportDetails(rd.getReportId());
-            LinkedList<BugPathItem> listBuilder = new LinkedList<BugPathItem>();
+            
+	    BugPathEvent lastBPE = reportdetails.getPathEvents().get((int)rd.getBugPathLength()-1);
+	    BugPathItem lastBugItem = new BugPathItem(
+			    new BugPathItem.Position(
+				lastBPE.getStartLine(), lastBPE.getStartCol()),
+			    new BugPathItem.Position(
+				lastBPE.getEndLine(), lastBPE.getEndCol()),
+			    lastBPE.getMsg(),
+			    rd.getCheckedFile());
+			        
+
+
+	    LinkedList<BugPathItem> listBuilder = new LinkedList<BugPathItem>();
 
             for (BugPathEvent bpe : reportdetails.getPathEvents()) {
 
@@ -114,7 +130,7 @@ public class ResultListActionThriftImpl extends ThriftActionImpl<SearchRequest, 
             }
 
             ReportInfo ri = new ReportInfo(checkerId, rd.getBugHash(), rd.getCheckedFile(),
-                    rd.getCheckerMsg(), rd.getReportId(), rd.isSuppressed(), rd.getCheckedFile(), 
+                    rd.getCheckerMsg(), rd.getReportId(), /*rd.isSuppressed()*/ false, rd.getCheckedFile(), 
                     lastBugItem, probleminfo);
 
             logger.log(Level.DEBUG, "SERVER_SER_MSG >> runThrift : ReportInfo" + ri.toString());

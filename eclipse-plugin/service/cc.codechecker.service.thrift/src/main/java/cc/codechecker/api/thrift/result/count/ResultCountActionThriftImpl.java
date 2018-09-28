@@ -5,7 +5,7 @@ import cc.codechecker.api.action.result.count.ResultCount;
 import cc.codechecker.api.action.result.count.SearchCountRequest;
 import cc.codechecker.api.action.run.list.ListRunsAction;
 import cc.codechecker.api.action.run.list.ListRunsRequest;
-import cc.codechecker.service.thrift.gen.CodeCheckerDBAccess;
+import cc.codechecker.service.thrift.gen.codeCheckerDBAccess;
 import cc.codechecker.service.thrift.gen.ReportFilter;
 import cc.codechecker.service.thrift.gen.Severity;
 import cc.ecl.action.Action;
@@ -17,24 +17,25 @@ import cc.ecl.action.thrift.ThriftCommunicationInterface;
 
 import org.apache.thrift.TException;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ResultCountActionThriftImpl extends ThriftActionImpl<SearchCountRequest,
-        ResultCount, CodeCheckerDBAccess.Iface> {
+        ResultCount, codeCheckerDBAccess.Iface> {
     @Override
     protected String getProtocolUrlEnd(SearchCountRequest request) {
-        return "codeCheckerDBAccess";
+        return "CodeCheckerService";
     }
 
     @Override
-    protected ActionResult<ResultCount> runThrift(CodeCheckerDBAccess.Iface client,
+    protected ActionResult<ResultCount> runThrift(codeCheckerDBAccess.Iface client,
                                                   Action<SearchCountRequest, ResultCount> action,
                                                   InnerRunner innerRunner) throws TException {
 
         SearchCountRequest req = action.getRequest();
 
-        List<ReportFilter> filters = new LinkedList<>();
+        /*List<ReportFilter> filters = new LinkedList<>();
         for (ResultFilter f : req.getResultFilters()) {
             ReportFilter rf = new ReportFilter();
             rf.setFilepath(f.getFilepath().orNull());
@@ -43,17 +44,20 @@ public class ResultCountActionThriftImpl extends ThriftActionImpl<SearchCountReq
             rf.setCheckerId(f.getCheckerId().orNull());
             rf.setSuppressed(f.isShowSuppressedErrors());
             filters.add(rf);
-        }
+        }*/
+	ReportFilter filters = new ReportFilter();
 
         if (req.getId().isPresent()) {
-            return new ActionResult<>(new ResultCount(client.getRunResultCount(req.getId().get(),
-                    filters)));
+	    List<Long> runIds = Arrays.asList(req.getId().get());
+            return new ActionResult<>(new ResultCount(client.getRunResultCount(runIds,
+                    filters, null)));
         } else {
             ListRunsAction lra = new ListRunsAction(new ListRunsRequest(action.getRequest()
                     .getServer()));
             lra = innerRunner.requireResult(lra);
-            return new ActionResult<>(new ResultCount(client.getRunResultCount(lra.getResult()
-                    .get().getLastRun().get().getRunId(), filters)));
+            Long RunId = lra.getResult().get().getLastRun().get().getRunId();
+            List<Long> runIds = Arrays.asList(lra.getResult().get().getLastRun().get().getRunId());
+            return new ActionResult<>(new ResultCount(client.getRunResultCount(runIds, filters, null)));
         }
     }
 

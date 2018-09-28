@@ -234,7 +234,8 @@ public class CommonGui {
 		String[] checkersCommand = checkerListArg.split(" ");
 		List<String> oldCheckersCommand = Arrays.asList(checkersCommand);
 		for (String it : newCheckersSplit) {
-			String checkerName = it.split(" ")[2];
+			//String checkerName = it.split(" ")[2];
+			String checkerName = it;
 			CheckerItem check = new CheckerItem(checkerName);
 			boolean defaultEnabled = false;
 
