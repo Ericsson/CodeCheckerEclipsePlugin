@@ -3,7 +3,8 @@ package cc.codechecker.api.thrift.run.list;
 import cc.codechecker.api.action.run.RunInfo;
 import cc.codechecker.api.action.run.list.ListRunsRequest;
 import cc.codechecker.api.action.run.list.RunList;
-import cc.codechecker.service.thrift.gen.CodeCheckerDBAccess;
+import cc.codechecker.service.thrift.gen.codeCheckerDBAccess;
+import cc.codechecker.service.thrift.gen.RunFilter;
 import cc.codechecker.service.thrift.gen.RunData;
 import cc.ecl.action.Action;
 import cc.ecl.action.ActionCommImpl;
@@ -20,14 +21,14 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public class ListRunsActionThriftImpl extends ThriftActionImpl<ListRunsRequest, RunList,
-        CodeCheckerDBAccess.Iface> {
+        codeCheckerDBAccess.Iface> {
     @Override
     protected String getProtocolUrlEnd(ListRunsRequest request) {
-        return "codeCheckerDBAccess";
+        return "CodeCheckerService";
     }
 
     @Override
-    protected ActionResult<RunList> runThrift(CodeCheckerDBAccess.Iface client,
+    protected ActionResult<RunList> runThrift(codeCheckerDBAccess.Iface client,
                                               Action<ListRunsRequest, RunList> action,
                                               InnerRunner innerRunner) throws TException {
 
@@ -35,7 +36,13 @@ public class ListRunsActionThriftImpl extends ThriftActionImpl<ListRunsRequest, 
 
         DateTimeFormatter datePattern = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
-        for (RunData d : client.getRunData()) {
+	// construct run filter and pass it to getRunData()
+	// null maybe sufficent
+	
+        //RunFilter rf = new RunFilter();
+
+        client.getRunData(null);
+        for (RunData d : client.getRunData(null)) {
             listBuilder.add(new RunInfo(d.getRunId(), DateTime.parse(d.getRunDate(), datePattern)
                     , d.getName(), d.getDuration(), d.getResultCount()));
         }

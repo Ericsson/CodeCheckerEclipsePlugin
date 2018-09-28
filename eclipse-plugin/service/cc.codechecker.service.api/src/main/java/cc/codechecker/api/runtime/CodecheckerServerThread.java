@@ -85,7 +85,7 @@ public class CodecheckerServerThread {
                         	break;
                         }
                         if (currentlyRunning.add(s)) {
-                        	callback.analysisStarted(ccec.createCheckCommmand(s));
+                        	callback.analysisStarted(ccec.createAnalyzeCommmand(s));
                             SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
                             String checkResult=ccec.processLog(s,true);
