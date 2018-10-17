@@ -31,9 +31,9 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import com.google.common.base.Optional;
 
-import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
+import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.config.CcConfiguration;
-import cc.codechecker.api.config.Config.ConfigTypes;
+import cc.codechecker.plugin.config.Config.ConfigTypes;
 
 import cc.codechecker.plugin.itemselector.CheckerView;
 import cc.codechecker.plugin.utils.CheckerItem;

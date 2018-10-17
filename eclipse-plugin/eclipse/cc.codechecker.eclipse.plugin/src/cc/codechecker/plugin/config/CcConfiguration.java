@@ -15,9 +15,9 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
-import cc.codechecker.api.config.Config.ConfigTypes;
-import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
-import cc.codechecker.api.runtime.CodecheckerServerThread;
+import cc.codechecker.plugin.config.Config.ConfigTypes;
+import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
+import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.views.console.ConsoleFactory;
@@ -259,7 +259,8 @@ public class CcConfiguration {
     public boolean isConfigured() {
         try {
             if(project!=null && project.hasNature(CodeCheckerNature.NATURE_ID)&& isCDTProject(project) ) {
-                CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project)
+            	return true;
+                /*CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project)
                         .getCodecheckerEnvironment();
                 if (ccec != null) {
                     int port=CodeCheckerContext.getInstance().getServerObject(project).serverPort;
@@ -267,7 +268,7 @@ public class CcConfiguration {
                     return ccec.isJavaRunner(port);
                 }else
                     Logger.log(IStatus.INFO, "CodeCheckerContext is null!");
-                return false;
+                return false;*/
             }
             return false;
         } catch (CoreException e) {

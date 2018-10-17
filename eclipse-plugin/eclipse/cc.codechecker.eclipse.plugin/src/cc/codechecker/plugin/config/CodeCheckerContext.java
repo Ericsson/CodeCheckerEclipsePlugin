@@ -1,28 +1,15 @@
 package cc.codechecker.plugin.config;
 
-import cc.codechecker.api.thrift.CodecheckerActionInitializer;
-import cc.codechecker.api.action.analyze.AnalyzeRequest;
-import cc.codechecker.api.action.result.ResultFilter;
-import cc.codechecker.api.action.run.list.ListRunsRequest;
-import cc.codechecker.api.job.RunListJob;
-import cc.codechecker.api.job.analyze.AnalyzeJob;
-import cc.codechecker.api.job.report.list.SearchJob;
-import cc.codechecker.api.job.report.list.SearchRequest;
-import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.OnCheckCallback;
-import cc.codechecker.plugin.markers.MarkerListener;
+import cc.codechecker.plugin.report.PlistParser;
+import cc.codechecker.plugin.report.ResultFilter;
+
+import cc.codechecker.plugin.runtime.CodecheckerServerThread;
+import cc.codechecker.plugin.runtime.OnCheckCallback;
+
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
 import cc.codechecker.plugin.views.report.list.ReportListViewProject;
-import cc.ecl.action.ActionImplementationRegistry;
-import cc.ecl.action.PerServerActionRunner;
-import cc.ecl.action.PerServerSimpleActionRunner;
-import cc.ecl.action.thrift.ThriftCommunicationInterface;
-import cc.ecl.action.thrift.ThriftTransportFactory;
-import cc.ecl.job.JobListener;
-import cc.ecl.job.JobRunner;
-import cc.ecl.job.SimpleJobRunner;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -51,7 +38,8 @@ public class CodeCheckerContext {
     static CodeCheckerContext instance;
 
     /** The job runner. */
-    JobRunner jobRunner;
+    // TODO UPLIFT jobrunner will be a thread.
+    //JobRunner jobRunner;
 
     /** The active editor part. */
     IEditorPart activeEditorPart;
@@ -66,11 +54,10 @@ public class CodeCheckerContext {
      * Class constructor.
      */
     private CodeCheckerContext() {
-        PerServerActionRunner<ThriftCommunicationInterface> actionRunner;
-        actionRunner = new PerServerSimpleActionRunner<ThriftCommunicationInterface>(new
-                ThriftTransportFactory(), (new CodecheckerActionInitializer()).initialize(new
-                        ActionImplementationRegistry<ThriftCommunicationInterface>()));
-        jobRunner = new SimpleJobRunner(actionRunner);
+    	//actionRunner = new SimpleActionRunner<SimpleCommunicationInterface>(
+    		//	new SimpleCommunicationFactory(), (new CodecheckerActionInitializer()).initialize(new
+    		//		ActionImplementationRegistry<SimpleCommunicationInterface>()));
+    		//jobRunner = new SimpleJobRunner(actionRunner);
     }
 
     /**
@@ -200,7 +187,7 @@ public class CodeCheckerContext {
      * Clean cache.
      */
     public void cleanCache() {
-        jobRunner.getActionCacheFilter().removeAll();
+        //jobRunner.getActionCacheFilter().removeAll();
         Logger.log(IStatus.INFO, " CLEARING CACHE");
     }
 
@@ -357,64 +344,24 @@ public class CodeCheckerContext {
         if (!config.isConfigured()) return;
         Logger.log(IStatus.INFO, "Running search to URL:"+config.getServerUrl());
 
-        SearchJob rlj = new SearchJob(1, Optional.of(new Instant().plus(500)), new SearchRequest
-                (config.getServerUrl(), runId, filters));
-        rlj.addListener(new ReportListViewListener(target));
-        rlj.addListener(new MarkerListener(project));
-        jobRunner.addJob(rlj);
-    }
-
-    /**
-     * Run run list job.
-     *
-     * @param target the target
-     */
-    public void runRunListJob(final ReportListView target) {
-        IProject project = target.getCurrentProject();
-        if (project == null) return;
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) return;
-
-        RunListJob rlj = new RunListJob(new ListRunsRequest(config.getServerUrl()), 1, Optional
-                .of(new Instant().plus(500)));
-        rlj.addListener(new JobListener<RunListJob>() {
-
-            @Override
-            public void onJobTimeout(RunListJob arg0) {
-            }
-
-            @Override
-            public void onJobStart(RunListJob arg0) {
-            }
-
-            @Override
-            public void onJobInternalError(RunListJob arg0, RuntimeException arg1) {
-            }
-
-            @Override
-            public void onJobComplete(RunListJob rlj) {
-                //target.setRunList(rlj.getResult().get());
-            }
-        });
-        jobRunner.addJob(rlj);
-    }
-
-    /**
-     * Run analyze job.
-     *
-     * @param target the target
-     */
-    public void runAnalyzeJob(ReportListView target) {
-        IProject project = target.getCurrentProject();
-        if (project == null) return;
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) return;
-
-        ImmutableList<String> l = ImmutableList.of();
-        AnalyzeJob rlj = new AnalyzeJob(1, Optional.of(new Instant().plus(500)), new
-                AnalyzeRequest(config.getServerUrl(), l));
+        //SearchJob rlj = new SearchJob(1, Optional.of(new Instant().plus(500)), new SearchRequest
+        //        (config.getServerUrl(), runId, filters));
         //rlj.addListener(new ReportListViewListener(target));
-        jobRunner.addJob(rlj);
+        //rlj.addListener(new MarkerListener(project));
+        
+        //TODO run plistparse here.
+        // Create new plist parser.
+        PlistParser parser = new PlistParser();
+        parser.AddListener(new ReportListViewListener(target));
+        // add listeners to it.
+        try {
+			parser.ProcessResult(null);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        //jobRunner.addJob(rlj);
     }
 
     /**

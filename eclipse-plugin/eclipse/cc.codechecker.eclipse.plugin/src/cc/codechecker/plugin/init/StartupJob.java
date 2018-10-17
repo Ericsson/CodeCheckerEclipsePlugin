@@ -27,8 +27,8 @@ import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.Logger;
 import cc.codechecker.plugin.ExternalLogger;
 
-import cc.codechecker.api.runtime.SLogger;
-import cc.codechecker.api.runtime.CodecheckerServerThread;
+import cc.codechecker.plugin.runtime.SLogger;
+import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 
 public class StartupJob extends Job {
 
@@ -202,7 +202,8 @@ public class StartupJob extends Job {
         server.stop();
         Logger.log(IStatus.INFO,
                 " " + project.getName() + " server stopped.");
-        server.cleanDB();
+        //TODO UPLIFT Clean something???
+        //server.cleanDB();
         //FIXME: database needs to be recreated at this point.
         //and the results should be emptied.
         Logger.log(IStatus.INFO,

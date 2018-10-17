@@ -22,8 +22,8 @@ import org.eclipse.core.runtime.CoreException;
 import com.google.common.base.Optional;
 
 
-import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.report.BugPathItem;
+import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.filter.Filter;
@@ -272,6 +272,9 @@ public class ReportListView extends ViewPart {
         CodeCheckerContext.getInstance().runReportJob(this, sent.convertToResultList(), runId);
     }
 
+    /**
+     * Called when switching between edited source files. 
+     */
     public void onEditorChanged(IProject project, String filename) {
         Logger.log(IStatus.INFO, "OnEditorchanged:"+project.getName());
         if (project != currentProject) {

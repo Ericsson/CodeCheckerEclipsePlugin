@@ -8,9 +8,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.action.result.ReportInfo;
-import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.report.BugPathItem;
+import cc.codechecker.plugin.report.ReportInfo;
+import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class BasicViewLabelProvider extends LabelProvider {

@@ -1,6 +1,6 @@
 package cc.codechecker.plugin;
 
-import cc.codechecker.api.runtime.LogI;
+import cc.codechecker.plugin.runtime.LogI;
 import cc.codechecker.plugin.views.console.ConsoleFactory;;
 
 //logger service for non plugin internal
