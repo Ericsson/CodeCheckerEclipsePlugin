@@ -25,7 +25,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.joda.time.Instant;
 
 import cc.codechecker.plugin.Logger;
 import org.eclipse.core.runtime.IStatus;

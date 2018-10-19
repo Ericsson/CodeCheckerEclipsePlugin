@@ -2,6 +2,7 @@
 
 # vim
 *.swp
+*.swo
 
 # eclipse
 .project

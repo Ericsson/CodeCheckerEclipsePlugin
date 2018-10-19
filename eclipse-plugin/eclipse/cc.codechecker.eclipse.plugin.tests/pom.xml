@@ -1,0 +1,43 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>cc.codechecker.eclipse.plugin.tests</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<parent>
+		<artifactId>cc.codechecker.eclipse.parent</artifactId>
+		<groupId>cc.codechecker.eclipse</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../cc.codechecker.eclipse.parent</relativePath>
+	</parent>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.1</version>
+				<configuration>
+					<printSummary>true</printSummary>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>cc.codechecker.eclipse</groupId>
+			<artifactId>cc.codechecker.eclipse.plugin</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>eclipse-plugin</type>
+		</dependency>
+	</dependencies>
+</project>
+
+

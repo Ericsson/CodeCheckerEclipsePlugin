@@ -1,4 +1,4 @@
-package cc.codechecker.api.runtime;
+package cc.codechecker.plugin.runtime;
 
 import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.junit.Before;

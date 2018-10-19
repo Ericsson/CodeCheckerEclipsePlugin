@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tests
+Bundle-SymbolicName: cc.codechecker.eclipse.plugin.tests
+Bundle-Version: 1.0.0.qualifier
+Fragment-Host: cc.codechecker.eclipse.plugin;bundle-version="0.0.1"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: cc.codechecker.plugin,
+ org.junit;version="4.12.0"
