@@ -23,7 +23,8 @@ public class CodecheckerServerThread {
     final Set currentlyRunning = Collections.synchronizedSet(new HashSet());
     CodeCheckEnvironmentChecker ccec = null;
     private OnCheckCallback callback = null;
-    private ShellExecutorHelper.Executable serverExecutor = null;
+    //TODO UPLIFT
+    //private ShellExecutorHelper.Executable serverExecutor = null;
     private Thread serverThread = null;
     private Thread queueThread = null;
     private boolean running = false;
@@ -55,19 +56,21 @@ public class CodecheckerServerThread {
     public synchronized void start() {
         if (running) stop();
         SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Starting CC");
-        if (ccec != null && serverExecutor == null) {
+        					//TODO UPLIFT
+        if (ccec != null /*&& serverExecutor == null*/) {
             //final String cmd = ccec.createServerCommand(String.valueOf(serverPort));
         	// TODO UPLIFT
         	final String cmd = "lel";
             ShellExecutorHelper she = new ShellExecutorHelper(ccec.environmentBefore);
-            serverExecutor = she.getServerObject(cmd);
+            //serverExecutor = she.getServerObject(cmd);
             serverThread = new Thread(new Runnable() {
                 public void run() {
-                	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started server thread");
+                	// TODO UPLIFT
+                	/*SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started server thread");
                     SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server command: " + cmd);
                     SLogger.log(LogI.INFO, "SERVER_SER_MSG >> HTTP server URL: " + getServerUrl());
                     SLogger.consoleLog("Server started on URL:" + getServerUrl());
-                    serverExecutor.start();
+                    serverExecutor.start();*/
                 }
             });
             serverThread.start();
@@ -77,7 +80,7 @@ public class CodecheckerServerThread {
             @Override
             public void run() {
                 try {
-                    SLogger.log(LogI.INFO, "SERVER_SER_MSG >> started queue thread");
+                    SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> started queue thread");
                     while (true) {
                     	if(Thread.interrupted()) {
                     		break;
@@ -88,16 +91,16 @@ public class CodecheckerServerThread {
                         }
                         if (currentlyRunning.add(s)) {
                         	callback.analysisStarted(ccec.createAnalyzeCommmand(s));
-                            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Queue size (-1): " + processingQueue
+                            SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> Queue size (-1): " + processingQueue
                                     .size() + " >> " + s);
                             String checkResult=ccec.processLog(s,true);
-                            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + checkResult);
+                            SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> " + checkResult);
                             currentlyRunning.remove(s);
                             if (callback != null) callback.analysisFinished(checkResult);
                         }
                     }
                 } catch (InterruptedException e) {
-                	SLogger.log(LogI.ERROR, "SERVER_SER_MSG >> queueThread >> " + e);
+                	SLogger.log(LogI.ERROR, "QUEUE_THREAD_MSG >> queueThread >> " + e);
                 }
             }
         });
@@ -106,28 +109,29 @@ public class CodecheckerServerThread {
     }
 
     public synchronized void stop() {
-        SLogger.log(LogI.INFO, "SERVER_SER_MSG >> stopping CC");
+    	//TODO UPLIFT
+    	/*SLogger.log(LogI.INFO, "SERVER_SER_MSG >> stopping CC");
         if (serverExecutor != null) {
             SLogger.log(LogI.INFO, "SERVER_SER_MSG >> killing server thread");
             serverExecutor.kill();
             serverThread.interrupt();
             serverThread = null;
             serverExecutor = null;
-        }
+        }*/
         if (queueThread != null) {
-            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> killing queue thread");
+            SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> killing queue thread");
             processingQueue.add("STOP!");
             queueThread.interrupt();
             queueThread = null;
         }
 
         try {
-            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Waiting...");
+            SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> Waiting...");
             Thread.sleep(1000);
-            SLogger.log(LogI.INFO, "SERVER_SER_MSG >> Done");
+            SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> Done");
         } catch (Exception e) {
-        	SLogger.log(LogI.ERROR, "SERVER_SER_MSG >> " + e);
-        	SLogger.log(LogI.INFO, "SERVER_SER_MSG >> " + e.getStackTrace());
+        	SLogger.log(LogI.ERROR, "QUEUE_THREAD_MSG >> " + e);
+        	SLogger.log(LogI.INFO, "QUEUE_THREAD_MSG >> " + e.getStackTrace());
         }
 
         running = false;
@@ -151,9 +155,9 @@ public class CodecheckerServerThread {
         	SLogger.log(LogI.ERROR, "CodeChecker env is null!");
     }
 
-    public String getServerUrl() {
+   /* public String getServerUrl() {
         return "http://localhost:" + serverPort + "/";
-    }
+    }*/
 
     public boolean isRunning() {
         return running;

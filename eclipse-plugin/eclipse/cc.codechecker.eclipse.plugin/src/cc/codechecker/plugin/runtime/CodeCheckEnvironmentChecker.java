@@ -173,7 +173,7 @@ public class CodeCheckEnvironmentChecker {
     public String createAnalyzeCommmand(String buildLog){
         return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) + 
        		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -c" + " -n javarunner" + 
-       		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/javarunner/ " + buildLog;
+       		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
    }
     
   //TODO UPLIFT REMOVE

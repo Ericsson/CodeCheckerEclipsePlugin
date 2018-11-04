@@ -14,16 +14,18 @@ import com.google.common.collect.TreeMultimap;
 import java.util.Collection;
 import java.util.Set;
 
+/**
+ * Stores all report information for a project.
+ * @author vodorok
+ *
+ */
 public class SearchList {
-
-    //private final SearchRequest request;
 
     private final Multimap<String, ReportInfo> reports;
 
     private Optional<Integer> totalReportCount;
 
-    public SearchList(/*SearchRequest request*/) {
-        //this.request = request;
+    public SearchList() {
         this.reports = TreeMultimap.create();
         totalReportCount = Optional.absent();
     }

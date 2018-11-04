@@ -48,16 +48,14 @@ public class CodeCheckerContext {
 
     /** The active project. */
     private IProject activeProject = null;
-
+    
+    /** For storing in memory*/
+    //TODO UPLIFT some haslist projects as key reports as value.
+    
     /**
      * Class constructor.
      */
-    private CodeCheckerContext() {
-    	//actionRunner = new SimpleActionRunner<SimpleCommunicationInterface>(
-    		//	new SimpleCommunicationFactory(), (new CodecheckerActionInitializer()).initialize(new
-    		//		ActionImplementationRegistry<SimpleCommunicationInterface>()));
-    		//jobRunner = new SimpleJobRunner(actionRunner);
-    }
+    private CodeCheckerContext() {}
 
     /**
      * The refresher for Project ReportList View.
@@ -151,7 +149,7 @@ public class CodeCheckerContext {
     /**
      * Gets the server object.
      *
-     * @param project the project which the user change there view to.
+     * @param project the project which the user change their view to.
      * @return CodecheckerServerThread
      */
     public synchronized CodecheckerServerThread getServerObject(final IProject project) {
@@ -184,6 +182,7 @@ public class CodeCheckerContext {
 
     /**
      * Clean cache.
+     * TODO This method could be used for clearing in memory representation of the reports.
      */
     public void cleanCache() {
         //jobRunner.getActionCacheFilter().removeAll();
@@ -238,6 +237,7 @@ public class CodeCheckerContext {
             return;
         }
 
+        //The actual refresh happens here.
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
         this.refreshCurrent(pages, project, filename, false);
         this.refreshProject(pages, project, false);
@@ -336,31 +336,21 @@ public class CodeCheckerContext {
      * @param runId the run id
      */
     public void runReportJob(ReportListView target, ImmutableList<ResultFilter> filters,
-            Optional<Long> runId) {
+            String currentFileName) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) return;
-        Logger.log(IStatus.INFO, "Running search to URL:"+config.getServerUrl());
-
-        //SearchJob rlj = new SearchJob(1, Optional.of(new Instant().plus(500)), new SearchRequest
-        //        (config.getServerUrl(), runId, filters));
-        //rlj.addListener(new ReportListViewListener(target));
-        //rlj.addListener(new MarkerListener(project));
+        Logger.log(IStatus.INFO, "Processing plist for project: "+project.getName());
         
-        //TODO run plistparse here.
         // Create new plist parser.
-        PlistParser parser = new PlistParser();
-        parser.AddListener(new ReportListViewListener(target));
+        PlistParser parser = new PlistParser(project, currentFileName);
         // add listeners to it.
-        try {
-			parser.ProcessResult(null);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-        //jobRunner.addJob(rlj);
+        parser.AddListener(new ReportListViewListener(target));
+		// Store the parseresults
+        Thread t = new Thread(parser);
+        t.start();
+        //parser.processResultsForProject(project, currentFileName);
     }
 
     /**

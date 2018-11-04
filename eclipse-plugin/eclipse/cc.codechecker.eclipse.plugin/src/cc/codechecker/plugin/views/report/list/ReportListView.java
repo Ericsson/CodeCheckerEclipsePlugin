@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.part.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.action.*;
@@ -221,10 +222,15 @@ public class ReportListView extends ViewPart {
         viewer.getControl().setFocus();
     }
 
-    public void changeModel(SearchList root) {
+    public void changeModel(final SearchList root) {
         if (this.reportList.orNull() != root) {
             this.reportList = Optional.of(root);
-            viewer.setInput(root);
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                	viewer.setInput(root);
+                }
+            });
         }
     }
 
@@ -250,7 +256,7 @@ public class ReportListView extends ViewPart {
         return viewer;
     }
 
-    private void redoJob() {
+    private void reparsePlists(String currentFileName) {
         FilterConfiguration sent = activeConfiguration.dup();
 
         if (getViewerRefresh()) {
@@ -267,9 +273,9 @@ public class ReportListView extends ViewPart {
             }
         }
 
-        Optional<Long> runId = Optional.absent();
+        //Optional<Long> runId = Optional.absent();
 
-        CodeCheckerContext.getInstance().runReportJob(this, sent.convertToResultList(), runId);
+        CodeCheckerContext.getInstance().runReportJob(this, sent.convertToResultList(), currentFileName);
     }
 
     /**
@@ -287,7 +293,7 @@ public class ReportListView extends ViewPart {
 
         this.currentFilename = filename;
 
-        redoJob();
+        reparsePlists(filename);
     }
 
     public FilterConfiguration getActiveConfiguration() {
@@ -299,7 +305,7 @@ public class ReportListView extends ViewPart {
 
         setViewerRefresh(activeConfiguration.isLinkToCurrentEditorByDefalt());
 
-        redoJob();
+        reparsePlists(currentFilename);
     }
 
     public IProject getCurrentProject() {

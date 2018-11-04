@@ -2,6 +2,9 @@ package cc.codechecker.plugin.runtime;
 
 import com.google.common.base.Optional;
 
+import cc.codechecker.plugin.runtime.CodeCheckerLocator;
+import cc.codechecker.plugin.runtime.ShellExecutorHelper;
+
 import org.junit.Test;
 
 import java.io.IOException;

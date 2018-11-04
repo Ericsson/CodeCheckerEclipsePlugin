@@ -83,7 +83,8 @@ public class ShellExecutorHelper {
         }
     }
 
-    public Executable getServerObject(String cmd) {
+    //TODO UPLIFT
+    /*public Executable getServerObject(String cmd) {
         Executor ec = build();
         PidObject pidObject = new PidObject();
         ec.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
@@ -91,7 +92,7 @@ public class ShellExecutorHelper {
         ec.setStreamHandler(new PumpStreamHandler(olr));
         return new Executable(ec, buildScriptCommandLine("echo \"PID> $BASHPID\" ; " + cmd),
                 pidObject);
-    }
+    }*/
 
     private CommandLine buildScriptCommandLine(String script) {
         CommandLine cl = new CommandLine("/bin/bash");
@@ -124,7 +125,7 @@ public class ShellExecutorHelper {
         int pid;
     }
 
-    public class Executable {
+    /*public class Executable {
         private final Executor executor;
         private final CommandLine cmdLine;
         private final PidObject pidObject;
@@ -157,7 +158,7 @@ public class ShellExecutorHelper {
             }
         }
     }
-
+*/
     class OneLineReader extends LogOutputStream {
 
         public Optional<String> line = Optional.absent();

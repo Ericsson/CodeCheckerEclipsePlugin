@@ -23,4 +23,5 @@ ClassPath: lib/cc-api.jar lib/commons-codec.jar lib/commons-lang3.jar lib/compil
 Class-Path: lib/cc-api.jar lib/commons-codec.jar lib/commons-lang3.jar lib/compiler.jar lib/hamcrest-all.jar lib/httpclient.jar lib/joda-time.jar lib/libthrift.jar lib/scl-thrift.jar lib/cc-thrift.jar lib/commons-exec.jar lib/commons-logging.jar lib/guava.jar lib/hamcrest-core.jar lib/httpcore.jar lib/junit.jar lib/scl.jar lib/slf4j-api.jar lib/gson.jar lib/dd-plist.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Export-Package: cc.codechecker.plugin
+Export-Package: cc.codechecker.plugin,
+ cc.codechecker.plugin.runtime

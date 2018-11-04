@@ -2,6 +2,8 @@ package cc.codechecker.plugin.runtime;
 
 import com.google.common.collect.ImmutableMap;
 
+import cc.codechecker.plugin.runtime.EnvironmentParser;
+
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;

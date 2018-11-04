@@ -49,22 +49,10 @@ public class ReportListViewListener implements SearchListener {
 
     //TODO UPLIFT use arguments in function.
     @Override
-    public void onPartsArrived(Object arg1, ImmutableList<ReportInfo> arg2) {    	
-    	// refresh model model also
-    	List<ReportInfo> riList = new ArrayList<>();
-    	BugPathItem bItem = new BugPathItem(new Position(1, 1), new Position(1, 2), "testBugpathItem_1","/home/vodorok/runtime-EclipseApplication/Test/src/Test.cpp");
-    	BugPathItem bItem2 = new BugPathItem(new Position(2, 1), new Position(2, 2), "testBugpathItem_2","/home/vodorok/runtime-EclipseApplication/Test/src/Test.cpp");
-    	ProblemInfo pInfo = new ProblemInfo(ImmutableList.of(bItem, bItem2));
-    	
-    	riList.add(new ReportInfo((String)arg1, "testHash", "/home/vodorok/runtime-EclipseApplication/Test/src/Test.cpp", "testCheckerMsg", 1, false, "testFile", 
-    			bItem, Optional.of(pInfo)));
+    public void onPartsArrived(Object arg1, ImmutableList<ReportInfo> arg2) {    
+    	// append insted of replace model?
 
-    	SearchList sl = new SearchList();
-
-    	ImmutableList<ReportInfo> uriList = ImmutableList.copyOf(riList);
-    	sl.addReports(uriList);
-    	
-    	target.changeModel(sl);
+    	//target.changeModel(sl);
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
@@ -74,7 +62,14 @@ public class ReportListViewListener implements SearchListener {
     }
 
     @Override
-    public void onTotalCountAvailable(SearchList arg1, int arg2) {
+    public void onTotalCountAvailable(SearchList sl, int arg2) {
+    	target.changeModel(sl);
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                target.refresh(null);
+            }
+        });
     }
 
 }

@@ -98,13 +98,13 @@ public class CcConfiguration {
         }
     }
 
-    public String getServerUrl() {
+    /*public String getServerUrl() {
         try {
             return CodeCheckerContext.getInstance().getServerObject(project).getServerUrl();
         } catch (Exception e) {
             return "";
         }
-    }
+    }*/
 
     public IEclipsePreferences getActivePreferences(){
         if (project!=null && !isGlobal() )

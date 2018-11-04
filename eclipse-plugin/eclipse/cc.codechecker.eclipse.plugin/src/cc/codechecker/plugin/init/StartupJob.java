@@ -32,8 +32,6 @@ import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 
 public class StartupJob extends Job {
 
-
-
     EditorPartListener partListener;
     ProjectExplorerSelectionListener projectexplorerselectionlistener;    
 
@@ -79,7 +77,6 @@ public class StartupJob extends Job {
                 case IResourceChangeEvent.POST_BUILD: {
                     //On Eclipse FULL_BUILD and INCREMENTAL build, recheck the project
                     //on clean build drop the checker database
-                    //ignore AUTO_BUILD
                     try{
                         if (event.getBuildKind() != IncrementalProjectBuilder.AUTO_BUILD){                        
                             Logger.log(IStatus.INFO, "Build called. type:"+event.getBuildKind());                            

@@ -4,6 +4,8 @@ import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import cc.codechecker.plugin.runtime.ShellExecutorHelper;
+
 import java.io.IOException;
 import java.util.HashMap;
 

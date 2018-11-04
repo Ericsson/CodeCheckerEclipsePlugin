@@ -11,13 +11,13 @@ This is a C/C++ code analysis plugin for Eclipse that shows bugs detected by the
 * [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
 * Eclipse CDT
 * Java 1.7
-* [Thrift](https://thrift.apache.org/) 0.9.1 or later
+~~* [Thrift](https://thrift.apache.org/) 0.9.1 or later
 
 ### Install or build Thrift 0.9.1
 ##### install:
 using a package manager provided by your OS:  
 Ubuntu:  
-```sudo apt-get install -y thrift-compiler```
+```sudo apt-get install -y thrift-compiler```~~
 
 ##### build from source:
 ~~~~~~~~.sh
