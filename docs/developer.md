@@ -12,6 +12,10 @@
 * Adherence to the [Google Java Style](https://google.github.io/styleguide/javaguide.html) is mandatory
     * An IntelliJ Idea autoformatter XML configuration file is included in the repo for convenience
 
+## Version Update
+
+Execute the following command in CodeCheckerEclipsePlugin/eclipse-plugin.
+``` mvn -Dtycho.mode=maven org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=X.X.X-SNAPSHOT -Dartifacts=cc.codechecker.eclipse.plugin ```
 
 ## Log
 
