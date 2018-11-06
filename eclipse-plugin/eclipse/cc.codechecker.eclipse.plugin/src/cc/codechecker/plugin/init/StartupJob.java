@@ -228,6 +228,8 @@ public class StartupJob extends Job {
         Logger.log(IStatus.INFO, "CodeChecker nature found!");
         try {
             CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
+            // TODO Check if there is a better spot for this
+            CodeCheckerContext.getInstance().parsePlistForProject(project);
             if (project.isOpen()) {
                 if (!server.isRunning()){
                     Logger.log(IStatus.INFO, "Starting server+"+project.getName());

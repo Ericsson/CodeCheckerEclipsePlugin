@@ -15,7 +15,7 @@ public class PlistParserTest {
 
     @Before
     public void initParser(){
-        parser = new PlistParser();
+//        parser = new PlistParser();
     }
 
     /*@Test

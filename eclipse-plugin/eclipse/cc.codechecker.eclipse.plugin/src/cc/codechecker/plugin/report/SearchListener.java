@@ -10,5 +10,5 @@ public interface SearchListener extends Listener {
     void onTotalCountAvailable(SearchList result, int count);
  
 //    void onPartsArrived(SearchJob searchJob, SearchList result, ImmutableList<ReportInfo> runResultList);
-    void onPartsArrived(Object result, ImmutableList<ReportInfo> runResultList);
+    void onPartsArrived(SearchList result);
 }

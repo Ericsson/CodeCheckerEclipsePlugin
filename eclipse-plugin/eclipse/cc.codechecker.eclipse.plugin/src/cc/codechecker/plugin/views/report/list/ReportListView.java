@@ -256,7 +256,7 @@ public class ReportListView extends ViewPart {
         return viewer;
     }
 
-    private void reparsePlists(String currentFileName) {
+    private void reloadReports(String currentFileName) {
         FilterConfiguration sent = activeConfiguration.dup();
 
         if (getViewerRefresh()) {
@@ -293,7 +293,7 @@ public class ReportListView extends ViewPart {
 
         this.currentFilename = filename;
 
-        reparsePlists(filename);
+        reloadReports(filename);
     }
 
     public FilterConfiguration getActiveConfiguration() {
@@ -305,7 +305,7 @@ public class ReportListView extends ViewPart {
 
         setViewerRefresh(activeConfiguration.isLinkToCurrentEditorByDefalt());
 
-        reparsePlists(currentFilename);
+        reloadReports(currentFilename);
     }
 
     public IProject getCurrentProject() {

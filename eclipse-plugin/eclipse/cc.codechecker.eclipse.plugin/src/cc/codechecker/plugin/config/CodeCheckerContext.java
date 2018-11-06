@@ -1,8 +1,9 @@
 package cc.codechecker.plugin.config;
 
 import cc.codechecker.plugin.report.PlistParser;
+import cc.codechecker.plugin.report.ReportParser;
 import cc.codechecker.plugin.report.ResultFilter;
-
+import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.runtime.OnCheckCallback;
 
@@ -45,6 +46,8 @@ public class CodeCheckerContext {
 
     /** The servers. */
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
+    
+    private HashMap<IProject, SearchList> reports = new HashMap<>();
 
     /** The active project. */
     private IProject activeProject = null;
@@ -160,7 +163,8 @@ public class CodeCheckerContext {
                 @Override
                 public void analysisFinished(String result) {
                     Logger.consoleLog(project.getName() + "Analysis finished.");
-                    cleanCache();
+                    //cleanCache();
+                    //Store 
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -212,6 +216,8 @@ public class CodeCheckerContext {
         }
 
         IEditorPart partRef = activePage.getActiveEditor();
+        
+        parsePlistForProject(project);
 
         //partRef is null or partRef NOT instanceof FileEditor!
         if (partRef == null || !(partRef.getEditorInput() instanceof IFileEditorInput)) {
@@ -244,6 +250,12 @@ public class CodeCheckerContext {
         this.refreshCustom(pages, project, "", false);
         this.activeProject = project;
     }
+
+	public void parsePlistForProject(final IProject project) {
+		PlistParser parser = new PlistParser(project);
+        SearchList sl = parser.processResultsForProject();
+        reports.put(project, sl);
+	}
 
     /**
      * Refresh change editor part.
@@ -343,14 +355,13 @@ public class CodeCheckerContext {
         if (!config.isConfigured()) return;
         Logger.log(IStatus.INFO, "Processing plist for project: "+project.getName());
         
-        // Create new plist parser.
-        PlistParser parser = new PlistParser(project, currentFileName);
+        // Dont Parse Here just work from the reports Hasmap
+        
+        ReportParser parser = new ReportParser(reports.get(project), currentFileName);
         // add listeners to it.
         parser.AddListener(new ReportListViewListener(target));
-		// Store the parseresults
         Thread t = new Thread(parser);
         t.start();
-        //parser.processResultsForProject(project, currentFileName);
     }
 
     /**

@@ -49,10 +49,9 @@ public class ReportListViewListener implements SearchListener {
 
     //TODO UPLIFT use arguments in function.
     @Override
-    public void onPartsArrived(Object arg1, ImmutableList<ReportInfo> arg2) {    
+    public void onPartsArrived(SearchList sl) {    
     	// append insted of replace model?
-
-    	//target.changeModel(sl);
+    	target.changeModel(sl);
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {

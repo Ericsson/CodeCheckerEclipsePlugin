@@ -291,11 +291,11 @@ public class CcConfiguration {
                 }
                 Logger.log(IStatus.INFO, "Restarting server : " + project.getName());
                 CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(config);
-                ccec.setServerPort(server.serverPort);
+                //ccec.setServerPort(server.serverPort);
                 modifyProjectEnvironmentVariables(ccec.getEnvironmentAddList());
                 server.setCodecheckerEnvironment(ccec);
-                ConsoleFactory.consoleWrite(
-                        project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
+                //ConsoleFactory.consoleWrite(
+                //        project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
 
             } catch (Exception e) {
                 ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());            

@@ -25,11 +25,6 @@ public class CodeCheckEnvironmentChecker {
     public final String codeCheckerCommand; // CodecCheker executable path   
     private Map<ConfigTypes,String> config;
     private String checkerList;
-    private int serverPort;
-    
-    public void setServerPort(int serverport) {
-		this.serverPort = serverport;
-	}
 
 	//with specific python. This
     // can be used to run CodeChecker
@@ -139,17 +134,6 @@ public class CodeCheckEnvironmentChecker {
         return this.config.equals(other.getConfig());
     }
 
-    public boolean isJavaRunner(int serverPort) {
-        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
-
-        String cmd = codeCheckerCommand + " cmd runs --url http://localhost:" + serverPort + "/Default -o json";
-	Optional<String> ccOutput = she.waitReturnOutput(cmd,true);
-        if (ccOutput.isPresent()) {
-            return ccOutput.get().contains("javarunner");
-        }
-        return false;
-    }
-
     public void setCheckerList(String list) {
         this.checkerList = list;
     }
@@ -172,7 +156,7 @@ public class CodeCheckEnvironmentChecker {
 
     public String createAnalyzeCommmand(String buildLog){
         return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) + 
-       		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -c" + " -n javarunner" + 
+       		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" + 
        		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
    }
     
