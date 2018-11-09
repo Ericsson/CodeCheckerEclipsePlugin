@@ -284,10 +284,16 @@ public class CcConfiguration {
                     + "/.codechecker/" + project.getName());// codechecker workspace
             dumpConfig(config);
             try {
+            	File ccWorkDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker");
+                if (!ccWorkDir.exists()) {
+                    Boolean b = ccWorkDir.mkdir();
+                    Logger.log(IStatus.INFO, "Making cc directory " + b);
+                }
                 File workDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
                         + project.getName());
                 if (!workDir.exists()) {
-                    workDir.mkdir();
+                    Boolean b = workDir.mkdir();
+                    Logger.log(IStatus.INFO, "Making directory " + b);
                 }
                 Logger.log(IStatus.INFO, "Restarting server : " + project.getName());
                 CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(config);
