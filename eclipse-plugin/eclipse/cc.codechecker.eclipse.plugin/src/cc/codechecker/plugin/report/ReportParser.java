@@ -24,6 +24,7 @@ public class ReportParser implements Runnable {
     //TODO javadoc!
     private void processReports(){
         //Parse The reports given the current filenam
+        if (reports == null ) return;
         if (currentFileName.isEmpty() || currentFileName == null)
             for (SearchListener listener : listeners){
                 listener.onTotalCountAvailable(reports, 1);
