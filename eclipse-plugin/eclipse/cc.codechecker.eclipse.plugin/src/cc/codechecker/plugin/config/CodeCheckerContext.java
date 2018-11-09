@@ -2,7 +2,6 @@ package cc.codechecker.plugin.config;
 
 import cc.codechecker.plugin.report.PlistParser;
 import cc.codechecker.plugin.report.ReportParser;
-import cc.codechecker.plugin.report.ResultFilter;
 import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 import cc.codechecker.plugin.runtime.OnCheckCallback;
@@ -13,7 +12,6 @@ import cc.codechecker.plugin.views.report.list.ReportListViewListener;
 import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 
 import java.util.HashMap;
 
@@ -46,15 +44,15 @@ public class CodeCheckerContext {
 
     /** The servers. */
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
-    
+
     private HashMap<IProject, SearchList> reports = new HashMap<>();
 
     /** The active project. */
     private IProject activeProject = null;
-    
+
     /** For storing in memory*/
     //TODO UPLIFT some haslist projects as key reports as value.
-    
+
     /**
      * Class constructor.
      */
@@ -131,7 +129,7 @@ public class CodeCheckerContext {
                             rlvc.getViewSite().getSecondaryId().equals(secondaryId)){
                         rlvc.onEditorChanged(project);
                         return;
-                    }
+                            }
                 }
             }
         }
@@ -165,6 +163,7 @@ public class CodeCheckerContext {
                     Logger.consoleLog(project.getName() + "Analysis finished.");
                     //cleanCache();
                     //Store 
+                    parsePlistForProject(project);
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -216,8 +215,8 @@ public class CodeCheckerContext {
         }
 
         IEditorPart partRef = activePage.getActiveEditor();
-        
-        parsePlistForProject(project);
+
+        //parsePlistForProject(project);
 
         //partRef is null or partRef NOT instanceof FileEditor!
         if (partRef == null || !(partRef.getEditorInput() instanceof IFileEditorInput)) {
@@ -227,13 +226,14 @@ public class CodeCheckerContext {
             Logger.log(IStatus.INFO, " partRef is null or partRef instanceof FileEditor!");
             return;
         }
-       
-        
+
+
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-                
+
         if (project!=this.activeProject){
-            Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
+            //Nullptr on activeprocejt on pluginstart
+            //Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
             return;
         }
 
@@ -251,11 +251,20 @@ public class CodeCheckerContext {
         this.activeProject = project;
     }
 
-	public void parsePlistForProject(final IProject project) {
-		PlistParser parser = new PlistParser(project);
-        SearchList sl = parser.processResultsForProject();
+    public void parsePlistForProject(final IProject project) {
+        Logger.log(IStatus.INFO, "Started Plist Parsing for project: "+project.getName());
+        final PlistParser parser = new PlistParser(project);
+        SearchList sl;
+        sl = parser.processResultsForProject();
         reports.put(project, sl);
-	}
+        Logger.log(IStatus.INFO, "Finished Plist Parsing for project: "+project.getName());
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                CodeCheckerContext.getInstance().refreshAfterBuild(project);
+            }
+        });
+    }
 
     /**
      * Refresh change editor part.
@@ -344,24 +353,24 @@ public class CodeCheckerContext {
      * Run report job.
      *
      * @param target the target
-     * @param filters the filters
      * @param runId the run id
      */
-    public void runReportJob(ReportListView target, ImmutableList<ResultFilter> filters,
-            String currentFileName) {
+    public void runReportJob(ReportListView target, String currentFileName) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) return;
-        Logger.log(IStatus.INFO, "Processing plist for project: "+project.getName());
-        
+        Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
+
         // Dont Parse Here just work from the reports Hasmap
-        
+
         ReportParser parser = new ReportParser(reports.get(project), currentFileName);
         // add listeners to it.
         parser.AddListener(new ReportListViewListener(target));
-        Thread t = new Thread(parser);
-        t.start();
+        /*Thread t = new Thread(parser);
+          t.start();*/
+        Display.getDefault().asyncExec(parser);
+        Logger.log(IStatus.INFO, "Finished Filtering Reports for project: "+project.getName());
     }
 
     /**

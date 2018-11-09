@@ -33,7 +33,7 @@ public class SearchList {
     public void addReports(ImmutableList<ReportInfo> reports) {
         for (ReportInfo report : reports) {
             if (this.reports.containsValue(report)) {
-                SLogger.log(LogI.WARNING, "Duplicate report in the result list: " + report);
+                //SLogger.log(LogI.WARNING, "Duplicate report in the result list: " + report);
             }
             this.reports.put(report.getCheckerId(), report);
         }

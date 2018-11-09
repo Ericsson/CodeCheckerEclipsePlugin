@@ -32,7 +32,7 @@ import cc.codechecker.plugin.report.BugPathItem.Position;
 /**
  * Class for parsing the analysis result plist files.
  */
-public class PlistParser {
+public class PlistParser/* implements Runnable */{
 	IProject project;
 	
 	public PlistParser(IProject project) {
@@ -94,7 +94,8 @@ public class PlistParser {
 		} catch (ParserConfigurationException | ParseException | SAXException | PropertyListFormatException
 				| IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Logger.log(IStatus.ERROR, "Cannot Parse File :" + e.getMessage() + " in file: " + file.getName());
+			//e.printStackTrace();
 		}
 
 		return sl;
@@ -117,9 +118,14 @@ public class PlistParser {
 				return false;
 			}
 		})) {
-			Logger.log(IStatus.INFO, "Parsing plist :" + f);
+			//Logger.log(IStatus.INFO, "Parsing plist :" + f);
 			parsePlist(f, sl);
 		}
 		return sl;
 	}
+
+	/*@Override
+	public void run() {
+		processResultsForProject();
+	}*/
 }

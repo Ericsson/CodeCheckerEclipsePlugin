@@ -275,7 +275,7 @@ public class ReportListView extends ViewPart {
 
         //Optional<Long> runId = Optional.absent();
 
-        CodeCheckerContext.getInstance().runReportJob(this, sent.convertToResultList(), currentFileName);
+        CodeCheckerContext.getInstance().runReportJob(this, currentFileName);
     }
 
     /**
