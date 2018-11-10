@@ -33,99 +33,101 @@ import cc.codechecker.plugin.report.BugPathItem.Position;
  * Class for parsing the analysis result plist files.
  */
 public class PlistParser/* implements Runnable */{
-	IProject project;
-	
-	public PlistParser(IProject project) {
-		this.project = project;
-	}
+    IProject project;
 
-	/**
-	 * Parses exactly one .plist file.
-	 * 
-	 * @param pathToFile
-	 *            The file to be parsed.
-	 * @throws Exception
-	 */
-	public SearchList parsePlist(File file, SearchList sl) {
-		List<ReportInfo> riList = new ArrayList<>();
+    public PlistParser(IProject project) {
+        this.project = project;
+    }
 
-		NSDictionary dict;
-		try {
-			dict = (NSDictionary) PropertyListParser.parse(file);
-			NSObject[] sourceFiles = ((NSArray) dict.objectForKey("files")).getArray();
-			NSObject[] diagnostics = ((NSArray) dict.objectForKey("diagnostics")).getArray();
+    /**
+     * Parses exactly one .plist file.
+     * 
+     * @param pathToFile
+     *            The file to be parsed.
+     * @throws Exception
+     */
+    public SearchList parsePlist(File file, SearchList sl) {
+        List<ReportInfo> riList = new ArrayList<>();
 
-			for (NSObject diagnostic : diagnostics) {
-				NSDictionary diag = (NSDictionary) diagnostic;
-				String checkerName = ((NSString) diag.get("check_name")).getContent();
-				String description = ((NSString) diag.get("description")).getContent();
+        NSDictionary dict;
+        try {
+            dict = (NSDictionary) PropertyListParser.parse(file);
+            NSObject[] sourceFiles = ((NSArray) dict.objectForKey("files")).getArray();
+            NSObject[] diagnostics = ((NSArray) dict.objectForKey("diagnostics")).getArray();
 
-				NSObject[] path = ((NSArray) diag.objectForKey("path")).getArray();
+            for (NSObject diagnostic : diagnostics) {
+                NSDictionary diag = (NSDictionary) diagnostic;
+                String checkerName = ((NSString) diag.get("check_name")).getContent();
+                String description = ((NSString) diag.get("description")).getContent();
 
-				List<BugPathItem> bugPathItemList = new ArrayList<>();
+                NSObject[] path = ((NSArray) diag.objectForKey("path")).getArray();
 
-				for (NSObject bp : path) {
-					NSDictionary bugPath = (NSDictionary) bp;
+                List<BugPathItem> bugPathItemList = new ArrayList<>();
 
-					// We are only interested in bug events
-					if (((NSString) bugPath.get("kind")).getContent().equals("event")) {
-						String message = ((NSString) bugPath.get("message")).getContent();
-						NSDictionary location = (NSDictionary) bugPath.get("location");
-						Integer fileIndex = ((NSNumber) location.get("file")).intValue();
-						Integer line = ((NSNumber) location.get("line")).intValue();
-						Integer col = ((NSNumber) location.get("col")).intValue();
-						String filePath = ((NSString) sourceFiles[fileIndex]).getContent();
+                for (NSObject bp : path) {
+                    NSDictionary bugPath = (NSDictionary) bp;
 
-						BugPathItem bItem = new BugPathItem(new Position(line, col), new Position(line, col), message,
-								filePath);
-						bugPathItemList.add(bItem);
-					}
-				}
+                    // We are only interested in bug events
+                    if (((NSString) bugPath.get("kind")).getContent().equals("event")) {
+                        String message = ((NSString) bugPath.get("message")).getContent();
+                        NSDictionary location = (NSDictionary) bugPath.get("location");
+                        Integer fileIndex = ((NSNumber) location.get("file")).intValue();
+                        Integer line = ((NSNumber) location.get("line")).intValue();
+                        Integer col = ((NSNumber) location.get("col")).intValue();
+                        String filePath = ((NSString) sourceFiles[fileIndex]).getContent();
 
-				ProblemInfo pInfo = new ProblemInfo(ImmutableList.copyOf(bugPathItemList));
+                        BugPathItem bItem = new BugPathItem(new Position(line, col), new Position(line, col), message,
+                                filePath);
+                        bugPathItemList.add(bItem);
+                    }
+                }
 
-				riList.add(new ReportInfo(checkerName, "testHash", Iterables.getLast(bugPathItemList).getFile(),
-						description, 1, false, "testFile", Iterables.getLast(bugPathItemList), Optional.of(pInfo)));
-			}
+                ProblemInfo pInfo = new ProblemInfo(ImmutableList.copyOf(bugPathItemList));
 
-			ImmutableList<ReportInfo> uriList = ImmutableList.copyOf(riList);
-			sl.addReports(uriList);
+                riList.add(new ReportInfo(checkerName, "testHash", Iterables.getLast(bugPathItemList).getFile(),
+                            description, 1, false, "testFile", Iterables.getLast(bugPathItemList), Optional.of(pInfo)));
+            }
 
-		} catch (ParserConfigurationException | ParseException | SAXException | PropertyListFormatException
-				| IOException e) {
-			// TODO Auto-generated catch block
-			Logger.log(IStatus.ERROR, "Cannot Parse File :" + e.getMessage() + " in file: " + file.getName());
-			//e.printStackTrace();
-		}
+            ImmutableList<ReportInfo> uriList = ImmutableList.copyOf(riList);
+            sl.addReports(uriList);
 
-		return sl;
-	}
+        } catch (ParserConfigurationException | ParseException | SAXException | PropertyListFormatException
+                | IOException e) {
+            // TODO Auto-generated catch block
+            Logger.log(IStatus.ERROR, "Cannot Parse File :" + e.getMessage() + " in file: " + file.getName());
+            //e.printStackTrace();
+                }
 
-	// TODO javadoc!, and return parse results for storing them
-	public SearchList processResultsForProject() {
-		// TODO Get This
-		String ws = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
-				+ project.getName() + "/results";
-		Logger.log(IStatus.INFO, "Parsing plists in :" + ws);
-		File file = new File(ws);
-		SearchList sl = new SearchList();
-		for (File f : file.listFiles(new FilenameFilter() {
+        return sl;
+    }
 
-			@Override
-			public boolean accept(File dir, String name) {
-				if (name.toLowerCase().endsWith(".plist"))
-					return true;
-				return false;
-			}
-		})) {
-			//Logger.log(IStatus.INFO, "Parsing plist :" + f);
-			parsePlist(f, sl);
-		}
-		return sl;
-	}
+    // TODO javadoc!, and return parse results for storing them
+    public SearchList processResultsForProject() {
+        // TODO Get This
+        String ws = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
+            + project.getName() + "/results";
+        Logger.log(IStatus.INFO, "Parsing plists in :" + ws);
+        File file = new File(ws);
+        SearchList sl = new SearchList();
+        if (file.exists()) {
+            for (File f : file.listFiles(new FilenameFilter() {
 
-	/*@Override
-	public void run() {
-		processResultsForProject();
-	}*/
+                @Override
+                public boolean accept(File dir, String name) {
+                    if (name.toLowerCase().endsWith(".plist"))
+                        return true;
+                    return false;
+                }
+            })) {
+                //Logger.log(IStatus.INFO, "Parsing plist :" + f);
+                parsePlist(f, sl);
+            }
+        }
+        return sl;
+    }
+
+    /*@Override
+      public void run() {
+      processResultsForProject();
+      }*/
 }
