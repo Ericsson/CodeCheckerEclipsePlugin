@@ -141,7 +141,8 @@ public class ReportListView extends ViewPart {
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
-        manager.add(this.showfilterconfigurationdialog);
+    	//TODO UPLIFT
+        //manager.add(this.showfilterconfigurationdialog);
         manager.add(new NewInstanceAction(new ReportListViewCustom()));
         manager.add(new Separator());
     }
