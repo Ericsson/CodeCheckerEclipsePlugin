@@ -1,31 +1,17 @@
 package cc.codechecker.plugin.config;
 
-import cc.codechecker.api.thrift.CodecheckerActionInitializer;
-import cc.codechecker.api.action.analyze.AnalyzeRequest;
-import cc.codechecker.api.action.result.ResultFilter;
-import cc.codechecker.api.action.run.list.ListRunsRequest;
-import cc.codechecker.api.job.RunListJob;
-import cc.codechecker.api.job.analyze.AnalyzeJob;
-import cc.codechecker.api.job.report.list.SearchJob;
-import cc.codechecker.api.job.report.list.SearchRequest;
-import cc.codechecker.api.runtime.CodecheckerServerThread;
-import cc.codechecker.api.runtime.OnCheckCallback;
-import cc.codechecker.plugin.markers.MarkerListener;
+import cc.codechecker.plugin.report.PlistParser;
+import cc.codechecker.plugin.report.ReportParser;
+import cc.codechecker.plugin.report.SearchList;
+import cc.codechecker.plugin.runtime.CodecheckerServerThread;
+import cc.codechecker.plugin.runtime.OnCheckCallback;
+
 import cc.codechecker.plugin.views.report.list.ReportListView;
 import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
 import cc.codechecker.plugin.views.report.list.ReportListViewListener;
 import cc.codechecker.plugin.views.report.list.ReportListViewProject;
-import cc.ecl.action.ActionImplementationRegistry;
-import cc.ecl.action.PerServerActionRunner;
-import cc.ecl.action.PerServerSimpleActionRunner;
-import cc.ecl.action.thrift.ThriftCommunicationInterface;
-import cc.ecl.action.thrift.ThriftTransportFactory;
-import cc.ecl.job.JobListener;
-import cc.ecl.job.JobRunner;
-import cc.ecl.job.SimpleJobRunner;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 
 import java.util.HashMap;
 
@@ -38,7 +24,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.joda.time.Instant;
 
 import cc.codechecker.plugin.Logger;
 import org.eclipse.core.runtime.IStatus;
@@ -51,7 +36,8 @@ public class CodeCheckerContext {
     static CodeCheckerContext instance;
 
     /** The job runner. */
-    JobRunner jobRunner;
+    // TODO UPLIFT jobrunner will be a thread.
+    //JobRunner jobRunner;
 
     /** The active editor part. */
     IEditorPart activeEditorPart;
@@ -59,19 +45,18 @@ public class CodeCheckerContext {
     /** The servers. */
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
 
+    private HashMap<IProject, SearchList> reports = new HashMap<>();
+
     /** The active project. */
     private IProject activeProject = null;
+
+    /** For storing in memory*/
+    //TODO UPLIFT some haslist projects as key reports as value.
 
     /**
      * Class constructor.
      */
-    private CodeCheckerContext() {
-        PerServerActionRunner<ThriftCommunicationInterface> actionRunner;
-        actionRunner = new PerServerSimpleActionRunner<ThriftCommunicationInterface>(new
-                ThriftTransportFactory(), (new CodecheckerActionInitializer()).initialize(new
-                        ActionImplementationRegistry<ThriftCommunicationInterface>()));
-        jobRunner = new SimpleJobRunner(actionRunner);
-    }
+    private CodeCheckerContext() {}
 
     /**
      * The refresher for Project ReportList View.
@@ -144,7 +129,7 @@ public class CodeCheckerContext {
                             rlvc.getViewSite().getSecondaryId().equals(secondaryId)){
                         rlvc.onEditorChanged(project);
                         return;
-                    }
+                            }
                 }
             }
         }
@@ -165,7 +150,7 @@ public class CodeCheckerContext {
     /**
      * Gets the server object.
      *
-     * @param project the project which the user change there view to.
+     * @param project the project which the user change their view to.
      * @return CodecheckerServerThread
      */
     public synchronized CodecheckerServerThread getServerObject(final IProject project) {
@@ -176,7 +161,9 @@ public class CodeCheckerContext {
                 @Override
                 public void analysisFinished(String result) {
                     Logger.consoleLog(project.getName() + "Analysis finished.");
-                    cleanCache();
+                    //cleanCache();
+                    //Store 
+                    parsePlistForProject(project);
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -198,9 +185,10 @@ public class CodeCheckerContext {
 
     /**
      * Clean cache.
+     * TODO This method could be used for clearing in memory representation of the reports.
      */
     public void cleanCache() {
-        jobRunner.getActionCacheFilter().removeAll();
+        //jobRunner.getActionCacheFilter().removeAll();
         Logger.log(IStatus.INFO, " CLEARING CACHE");
     }
 
@@ -228,6 +216,8 @@ public class CodeCheckerContext {
 
         IEditorPart partRef = activePage.getActiveEditor();
 
+        //parsePlistForProject(project);
+
         //partRef is null or partRef NOT instanceof FileEditor!
         if (partRef == null || !(partRef.getEditorInput() instanceof IFileEditorInput)) {
             this.refreshProject(pages, project, false);
@@ -236,13 +226,14 @@ public class CodeCheckerContext {
             Logger.log(IStatus.INFO, " partRef is null or partRef instanceof FileEditor!");
             return;
         }
-       
-        
+
+
         activeEditorPart = partRef;
         IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
-                
+
         if (project!=this.activeProject){
-            Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
+            //Nullptr on activeprocejt on pluginstart
+            //Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
             return;
         }
 
@@ -252,11 +243,27 @@ public class CodeCheckerContext {
             return;
         }
 
+        //The actual refresh happens here.
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
         this.refreshCurrent(pages, project, filename, false);
         this.refreshProject(pages, project, false);
         this.refreshCustom(pages, project, "", false);
         this.activeProject = project;
+    }
+
+    public void parsePlistForProject(final IProject project) {
+        Logger.log(IStatus.INFO, "Started Plist Parsing for project: "+project.getName());
+        final PlistParser parser = new PlistParser(project);
+        SearchList sl;
+        sl = parser.processResultsForProject();
+        reports.put(project, sl);
+        Logger.log(IStatus.INFO, "Finished Plist Parsing for project: "+project.getName());
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                CodeCheckerContext.getInstance().refreshAfterBuild(project);
+            }
+        });
     }
 
     /**
@@ -346,75 +353,24 @@ public class CodeCheckerContext {
      * Run report job.
      *
      * @param target the target
-     * @param filters the filters
      * @param runId the run id
      */
-    public void runReportJob(ReportListView target, ImmutableList<ResultFilter> filters,
-            Optional<Long> runId) {
+    public void runReportJob(ReportListView target, String currentFileName) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
         CcConfiguration config = new CcConfiguration(project);
         if (!config.isConfigured()) return;
-        Logger.log(IStatus.INFO, "Running search to URL:"+config.getServerUrl());
+        Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
 
-        SearchJob rlj = new SearchJob(1, Optional.of(new Instant().plus(500)), new SearchRequest
-                (config.getServerUrl(), runId, filters));
-        rlj.addListener(new ReportListViewListener(target));
-        rlj.addListener(new MarkerListener(project));
-        jobRunner.addJob(rlj);
-    }
+        // Dont Parse Here just work from the reports Hasmap
 
-    /**
-     * Run run list job.
-     *
-     * @param target the target
-     */
-    public void runRunListJob(final ReportListView target) {
-        IProject project = target.getCurrentProject();
-        if (project == null) return;
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) return;
-
-        RunListJob rlj = new RunListJob(new ListRunsRequest(config.getServerUrl()), 1, Optional
-                .of(new Instant().plus(500)));
-        rlj.addListener(new JobListener<RunListJob>() {
-
-            @Override
-            public void onJobTimeout(RunListJob arg0) {
-            }
-
-            @Override
-            public void onJobStart(RunListJob arg0) {
-            }
-
-            @Override
-            public void onJobInternalError(RunListJob arg0, RuntimeException arg1) {
-            }
-
-            @Override
-            public void onJobComplete(RunListJob rlj) {
-                //target.setRunList(rlj.getResult().get());
-            }
-        });
-        jobRunner.addJob(rlj);
-    }
-
-    /**
-     * Run analyze job.
-     *
-     * @param target the target
-     */
-    public void runAnalyzeJob(ReportListView target) {
-        IProject project = target.getCurrentProject();
-        if (project == null) return;
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) return;
-
-        ImmutableList<String> l = ImmutableList.of();
-        AnalyzeJob rlj = new AnalyzeJob(1, Optional.of(new Instant().plus(500)), new
-                AnalyzeRequest(config.getServerUrl(), l));
-        //rlj.addListener(new ReportListViewListener(target));
-        jobRunner.addJob(rlj);
+        ReportParser parser = new ReportParser(reports.get(project), currentFileName);
+        // add listeners to it.
+        parser.AddListener(new ReportListViewListener(target));
+        /*Thread t = new Thread(parser);
+          t.start();*/
+        Display.getDefault().asyncExec(parser);
+        Logger.log(IStatus.INFO, "Finished Filtering Reports for project: "+project.getName());
     }
 
     /**

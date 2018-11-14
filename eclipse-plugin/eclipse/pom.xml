@@ -10,11 +10,12 @@
         <module>cc.codechecker.eclipse.plugin</module>
         <module>cc.codechecker.eclipse.feature</module>
         <module>cc.codechecker.eclipse.repository</module>
+        <module>cc.codechecker.eclipse.plugin.tests</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <luna-repo.url>http://download.eclipse.org/releases/mars</luna-repo.url>
+        <eclipse-repo.url>http://download.eclipse.org/releases/mars</eclipse-repo.url>
     </properties>
 
 </project> 

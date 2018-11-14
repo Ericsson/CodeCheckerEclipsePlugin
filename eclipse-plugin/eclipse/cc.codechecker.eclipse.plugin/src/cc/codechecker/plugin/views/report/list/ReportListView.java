@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.part.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.action.*;
@@ -22,8 +23,8 @@ import org.eclipse.core.runtime.CoreException;
 import com.google.common.base.Optional;
 
 
-import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.report.BugPathItem;
+import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.config.filter.Filter;
@@ -140,7 +141,8 @@ public class ReportListView extends ViewPart {
     }
 
     private void fillLocalToolBar(IToolBarManager manager) {
-        manager.add(this.showfilterconfigurationdialog);
+    	//TODO UPLIFT
+        //manager.add(this.showfilterconfigurationdialog);
         manager.add(new NewInstanceAction(new ReportListViewCustom()));
         manager.add(new Separator());
     }
@@ -221,10 +223,15 @@ public class ReportListView extends ViewPart {
         viewer.getControl().setFocus();
     }
 
-    public void changeModel(SearchList root) {
+    public void changeModel(final SearchList root) {
         if (this.reportList.orNull() != root) {
             this.reportList = Optional.of(root);
-            viewer.setInput(root);
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                	viewer.setInput(root);
+                }
+            });
         }
     }
 
@@ -250,7 +257,7 @@ public class ReportListView extends ViewPart {
         return viewer;
     }
 
-    private void redoJob() {
+    private void reloadReports(String currentFileName) {
         FilterConfiguration sent = activeConfiguration.dup();
 
         if (getViewerRefresh()) {
@@ -267,11 +274,14 @@ public class ReportListView extends ViewPart {
             }
         }
 
-        Optional<Long> runId = Optional.absent();
+        //Optional<Long> runId = Optional.absent();
 
-        CodeCheckerContext.getInstance().runReportJob(this, sent.convertToResultList(), runId);
+        CodeCheckerContext.getInstance().runReportJob(this, currentFileName);
     }
 
+    /**
+     * Called when switching between edited source files. 
+     */
     public void onEditorChanged(IProject project, String filename) {
         Logger.log(IStatus.INFO, "OnEditorchanged:"+project.getName());
         if (project != currentProject) {
@@ -284,7 +294,7 @@ public class ReportListView extends ViewPart {
 
         this.currentFilename = filename;
 
-        redoJob();
+        reloadReports(filename);
     }
 
     public FilterConfiguration getActiveConfiguration() {
@@ -296,7 +306,7 @@ public class ReportListView extends ViewPart {
 
         setViewerRefresh(activeConfiguration.isLinkToCurrentEditorByDefalt());
 
-        redoJob();
+        reloadReports(currentFilename);
     }
 
     public IProject getCurrentProject() {

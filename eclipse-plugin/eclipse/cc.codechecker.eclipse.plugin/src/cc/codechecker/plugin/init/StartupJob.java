@@ -27,12 +27,10 @@ import cc.codechecker.plugin.config.CodeCheckerContext;
 import cc.codechecker.plugin.Logger;
 import cc.codechecker.plugin.ExternalLogger;
 
-import cc.codechecker.api.runtime.SLogger;
-import cc.codechecker.api.runtime.CodecheckerServerThread;
+import cc.codechecker.plugin.runtime.SLogger;
+import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 
 public class StartupJob extends Job {
-
-
 
     EditorPartListener partListener;
     ProjectExplorerSelectionListener projectexplorerselectionlistener;    
@@ -72,10 +70,13 @@ public class StartupJob extends Job {
             @Override
             public void resourceChanged(final IResourceChangeEvent event) {                
                 switch (event.getType()) {
+                case IResourceChangeEvent.PRE_BUILD: {
+                	Logger.log(BUILD, "PreBuild");
+                	break;
+                }
                 case IResourceChangeEvent.POST_BUILD: {
                     //On Eclipse FULL_BUILD and INCREMENTAL build, recheck the project
                     //on clean build drop the checker database
-                    //ignore AUTO_BUILD
                     try{
                         if (event.getBuildKind() != IncrementalProjectBuilder.AUTO_BUILD){                        
                             Logger.log(IStatus.INFO, "Build called. type:"+event.getBuildKind());                            
@@ -198,7 +199,8 @@ public class StartupJob extends Job {
         server.stop();
         Logger.log(IStatus.INFO,
                 " " + project.getName() + " server stopped.");
-        server.cleanDB();
+        //TODO UPLIFT Clean something???
+        //server.cleanDB();
         //FIXME: database needs to be recreated at this point.
         //and the results should be emptied.
         Logger.log(IStatus.INFO,
@@ -226,6 +228,8 @@ public class StartupJob extends Job {
         Logger.log(IStatus.INFO, "CodeChecker nature found!");
         try {
             CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
+            // TODO Check if there is a better spot for this
+            CodeCheckerContext.getInstance().parsePlistForProject(project);
             if (project.isOpen()) {
                 if (!server.isRunning()){
                     Logger.log(IStatus.INFO, "Starting server+"+project.getName());

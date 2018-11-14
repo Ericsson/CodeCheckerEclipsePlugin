@@ -31,9 +31,9 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import com.google.common.base.Optional;
 
-import cc.codechecker.api.runtime.CodeCheckEnvironmentChecker;
+import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.config.CcConfiguration;
-import cc.codechecker.api.config.Config.ConfigTypes;
+import cc.codechecker.plugin.config.Config.ConfigTypes;
 
 import cc.codechecker.plugin.itemselector.CheckerView;
 import cc.codechecker.plugin.utils.CheckerItem;
@@ -234,7 +234,8 @@ public class CommonGui {
 		String[] checkersCommand = checkerListArg.split(" ");
 		List<String> oldCheckersCommand = Arrays.asList(checkersCommand);
 		for (String it : newCheckersSplit) {
-			String checkerName = it.split(" ")[2];
+			//String checkerName = it.split(" ")[2];
+			String checkerName = it;
 			CheckerItem check = new CheckerItem(checkerName);
 			boolean defaultEnabled = false;
 

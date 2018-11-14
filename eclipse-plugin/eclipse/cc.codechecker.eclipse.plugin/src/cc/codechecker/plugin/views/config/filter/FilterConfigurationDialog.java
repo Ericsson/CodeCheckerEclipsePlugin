@@ -20,10 +20,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Table;
 
-import cc.codechecker.api.action.result.list.SearchRequest.Severity;
 import cc.codechecker.plugin.config.filter.Filter;
 import cc.codechecker.plugin.config.filter.FilterConfiguration;
 import cc.codechecker.plugin.config.filter.store.FilterStore;
+import cc.codechecker.plugin.report.Severity;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;

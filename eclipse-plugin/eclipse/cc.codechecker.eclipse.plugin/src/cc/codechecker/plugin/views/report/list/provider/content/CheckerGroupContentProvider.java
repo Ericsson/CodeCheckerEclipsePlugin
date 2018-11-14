@@ -10,10 +10,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
-import cc.codechecker.api.action.BugPathItem;
-import cc.codechecker.api.action.bug.path.ProblemInfo;
-import cc.codechecker.api.action.result.ReportInfo;
-import cc.codechecker.api.job.report.list.SearchList;
+import cc.codechecker.plugin.report.BugPathItem;
+import cc.codechecker.plugin.report.ProblemInfo;
+import cc.codechecker.plugin.report.ReportInfo;
+import cc.codechecker.plugin.report.SearchList;
 import cc.codechecker.plugin.views.report.list.ReportListView;
 
 public class CheckerGroupContentProvider implements ITreeContentProvider {

@@ -6,7 +6,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>service</module>
         <module>eclipse-depcopy</module>
         <module>eclipse</module>
     </modules>

@@ -2,7 +2,8 @@ package cc.codechecker.plugin.config.filter;
 
 import java.util.LinkedList;
 
-import cc.codechecker.api.action.result.ResultFilter;
+import cc.codechecker.plugin.report.ResultFilter;
+import cc.codechecker.plugin.report.Severity;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

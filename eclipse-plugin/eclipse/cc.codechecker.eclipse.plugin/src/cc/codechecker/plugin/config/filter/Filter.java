@@ -1,7 +1,8 @@
 package cc.codechecker.plugin.config.filter;
 
-import cc.codechecker.api.action.result.list.SearchRequest.Severity;
 import cc.codechecker.plugin.Logger;
+import cc.codechecker.plugin.report.Severity;
+
 import org.eclipse.core.runtime.IStatus;
 
 public class Filter {
