@@ -8,7 +8,7 @@ This is a C/C++ code analysis plugin for Eclipse that shows bugs detected by the
 
 * Linux operating system
 * Recent [CodeChecker](https://github.com/Ericsson/codechecker)
-* [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
+* [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Oxygen, but any recent Eclipse version should work
 * Eclipse CDT
 * Java 1.7
 

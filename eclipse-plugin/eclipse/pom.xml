@@ -15,7 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <eclipse-repo.url>http://download.eclipse.org/releases/mars</eclipse-repo.url>
+        <eclipse-repo.url>http://download.eclipse.org/releases/oxygen</eclipse-repo.url>
     </properties>
 
 </project> 
