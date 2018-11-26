@@ -1,3 +1,4 @@
+# Developer documentation
 
 ## Troubleshooting
 
@@ -37,3 +38,6 @@ The loglevel is specified as follows:
     log4j.appender.log.threshold=ERROR
 
 After modifying the jar file, you will need to restart eclipse for the changes to take effect.
+
+## Checkstyle
+Checkstyle is configured for this project. See related [documentation](checkstyle.md) for more information.
