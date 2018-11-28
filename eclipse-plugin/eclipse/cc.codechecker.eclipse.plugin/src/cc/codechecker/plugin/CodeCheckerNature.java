@@ -4,8 +4,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 
+import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
-import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 
 public class CodeCheckerNature implements IProjectNature {
 
@@ -14,7 +14,9 @@ public class CodeCheckerNature implements IProjectNature {
 
     @Override
     public void configure() throws CoreException {
-        CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
+    	CcConfiguration config = new CcConfiguration(project);
+    	config.modifyProjectEnvironmentVariables();
+    	CodeCheckerContext.getInstance().setConfig(project, config);
     }
 
     @Override
