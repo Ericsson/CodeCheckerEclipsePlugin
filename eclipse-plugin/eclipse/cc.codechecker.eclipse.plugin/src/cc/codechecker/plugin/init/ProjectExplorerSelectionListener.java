@@ -2,12 +2,14 @@ package cc.codechecker.plugin.init;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 
+import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
 public class ProjectExplorerSelectionListener implements ISelectionListener{
@@ -20,8 +22,13 @@ public class ProjectExplorerSelectionListener implements ISelectionListener{
                 IResource resource = (IResource)((IAdaptable) element).getAdapter(IResource.class);
                 if (resource!=null){
                     final IProject project = resource.getProject();
-                    if (project!=null)
-                        CodeCheckerContext.getInstance().refreshChangeProject(project);
+                    try {
+						if (project!=null && project.hasNature(CodeCheckerNature.NATURE_ID))
+						    CodeCheckerContext.getInstance().refreshChangeProject(project);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
                 }
             }
         }

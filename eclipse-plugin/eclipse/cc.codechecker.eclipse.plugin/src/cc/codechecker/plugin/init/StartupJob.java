@@ -22,6 +22,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import cc.codechecker.plugin.CodeCheckerNature;
+import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
 import cc.codechecker.plugin.Logger;
@@ -56,6 +57,8 @@ public class StartupJob extends Job {
 
         IWorkbench wb = PlatformUI.getWorkbench();
 
+        CcConfiguration.initGlobalConfig();
+        
         try { // TODO: find a better solution...
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -226,6 +229,10 @@ public class StartupJob extends Job {
             Logger.log(IStatus.INFO, "" + e.getStackTrace());
         }
         Logger.log(IStatus.INFO, "CodeChecker nature found!");
+        
+        CcConfiguration config = CodeCheckerContext.getInstance().getConfigForProject(project);
+        CodeCheckerContext.getInstance().setConfig(project, config);
+
         try {
             CodecheckerServerThread server = CodeCheckerContext.getInstance().getServerObject(project);
             // TODO Check if there is a better spot for this

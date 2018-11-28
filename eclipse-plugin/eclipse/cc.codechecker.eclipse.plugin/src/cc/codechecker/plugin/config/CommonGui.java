@@ -6,35 +6,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.CellEditor.LayoutData;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.forms.widgets.ColumnLayout;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.forms.widgets.TableWrapData;
+import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 import com.google.common.base.Optional;
 
 import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.Config.ConfigTypes;
-
+import cc.codechecker.plugin.config.Config.ConfigTypesCommon;
+import cc.codechecker.plugin.config.Config.ConfigTypesProject;
 import cc.codechecker.plugin.itemselector.CheckerView;
 import cc.codechecker.plugin.utils.CheckerItem;
 import cc.codechecker.plugin.utils.CheckerItem.LAST_ACTION;
@@ -45,7 +58,7 @@ import org.eclipse.core.runtime.IStatus;
 public class CommonGui {
 
 
-	boolean global;//whether this class is for global or project specific preferences
+	boolean globalGui;//whether this class is for global or project specific preferences
 	boolean useGlobalSettings;//if this is project specific page, whether to use global preferences 
 	IProject project;
 	CcConfiguration config;
@@ -63,39 +76,54 @@ public class CommonGui {
     //needs to be updated when codechecker dir or python env changes
     
 	public CommonGui(){		
-		global=true;
-		config=new CcConfiguration();
+		globalGui=true;
 	}
 	public CommonGui(IProject proj){		
 		project=proj;
-		config=new CcConfiguration(proj);
-		global=false;		       
+		config = CodeCheckerContext.getInstance().getConfigForProject(proj);
+		useGlobalSettings = config.isGlobal();
+		globalGui=false;		       
 	}	
 	
 	protected Text addTextField(FormToolkit toolkit, Composite comp, String labelText, String def) {
 		Text ret;
 		Label label = toolkit.createLabel(comp, labelText);
 		label.setLayoutData(new GridData());
-		ret = toolkit.createText(comp, def);
-		ret.setLayoutData(new GridData(GridData.FILL));
+		ret = toolkit.createText(comp, def, SWT.MULTI|SWT.WRAP|SWT.BORDER);
+		GridData gd = new GridData();
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.widthHint = 200;
+		ret.setLayoutData(gd);
 		return ret;
 	}
 	
 	public Control createContents(final Composite parent) {
 		final FormToolkit toolkit = new FormToolkit(parent.getDisplay());
-
 		form = toolkit.createScrolledForm(parent);
-		form.getBody().setLayout(new GridLayout());
+		
+		GridData ld = new GridData();
+		ld.verticalAlignment = GridData.FILL;
+		ld.horizontalAlignment = GridData.FILL;
+		ld.grabExcessHorizontalSpace = true;
+		ld.grabExcessVerticalSpace = true;
+		form.setLayoutData(ld);
+		
+		ColumnLayout layout = new ColumnLayout();
+		layout.maxNumColumns = 1 ;
+		form.getBody().setLayout(layout);
+		
 		Section  globalConfigSection=null;		
-		if (!global){					
+		if (!globalGui){					
 			globalConfigSection = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);			
 		}
 		final Section checkerConfigSection = toolkit.createSection(form.getBody(),
 				ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED);
 		checkerConfigSection.setEnabled(true);
-		
+				
 		final Composite client = toolkit.createComposite(checkerConfigSection);
 		client.setLayout(new GridLayout(3,false));
+			
 		checkerConfigSection.setClient(client);
 		checkerConfigSection.setText("Configuration");
 
@@ -104,7 +132,7 @@ public class CommonGui {
 			@Override
 			public void handleEvent(Event event) {
 				try {
-					Map<ConfigTypes, String> changedConfig=getConfig();
+					Map<ConfigTypes, String> changedConfig=getConfigFromFields();
 					CodeCheckEnvironmentChecker checkerEnv= new CodeCheckEnvironmentChecker(changedConfig);
 					form.setMessage("CodeChecker package directory is valid", 1);
 				} catch (IllegalArgumentException e1) {
@@ -124,7 +152,7 @@ public class CommonGui {
 				if (dir != null) {
 					codeCheckerDirectoryField.setText(dir);
 					try {
-						Map<ConfigTypes, String> changedConfig=getConfig();
+						Map<ConfigTypes, String> changedConfig=getConfigFromFields();
 						CodeCheckEnvironmentChecker checkerEnv= new CodeCheckEnvironmentChecker(changedConfig);
 						form.setMessage("CodeChecker package directory is valid", 1);
 					} catch (IllegalArgumentException e1) {
@@ -154,9 +182,9 @@ public class CommonGui {
 		cLoggers = addTextField(toolkit, client, "Compiler commands to log", "gcc:g++:clang");
 		toolkit.createLabel(client, "");
 		
-		Map<ConfigTypes, String> config=loadConfig(false);
+		Map<ConfigTypes, String> configMap=loadConfig(false);
 		try {			
-			CodeCheckEnvironmentChecker checkerEnv= new CodeCheckEnvironmentChecker(config);
+			CodeCheckEnvironmentChecker checkerEnv= new CodeCheckEnvironmentChecker(configMap);
 			form.setMessage("CodeChecker package directory is valid", 1);
 		} catch (Exception e1) {
 			form.setMessage("CodeChecker package directory is invalid", 3);					
@@ -170,7 +198,7 @@ public class CommonGui {
 					@Override
 					public void run() {
 						Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-						Map<ConfigTypes, String> config = getConfig();
+						Map<ConfigTypes, String> config = getConfigFromFields();
 						try{
 							CodeCheckEnvironmentChecker checkerEnv = new CodeCheckEnvironmentChecker(config);
 							ArrayList<CheckerItem> checkersList=getCheckerList(checkerEnv);
@@ -189,8 +217,9 @@ public class CommonGui {
 				action.run();
 			}
 		});
-		if (!global){										
-			checkerConfigSection.setEnabled(!useGlobalSettings);			
+		if (!globalGui){									
+			useGlobalSettings = config.isGlobal();
+			recursiveSetEnabled(checkerConfigSection, !useGlobalSettings);
 			final Composite client3 = toolkit.createComposite(globalConfigSection);
 			client3.setLayout(new GridLayout(2, true));
 			globalConfigSection.setClient(client3);
@@ -198,21 +227,39 @@ public class CommonGui {
 			globalcc.setSelection(useGlobalSettings);
 			globalcc.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
-					checkerConfigSection.setEnabled(false);
+					recursiveSetEnabled(checkerConfigSection, false);
 					useGlobalSettings=true;
+					setFields(config.getProjectConfig(useGlobalSettings));
 				}
 			});
 			projectcc = toolkit.createButton(client3, "Use project configuration", SWT.RADIO);
 			projectcc.setSelection(!useGlobalSettings);
 			projectcc.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent event) {
-					checkerConfigSection.setEnabled(true);
+					recursiveSetEnabled(checkerConfigSection, true);
 					useGlobalSettings=false;
+					setFields(config.getProjectConfig(useGlobalSettings));
 				}
 			});
 
 		}
 		return form.getBody();
+	}
+	
+	/**
+	 * Recursive control state modifier.
+	 * If the control is {@link Composite}m toggles it state and all of it's children {@link Control}.
+	 * @param control The parent control.
+	 * @param b The state to be set.
+	 */
+	public void recursiveSetEnabled(Control control, Boolean b){
+		if (control instanceof Composite) {
+			Composite comp = (Composite) control;
+			for (Control c : comp.getChildren())
+				recursiveSetEnabled(c, b);
+		} else {
+			control.setEnabled(b);
+		}
 	}
 
 	private Optional<String> getPythonEnv() {
@@ -271,67 +318,81 @@ public class CommonGui {
 	}
 
 	public Map<ConfigTypes, String> loadConfig(boolean resetToDefault) {
-	    Map<ConfigTypes, String> ret;		
+	    Map<ConfigTypes, String> ret = null;		
 	    if (!resetToDefault){
-	        ret=config.getConfig();
-	        useGlobalSettings = config.isGlobal();
+	    	if (globalGui)
+	    		ret = CcConfiguration.getGlobalConfig();
+	    	else {
+	    		ret = config.getProjectConfig(null);
+	    	}
 	    }
 	    else
 	        ret=config.getDefaultConfig();
 
-	    codeCheckerDirectoryField.setText(ret.get(ConfigTypes.CHECKER_PATH));
-	    pythonEnvField.setText(ret.get(ConfigTypes.PYTHON_PATH));
-	    checkerListArg = ret.get(ConfigTypes.CHECKER_LIST);
-	    cLoggers.setText(ret.get(ConfigTypes.COMPILERS));
-	    numThreads.setText(ret.get(ConfigTypes.ANAL_THREADS));
+	    setFields(ret);
 	    return ret;
 	}
 	
-	public Map<ConfigTypes, String> getConfig() {				
-		Map<ConfigTypes, String> conf;				
-		conf = config.getConfig();		
-		conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-		conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
-		conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
-		conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
-		conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
+	/**
+	 * Sets the form fields with the given config maps values.
+	 * @param config The config which values are taken.
+	 */
+	public void setFields(Map<ConfigTypes, String> config) {
+		codeCheckerDirectoryField.setText(config.get(ConfigTypesCommon.CHECKER_PATH));
+	    pythonEnvField.setText(config.get(ConfigTypesCommon.PYTHON_PATH));
+	    checkerListArg = config.get(ConfigTypesCommon.CHECKER_LIST);
+	    cLoggers.setText(config.get(ConfigTypesCommon.COMPILERS));
+	    numThreads.setText(config.get(ConfigTypesCommon.ANAL_THREADS));
+	}
+	
+	
+	
+	public Map<ConfigTypes, String> getConfigFromFields() {				
+		Map<ConfigTypes, String> conf = new HashMap<>();
+		conf.put(ConfigTypesCommon.CHECKER_PATH, codeCheckerDirectoryField.getText());
+		conf.put(ConfigTypesCommon.PYTHON_PATH, pythonEnvField.getText());
+		conf.put(ConfigTypesCommon.CHECKER_LIST, checkerListArg);
+		conf.put(ConfigTypesCommon.ANAL_THREADS, numThreads.getText());
+		conf.put(ConfigTypesCommon.COMPILERS, cLoggers.getText());
 		return conf;
 	}
 
 	public void saveConfig() {				
 	    Map<ConfigTypes, String> conf=new HashMap<ConfigTypes,String>();						
-	    conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-	    conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
-	    conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
-	    conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
-	    conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
+	    conf.put(ConfigTypesCommon.CHECKER_PATH, codeCheckerDirectoryField.getText());
+	    conf.put(ConfigTypesCommon.PYTHON_PATH, pythonEnvField.getText());
+	    conf.put(ConfigTypesCommon.CHECKER_LIST, checkerListArg);
+	    conf.put(ConfigTypesCommon.ANAL_THREADS, numThreads.getText());
+	    conf.put(ConfigTypesCommon.COMPILERS, cLoggers.getText());
 
 	    String g="true";
 	    if (!useGlobalSettings)
 	        g="false";			
-	    conf.put(ConfigTypes.IS_GLOBAL, g);
-	    Logger.log(IStatus.INFO, "Saving project settings: IS_GLOBAL:"+g);			
-	    config.updateConfig(conf);				
-	}
-
-	public void performDefaults() {
-		loadConfig(true);
+	    conf.put(ConfigTypesProject.IS_GLOBAL, g);
+	    Logger.log(IStatus.INFO, "Saving project settings: IS_GLOBAL:"+g);		
+	    
+	    if (globalGui){
+	    	CcConfiguration.updateGlobalConfig(conf);
+	    } else {
+	    	config.updateProjectConfig(conf);
+	    }				
 	}
 	
-	public boolean isValid() {
-		return true;
-	}
-
+	   public void performDefaults() {
+           loadConfig(true);
+       }
+	       
+       public boolean isValid() {
+           return true;
+       }
+       
+       public void performOk() {
+    	   Logger.log(IStatus.INFO, "Saving!");
+           saveConfig();
+	   }
 	
-	public void performOk() {
-		Logger.log(IStatus.INFO, "Saving!");
-		saveConfig();
-		
-	}
+	   public void init(IWorkbench workbench) {
+           // TODO Auto-generated method stub
+	   }
 
-	
-	public void init(IWorkbench workbench) {
-		// TODO Auto-generated method stub
-
-	}
 }

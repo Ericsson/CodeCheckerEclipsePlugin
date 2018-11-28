@@ -14,6 +14,7 @@ import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 import com.google.common.base.Optional;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -25,7 +26,11 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.Logger;
+import cc.codechecker.plugin.config.Config.ConfigTypes;
+
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 /**
  * The Class CodeCheckerContext.
@@ -46,8 +51,30 @@ public class CodeCheckerContext {
     private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
 
     private HashMap<IProject, SearchList> reports = new HashMap<>();
+    
+    private HashMap<IProject, CcConfiguration> configs = new HashMap<>();
 
-    /** The active project. */
+    /**
+     * Returns a {@link CcConfiguration} object.
+     * .
+     * @param project The project in question.
+     * @return If there is no CcConfiguration stored, then creates a new instance.
+     */
+    public CcConfiguration getConfigForProject(IProject project) {
+    	if (!configs.containsKey(project)) 
+    		setConfig(project, new CcConfiguration(project));
+    	StringBuilder sb = new StringBuilder();
+    	for (Entry<ConfigTypes, String> e : configs.get(project).getProjectConfig(null).entrySet())
+    		sb.append("[" + e.getKey() + ":" + e.getValue() + "]\n");
+    	Logger.log(IStatus.INFO, "using config: " + sb.toString());
+    	return configs.get(project);
+	}
+
+	public void setConfig(IProject project, CcConfiguration config) {
+		configs.put(project, config);
+	}
+
+	/** The active project. */
     private IProject activeProject = null;
 
     /** For storing in memory*/
@@ -237,11 +264,7 @@ public class CodeCheckerContext {
             return;
         }
 
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) {
-            Logger.log(IStatus.INFO, "Codechecker not configured.");
-            return;
-        }
+        CcConfiguration config = getConfigForProject(project);
 
         //The actual refresh happens here.
         String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
@@ -279,25 +302,28 @@ public class CodeCheckerContext {
             activeEditorPart = partRef;
             IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
             IProject project = file.getProject();
+            try {
+				if (project.hasNature(CodeCheckerNature.NATURE_ID)){
+				    CcConfiguration config = getConfigForProject(project);
 
-            CcConfiguration config = new CcConfiguration(project);
-            if (!config.isConfigured()) {
-                return;
-            }
+				    String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
 
-            String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
+				    IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				    if(activeWindow == null) {
+				        Logger.log(IStatus.ERROR, " Error activeWindow is null!");
+				        return;
+				    }
+				    IWorkbenchPage[] pages = activeWindow.getPages();
 
-            IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if(activeWindow == null) {
-                Logger.log(IStatus.ERROR, " Error activeWindow is null!");
-                return;
-            }
-            IWorkbenchPage[] pages = activeWindow.getPages();
-
-            this.refreshProject(pages, project, true);
-            this.refreshCurrent(pages, project, filename, true);
-            this.refreshCustom(pages, project, "", true);
-            this.activeProject = project;
+				    this.refreshProject(pages, project, true);
+				    this.refreshCurrent(pages, project, filename, true);
+				    this.refreshCustom(pages, project, "", true);
+				    this.activeProject = project;
+				}
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     }
 
@@ -358,8 +384,6 @@ public class CodeCheckerContext {
     public void runReportJob(ReportListView target, String currentFileName) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
-        CcConfiguration config = new CcConfiguration(project);
-        if (!config.isConfigured()) return;
         Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
 
         // Dont Parse Here just work from the reports Hasmap

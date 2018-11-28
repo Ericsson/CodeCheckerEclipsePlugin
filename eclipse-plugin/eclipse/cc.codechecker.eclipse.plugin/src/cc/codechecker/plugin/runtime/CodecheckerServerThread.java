@@ -3,6 +3,7 @@ package cc.codechecker.plugin.runtime;
 import com.google.common.base.Optional;
 
 import cc.codechecker.plugin.config.Config.ConfigTypes;
+import cc.codechecker.plugin.config.Config.ConfigTypesCommon;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,8 +44,8 @@ public class CodecheckerServerThread {
         if (ccec!=null){
             Map<ConfigTypes, String> oldConfig = ccec.getConfig();
             Map<ConfigTypes, String> config=newEnv.getConfig();
-            if (config.get(ConfigTypes.CHECKER_PATH).equals(oldConfig.get(ConfigTypes.CHECKER_PATH))
-                    && config.get(ConfigTypes.PYTHON_PATH).equals(oldConfig.get(ConfigTypes.PYTHON_PATH)))
+            if (config.get(ConfigTypesCommon.CHECKER_PATH).equals(oldConfig.get(ConfigTypesCommon.CHECKER_PATH))
+                    && config.get(ConfigTypesCommon.PYTHON_PATH).equals(oldConfig.get(ConfigTypesCommon.PYTHON_PATH)))
                 restartNeeded = false;
         }
 

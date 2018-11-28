@@ -1,6 +1,8 @@
 package cc.codechecker.plugin.runtime;
 
 import cc.codechecker.plugin.config.Config.ConfigTypes;
+import cc.codechecker.plugin.config.Config.ConfigTypesCommon;
+import cc.codechecker.plugin.config.Config.ConfigTypesProject;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -48,17 +50,17 @@ public class CodeCheckEnvironmentChecker {
 
     public CodeCheckEnvironmentChecker(Map<ConfigTypes,String> config_m) {
         config=config_m;
-        if (!config.containsKey(ConfigTypes.PYTHON_PATH) || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
+        if (!config.containsKey(ConfigTypesCommon.PYTHON_PATH) || (config.containsKey(ConfigTypesCommon.PYTHON_PATH) && config.get(ConfigTypesCommon.PYTHON_PATH).isEmpty())){
             pythonEnvironment=Optional.absent();
             SLogger.log(LogI.INFO, "pythonenv is not set");
         }
         else{
             SLogger.log(LogI.INFO, "pythonenv is set to:"+config.get("PYTHON_PATH"));
-            pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
+            pythonEnvironment=Optional.of(config.get(ConfigTypesCommon.PYTHON_PATH));
         }
 
-        checkerList=getConfigValue(ConfigTypes.CHECKER_LIST);
-        checkerDir=getConfigValue(ConfigTypes.CHECKER_PATH);
+        checkerList=getConfigValue(ConfigTypesCommon.CHECKER_LIST);
+        checkerDir=getConfigValue(ConfigTypesCommon.CHECKER_PATH);
         environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
 
@@ -68,9 +70,9 @@ public class CodeCheckEnvironmentChecker {
         environmentAddList = new HashMap<String, String>(){{
             put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
             put("_", checkerDir + "/bin/CodeChecker");
-            put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
+            put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypesCommon.COMPILERS));
             put("LD_PRELOAD","ldlogger.so");
-            put("CC_LOGGER_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
+            put("CC_LOGGER_FILE", getConfigValue(ConfigTypesProject.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
             put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
         }};
 
@@ -139,7 +141,7 @@ public class CodeCheckEnvironmentChecker {
     }
 
     public String getLogFileLocation() {
-        return getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner";
+        return getConfigValue(ConfigTypesProject.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner";
     }
 
     // renames the logfile, to avoid concurrency issues
@@ -155,37 +157,11 @@ public class CodeCheckEnvironmentChecker {
     }
 
     public String createAnalyzeCommmand(String buildLog){
-        return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) + 
-       		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" + 
-       		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
+        return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypesCommon.CHECKER_LIST) + 
+       		 " -j "+ getConfigValue(ConfigTypesCommon.ANAL_THREADS) + " -n javarunner" + 
+       		 " -o "+ getConfigValue(ConfigTypesProject.CHECKER_WORKSPACE)+"/results/ " + buildLog;
    }
     
-  //TODO UPLIFT REMOVE
-/*
- *     
- *     drops codechecker Database
- *     
- */
-   /* public void dropDB(){        
-        String dbPath=getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/codechecker.sqlite";        
-        SLogger.log(LogI.INFO,"Dropping database:"+dbPath);
-        File f = new File(dbPath);
-        if (f.isFile()){
-            if (!f.delete())
-                SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. "+dbPath);
-        }
-        else
-            SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. File not exists:"+dbPath);
-    }
-*/
-    
-//TODO UPLIFT REMOVE
-   /* public String createServerCommand(String port){
-        return codeCheckerCommand + " server --not-host-only -w " + 
-                getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " --view-port " + port;
-    }*/
-
-
     /**
      * Executes CodeChecker check command
      * on the build log received in the fileName parameter.
