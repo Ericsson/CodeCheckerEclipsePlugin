@@ -33,7 +33,8 @@ __Currently the plugin is only usable with a CDT project.__
 
 #### 1. Setup Perspective
 In Eclipse, select Window, Perspectives, and activate the CodeChecker perspective.
-Alternatively, you can manually add the two windows under the CodeChecker category into any perspective, using the Window - Views menu.
+Alternatively, you can manually add the two windows under the CodeChecker category into any perspective, using the Window - Views menu.  
+__Make sure to check if CDT is installed properly if you do not see the CodeChecker perspective on the list!__
 
 ![Window->Perspective->Open Perspective->Other](docs/allperspective.png)
 
