@@ -37,13 +37,24 @@
                     label="Add CodeChecker Nature"
                     style="push">
                 <visibleWhen>
-                    <not>
                         <iterate operator="and">
-                            <test property="org.eclipse.core.resources.projectNature"
-                                  value="cc.codechecker.plugin.CodeCheckerNature">
-                            </test>
+                            <not>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="cc.codechecker.plugin.CodeCheckerNature"/>
+                            </not>
+                            <or>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.core.cnature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.core.ccnature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.managedbuilder.core.managedBuildNature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.managedbuilder.core.ScannerConfigNature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.autotools.core.autotoolsNatureV2"/>
+                            </or>
                         </iterate>
-                    </not>
                 </visibleWhen>
             </command>
         </menuContribution>
