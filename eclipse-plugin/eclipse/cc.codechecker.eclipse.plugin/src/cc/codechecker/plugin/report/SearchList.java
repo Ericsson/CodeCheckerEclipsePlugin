@@ -16,7 +16,6 @@ import java.util.Set;
 
 /**
  * Stores all report information for a project.
- * @author vodorok
  *
  */
 public class SearchList {

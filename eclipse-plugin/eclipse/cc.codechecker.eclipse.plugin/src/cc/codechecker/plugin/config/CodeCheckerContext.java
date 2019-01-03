@@ -1,34 +1,28 @@
 package cc.codechecker.plugin.config;
 
-import cc.codechecker.plugin.report.PlistParser;
-import cc.codechecker.plugin.report.ReportParser;
-import cc.codechecker.plugin.report.SearchList;
-import cc.codechecker.plugin.runtime.CodecheckerServerThread;
-import cc.codechecker.plugin.runtime.OnCheckCallback;
-import cc.codechecker.plugin.views.report.list.ReportListView;
-import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
-import cc.codechecker.plugin.views.report.list.ReportListViewListener;
-import cc.codechecker.plugin.views.report.list.ReportListViewProject;
-
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import cc.codechecker.plugin.CodeCheckerNature;
 import cc.codechecker.plugin.Logger;
-import cc.codechecker.plugin.config.Config.ConfigTypes;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
+import cc.codechecker.plugin.report.ReportParser;
+import cc.codechecker.plugin.report.SearchList;
+import cc.codechecker.plugin.views.report.list.ReportListView;
+import cc.codechecker.plugin.views.report.list.ReportListViewCustom;
+import cc.codechecker.plugin.views.report.list.ReportListViewListener;
+import cc.codechecker.plugin.views.report.list.ReportListViewProject;
 /**
  * The Class CodeCheckerContext.
  */
@@ -37,19 +31,22 @@ public class CodeCheckerContext {
     /** The instance. */
     static CodeCheckerContext instance;
 
-    /** The job runner. */
-    // TODO UPLIFT jobrunner will be a thread.
-    //JobRunner jobRunner;
+    private static final String NULL_WINDOW = "Error: Active Workbench Window is null!";
 
     /** The active editor part. */
     IEditorPart activeEditorPart;
 
-    /** The servers. */
-    private HashMap<IProject, CodecheckerServerThread> servers = new HashMap<>();
+    /** The active project. */
+    private IProject activeProject;
 
-    private HashMap<IProject, SearchList> reports = new HashMap<>();
+    private Map<IProject, SearchList> reports = new HashMap<>();
     
-    private HashMap<IProject, CcConfiguration> configs = new HashMap<>();
+    private Map<IProject, CcConfiguration> configs = new HashMap<>();
+
+    /**
+     * Class constructor.
+     */
+    private CodeCheckerContext() {}
 
     /**
      * Returns a {@link CcConfiguration} object.
@@ -60,25 +57,36 @@ public class CodeCheckerContext {
     public CcConfiguration getConfigForProject(IProject project) {
     	if (!configs.containsKey(project)) 
     		setConfig(project, new CcConfiguration(project));
-    	StringBuilder sb = new StringBuilder();
         CcConfiguration.logConfig(configs.get(project).getProjectConfig(null));
     	return configs.get(project);
-	}
-
-	public void setConfig(IProject project, CcConfiguration config) {
-		configs.put(project, config);
-	}
-
-	/** The active project. */
-    private IProject activeProject = null;
-
-    /** For storing in memory*/
-    //TODO UPLIFT some haslist projects as key reports as value.
+    }
 
     /**
-     * Class constructor.
+     * Store a {@link CcConfiguration} object associated with a project.
+     * If there is a configuration already stored, it will be overwritten.
+     * @param project The project in subject.
+     * @param config The new configuration.
      */
-    private CodeCheckerContext() {}
+    public void setConfig(IProject project, CcConfiguration config) {
+        configs.put(project, config);
+    }
+
+    /**
+	 *
+	 * @return Returns all stored reports in a Map
+	 */
+    public Map<IProject, SearchList> getReports() {
+        return reports;
+    }
+
+    /**
+     * Store a {@link SearchList} associated with a project.
+     * @param project The project in subject.
+     * @param s The report container.
+     */
+    public void setReportForProject(IProject project, SearchList s){
+        reports.put(project, s);
+    }
 
     /**
      * The refresher for Project ReportList View.
@@ -135,7 +143,7 @@ public class CodeCheckerContext {
      * @param pages the page list for the currently active workbench windows.
      * @param project the project, the user change his/her view to
      * @param secondaryId id of the {@link ReportListViewCustom} the refresh
-     * @param considerViewerRefresh false if the refresh should always happen despite of no real need to force refresh
+     * @param considerProjectChange false if the refresh should always happen despite of no real need to force refresh
      */
     private void refreshCustom(IWorkbenchPage[] pages, IProject project, String secondaryId,
             boolean considerProjectChange) {
@@ -143,7 +151,7 @@ public class CodeCheckerContext {
             for (IViewReference vp : page.getViewReferences()) {
                 if (vp.getId().equals(ReportListViewCustom.ID)) {
                     ReportListViewCustom rlvc = (ReportListViewCustom) vp.getView(true);
-                    if(secondaryId.equals("") && rlvc.getViewSite().getSecondaryId() != null) {
+                    if(secondaryId.isEmpty() && rlvc.getViewSite().getSecondaryId() != null) {
                         if (!considerProjectChange || this.activeProject != project) {
                             rlvc.onEditorChanged(project);
                         }
@@ -151,7 +159,7 @@ public class CodeCheckerContext {
                             rlvc.getViewSite().getSecondaryId().equals(secondaryId)){
                         rlvc.onEditorChanged(project);
                         return;
-                            }
+                    }
                 }
             }
         }
@@ -170,48 +178,16 @@ public class CodeCheckerContext {
     }
 
     /**
-     * Gets the server object.
-     *
-     * @param project the project which the user change their view to.
-     * @return CodecheckerServerThread
+     * Asynchronous refreshes the views.
+     * @param project The project in context that the refresh was called.
      */
-    public synchronized CodecheckerServerThread getServerObject(final IProject project) {
-        if (!servers.containsKey(project)) {
-            CodecheckerServerThread serverObj = new CodecheckerServerThread();
-            serverObj.setCallback(new OnCheckCallback() {
-
-                @Override
-                public void analysisFinished(String result) {
-                    Logger.consoleLog(project.getName() + "Analysis finished.");
-                    //cleanCache();
-                    //Store 
-                    parsePlistForProject(project);
-                    Display.getDefault().asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            CodeCheckerContext.getInstance().refreshAfterBuild(project);
-                        }
-                    });
-                }
-                @Override
-                public void analysisStarted(String msg) {
-                    Logger.consoleLog(project.getName() + " Analysis Started. "+msg);
-                }
-            });
-            CcConfiguration config = new CcConfiguration(project);
-            config.updateServer(serverObj);
-            servers.put(project, serverObj);
-        }
-        return servers.get(project);
-    }
-
-    /**
-     * Clean cache.
-     * TODO This method could be used for clearing in memory representation of the reports.
-     */
-    public void cleanCache() {
-        //jobRunner.getActionCacheFilter().removeAll();
-        Logger.log(IStatus.INFO, " CLEARING CACHE");
+    public void refresAsync(IProject project){
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                refreshAfterBuild(project);
+            }
+        });
     }
 
     /**
@@ -219,13 +195,13 @@ public class CodeCheckerContext {
      *
      * @param project the project, the user change his/her view to
      */
-    public void refreshAfterBuild(final IProject project) {
+    private void refreshAfterBuild(final IProject project) {
         Logger.log(IStatus.INFO, "refreshAfterBuild");
 
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            Logger.log(IStatus.ERROR, " Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, NULL_WINDOW);
             return;
         }
 
@@ -237,8 +213,6 @@ public class CodeCheckerContext {
         }
 
         IEditorPart partRef = activePage.getActiveEditor();
-
-        //parsePlistForProject(project);
 
         //partRef is null or partRef NOT instanceof FileEditor!
         if (partRef == null || !(partRef.getEditorInput() instanceof IFileEditorInput)) {
@@ -262,26 +236,11 @@ public class CodeCheckerContext {
         CcConfiguration config = getConfigForProject(project);
 
         //The actual refresh happens here.
-        String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
+        String filename = config.getAsProjectRelativePath(file.getProjectRelativePath().toString());
         this.refreshCurrent(pages, project, filename, false);
         this.refreshProject(pages, project, false);
         this.refreshCustom(pages, project, "", false);
         this.activeProject = project;
-    }
-
-    public void parsePlistForProject(final IProject project) {
-        Logger.log(IStatus.INFO, "Started Plist Parsing for project: "+project.getName());
-        final PlistParser parser = new PlistParser(project);
-        SearchList sl;
-        sl = parser.processResultsForProject();
-        reports.put(project, sl);
-        Logger.log(IStatus.INFO, "Finished Plist Parsing for project: "+project.getName());
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                CodeCheckerContext.getInstance().refreshAfterBuild(project);
-            }
-        });
     }
 
     /**
@@ -298,27 +257,27 @@ public class CodeCheckerContext {
             IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
             IProject project = file.getProject();
             try {
-				if (project.hasNature(CodeCheckerNature.NATURE_ID)){
-				    CcConfiguration config = getConfigForProject(project);
+                if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
+                    CcConfiguration config = getConfigForProject(project);
 
-				    String filename = config.convertFilenameToServer(file.getProjectRelativePath().toString());
+                    String filename = config.getAsProjectRelativePath(file.getProjectRelativePath().toString());
 
-				    IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-				    if(activeWindow == null) {
-				        Logger.log(IStatus.ERROR, " Error activeWindow is null!");
-				        return;
-				    }
-				    IWorkbenchPage[] pages = activeWindow.getPages();
+                    IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                    if (activeWindow == null) {
+                        Logger.log(IStatus.ERROR, NULL_WINDOW);
+                        return;
+                    }
+                    IWorkbenchPage[] pages = activeWindow.getPages();
 
-				    this.refreshProject(pages, project, true);
-				    this.refreshCurrent(pages, project, filename, true);
-				    this.refreshCustom(pages, project, "", true);
-				    this.activeProject = project;
-				}
-			} catch (CoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                    this.refreshProject(pages, project, true);
+                    this.refreshCurrent(pages, project, filename, true);
+                    this.refreshCustom(pages, project, "", true);
+                    this.activeProject = project;
+                }
+            } catch (CoreException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 
@@ -331,7 +290,7 @@ public class CodeCheckerContext {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            Logger.log(IStatus.ERROR, "Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, NULL_WINDOW);
             return;
         }
 
@@ -351,7 +310,7 @@ public class CodeCheckerContext {
         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if(activeWindow == null) {
-            Logger.log(IStatus.ERROR, "Error activeWindow is null!");
+            Logger.log(IStatus.ERROR, NULL_WINDOW);
             return;
         }
 
@@ -372,34 +331,19 @@ public class CodeCheckerContext {
 
     /**
      * Run report job.
-     *
+     * TODO refactor this to a report job.
      * @param target the target
-     * @param runId the run id
+     * @param currentFileName the run id
      */
     public void runReportJob(ReportListView target, String currentFileName) {
         IProject project = target.getCurrentProject();
         if (project == null) return;
         Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
 
-        // Dont Parse Here just work from the reports Hasmap
-
         ReportParser parser = new ReportParser(reports.get(project), currentFileName);
         // add listeners to it.
-        parser.AddListener(new ReportListViewListener(target));
-        /*Thread t = new Thread(parser);
-          t.start();*/
+        parser.addListener(new ReportListViewListener(target));
         Display.getDefault().asyncExec(parser);
         Logger.log(IStatus.INFO, "Finished Filtering Reports for project: "+project.getName());
     }
-
-    /**
-     * Stop servers.
-     */
-    public void stopServers() {
-        for (CodecheckerServerThread server : servers.values()) {
-            server.stop();
-        }
-        servers.clear();
-    }
-
 }
