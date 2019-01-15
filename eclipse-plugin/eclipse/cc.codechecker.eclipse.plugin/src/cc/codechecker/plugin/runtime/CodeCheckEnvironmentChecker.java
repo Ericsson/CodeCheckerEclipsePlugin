@@ -1,17 +1,13 @@
 package cc.codechecker.plugin.runtime;
 
-import cc.codechecker.plugin.config.Config.ConfigTypes;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import cc.codechecker.plugin.runtime.SLogger;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.lang.Math;
+import cc.codechecker.plugin.config.Config.ConfigTypes;
 
 
 /** This class does....
@@ -62,9 +58,6 @@ public class CodeCheckEnvironmentChecker {
         environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
 
-        getCheckerEnvironment(environmentBefore,
-                codeCheckerCommand);
-
         environmentAddList = new HashMap<String, String>(){{
             put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
             put("_", checkerDir + "/bin/CodeChecker");
@@ -81,16 +74,22 @@ public class CodeCheckEnvironmentChecker {
         }
     }
 
+    /**
+     * Checks if the given path to CodeChecker is valid.
+     * @param environmentBefore
+     * @param codeCheckerCommand
+     */
+    public static void getCheckerEnvironment(
+            Map<ConfigTypes, String> config, String codeCheckerCommand) {
 
-    private static void getCheckerEnvironment(
-            ImmutableMap<String, String> environmentBefore, String codeCheckerCommand) {
-
-        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+        ShellExecutorHelper she = new ShellExecutorHelper(
+                getInitialEnvironment(Optional.of(config.get(ConfigTypes.PYTHON_PATH))));
 
         String cmd=codeCheckerCommand + " -h";
         SLogger.log(LogI.INFO, "Testing " + cmd);
         Optional<String> ccEnvOutput = she.quickReturnOutput(cmd);
         double test = 0;
+        // WTF
         while(!ccEnvOutput.isPresent() && test <= 2){
             ccEnvOutput = she.quickReturnOutput(cmd, Math.pow( 2.0 , test ) * 1000);
             ++test;
@@ -102,8 +101,12 @@ public class CodeCheckEnvironmentChecker {
         }
     }
 
-    private static ImmutableMap<String, String> getInitialEnvironment(
-            Optional<String> pythonEnvironment) {
+    /**
+     * Returns new environment if using Python virtual environment or System env if not.
+     * @param pythonEnvironment Path to Python virtual environment activator.
+     * @return The environemt to be used.
+     */
+    private static ImmutableMap<String, String> getInitialEnvironment(Optional<String> pythonEnvironment) {
         if (pythonEnvironment.isPresent()) {
             ShellExecutorHelper she = new ShellExecutorHelper(System.getenv());
 
@@ -154,38 +157,17 @@ public class CodeCheckEnvironmentChecker {
         return Optional.absent();
     }
 
+    /**
+     * Creates a Codechecker analyze command.
+     * @param buildLog Path to the compile commands file, which the analyze command uses.
+     * @return The constructed analyze command.
+     */
     public String createAnalyzeCommmand(String buildLog){
-        return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) + 
-       		 " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" + 
-       		 " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
-   }
-    
-  //TODO UPLIFT REMOVE
-/*
- *     
- *     drops codechecker Database
- *     
- */
-   /* public void dropDB(){        
-        String dbPath=getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/codechecker.sqlite";        
-        SLogger.log(LogI.INFO,"Dropping database:"+dbPath);
-        File f = new File(dbPath);
-        if (f.isFile()){
-            if (!f.delete())
-                SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. "+dbPath);
-        }
-        else
-            SLogger.log(LogI.ERROR,"Cannot delte CodeChecker DB. File not exists:"+dbPath);
+        return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) +
+             " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" +
+             " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
     }
-*/
     
-//TODO UPLIFT REMOVE
-   /* public String createServerCommand(String port){
-        return codeCheckerCommand + " server --not-host-only -w " + 
-                getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + " --view-port " + port;
-    }*/
-
-
     /**
      * Executes CodeChecker check command
      * on the build log received in the fileName parameter.

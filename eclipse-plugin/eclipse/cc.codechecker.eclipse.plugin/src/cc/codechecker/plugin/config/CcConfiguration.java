@@ -1,5 +1,13 @@
 package cc.codechecker.plugin.config;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.IContributedEnvironment;
 import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
@@ -10,305 +18,375 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.google.common.collect.Sets;
+
+import cc.codechecker.plugin.CodeCheckerNature;
+import cc.codechecker.plugin.Logger;
+import cc.codechecker.plugin.config.Config.ConfigLogger;
 import cc.codechecker.plugin.config.Config.ConfigTypes;
 import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
 import cc.codechecker.plugin.runtime.CodecheckerServerThread;
-import cc.codechecker.plugin.CodeCheckerNature;
-import cc.codechecker.plugin.config.CodeCheckerContext;
-import cc.codechecker.plugin.views.console.ConsoleFactory;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import cc.codechecker.plugin.Logger;
-import org.eclipse.core.runtime.IStatus;
-
+/**
+ * Stores and manages configurations related to projects and the plug-in.
+ */
 public class CcConfiguration {
 
-    //Logger
-    IProject project=null;
-    IEclipsePreferences projectPreferences=null;
-    IEclipsePreferences globalPreferences = null;
+    private static Map<ConfigTypes, String> globalConfig;
+    private static IEclipsePreferences globalPreferences;
+    
+    private static final String STR_EMPTY = "";
+    
+    private static final Path CODECHECKER_WORKSPACE = Paths.get(
+            ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".codechecker");
 
-    private  Map<ConfigTypes,String> defaults;//default config values
-    private  Map<ConfigTypes,String> configKeys;//textual values of config variables
+    //Project related fields
+    private IProject project;
+    private boolean useGlobal = true;
+    // This configuration has the same keys as global.
+    private Map<ConfigTypes,String> commonProjectConfig;
+    // This is a project local configuration not available globally.
+    private Map<ConfigTypes, String> projectOnlyConfig;
+    private IEclipsePreferences projectPreferences;
 
-    public void init() {        
-        globalPreferences = ConfigurationScope.INSTANCE.getNode(CodeCheckerNature.NATURE_ID);
-        defaults=new HashMap<ConfigTypes,String>();
-        defaults.put(ConfigTypes.COMPILERS,"gcc:g++:clang");
-        defaults.put(ConfigTypes.ANAL_THREADS,"4");
-        defaults.put(ConfigTypes.IS_GLOBAL,"true");
-
-        configKeys=new HashMap<ConfigTypes,String>();
-        configKeys.put(ConfigTypes.CHECKER_PATH,"global_server_url");
-        configKeys.put(ConfigTypes.PYTHON_PATH,"location_prefix");
-        configKeys.put(ConfigTypes.COMPILERS,"compilers");
-        configKeys.put(ConfigTypes.ANAL_THREADS,"analthreads");
-        configKeys.put(ConfigTypes.CHECKER_LIST,"global_checker_command");
-        configKeys.put(ConfigTypes.IS_GLOBAL,"is_global");
-        configKeys.put(ConfigTypes.CHECKER_WORKSPACE,"checker_workspace");        
-    }
-
-    public CcConfiguration() {
-        init();        
-    }
+    /**
+     * Creates a project related configuration.
+     * @param project The project which the configuration should be made.
+     */
     public CcConfiguration(IProject project) {
-        super();
-        init();
         this.project = project;
 
+        loadProjectConfig(project);
+        validatePersistentProjectPreferences();
+        storeLoadedPreferences();
+        checkCodeCheckerReportDir();
+    }
+
+    /**
+     * Validates preferences stored on disc for the project. At the time of the calling of this method,
+     * the global preferences must be initialized with this classes static methods.
+     */
+    private void validatePersistentProjectPreferences() {
+        if (projectPreferences != null) {
+            try {
+                Set<String> storedProjPrefs = Sets.newHashSet(projectPreferences.keys());
+                ConfigLogger configLogger = new ConfigLogger("Missing keys in config " + project.getName(),
+                        IStatus.WARNING);
+                //Check the commons.
+                for (Map.Entry<ConfigTypes, String> entry : globalConfig.entrySet()) {
+                    //if the key doesn't exist in preferences, put the corresponding kv in.
+                    if (!storedProjPrefs.contains(entry.getKey().toString())){
+                        projectPreferences.put(entry.getKey().toString(), entry.getValue());
+                        configLogger.append(entry);
+                    }
+                }
+                for (ConfigTypes ctp : ConfigTypes.PROJECT_TYPE){
+                    if (!storedProjPrefs.contains(ctp.toString())) {
+                    	String value;
+                        switch (ctp) {
+                            case CHECKER_WORKSPACE:
+                                value = Paths.get(CODECHECKER_WORKSPACE.toString(), project.getName()).toString();
+                                break;
+                            case IS_GLOBAL:
+                                value = Boolean.TRUE.toString();
+                                break;
+                            default:
+                            	value = STR_EMPTY;
+                                break;
+                        }
+                        projectPreferences.put(ctp.toString(), value);
+                        configLogger.append(ctp.toString()  + ConfigLogger.SEP + value);
+                    }
+                }
+                configLogger.log();
+                projectPreferences.flush(); // flush only saves changes, so no need for a change flag.
+            } catch (BackingStoreException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Loads project level preferences from disk.
+     * @param project The project in question.
+     */
+    public void loadProjectConfig(IProject project) {
         try {
+            // If it's an "old project" open saved context
             if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
                 IScopeContext context = new ProjectScope(project);
                 projectPreferences = context.getNode(CodeCheckerNature.NATURE_ID);
-            }
+            } 
         } catch (CoreException e) {
-            Logger.log(IStatus.ERROR, "" + e);
-            Logger.log(IStatus.INFO, "" + e.getStackTrace());
+            Logger.log(IStatus.ERROR, e.getMessage());
+            Logger.log(IStatus.INFO, e.getStackTrace().toString());
+            return;
         }
     }
 
-    public void modifyProjectEnvironmentVariables(final Map<String, String> environmentAdd) {
-        if (project!=null){
-            IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
-                    .getContributedEnvironment();
-            //we assume that the project is CDT
-            ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true); 
-            ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
-            for(String key : environmentAdd.keySet()) {
-                if(key.equals("PATH")) {
-                    ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_PREPEND,"", cfgd);
-                } else {
-                    ice.addVariable(key, environmentAdd.get(key), IEnvironmentVariable.ENVVAR_REPLACE,"", cfgd);
-                }
-            }
-            try {
-                CoreModel.getDefault().setProjectDescription(project, prjd);
-            } catch (CoreException e) {
-                Logger.log(IStatus.ERROR, "" + e);
-                Logger.log(IStatus.INFO, "" + e.getStackTrace());
-            }
-        }
-    }
-
-    /*public String getServerUrl() {
+    /**
+     * Stores previously loaded Project level preferences.
+     */
+    private void storeLoadedPreferences(){
+        commonProjectConfig = new HashMap<>();
+        projectOnlyConfig = new HashMap<>();
         try {
-            return CodeCheckerContext.getInstance().getServerObject(project).getServerUrl();
-        } catch (Exception e) {
-            return "";
-        }
-    }*/
-
-    public IEclipsePreferences getActivePreferences(){
-        if (project!=null && !isGlobal() )
-            return 
-                    projectPreferences;
-        else
-            return
-                    globalPreferences;
-    }
-
-    public IEclipsePreferences getGlobalPreferences(){
-        return globalPreferences;
-    }
-
-
-    public Map<ConfigTypes, String> getConfig() {
-        if (project!=null && !isGlobal()){
-            Logger.log(IStatus.INFO, "returning project config");
-            return getConfigEclipse(projectPreferences);
-        }
-        else{
-            Logger.log(IStatus.INFO, "returning global config");
-            return getConfigEclipse(globalPreferences);            
-        }
-
-    }
-
-    public Map<ConfigTypes, String> getDefaultConfig() {
-        Map<ConfigTypes, String> ret = new HashMap<ConfigTypes, String>();
-        for (ConfigTypes k:ConfigTypes.values()){
-            if (defaults.containsKey(k))
-                ret.put(k,defaults.get(k));
-            else
-                ret.put(k,"");
-        }
-        return ret;
-    }
-
-    private  Map<ConfigTypes, String> getConfigEclipse(IEclipsePreferences pref ) {
-        Map<ConfigTypes, String> ret = new HashMap<ConfigTypes, String>();
-        for (ConfigTypes k:ConfigTypes.values()){
-            if (defaults.containsKey(k))
-                ret.put(k,defaults.get(k));
-            else
-                ret.put(k,"");
-        }
-
-        try {
-            for (String configKey : pref.keys()) {
-                for (ConfigTypes c : configKeys.keySet()) {
-                    if (configKey.equals(configKeys.get(c))){
-                        ret.put(c, pref.get(configKey, ""));
+            for (String configKey : projectPreferences.keys()) {
+                ConfigTypes ct = ConfigTypes.getFromString(configKey);
+                if (ct != null) {
+                    if (ConfigTypes.COMMON_TYPE.contains(ct)) {
+                        commonProjectConfig.put((ConfigTypes)ct, projectPreferences.get(configKey, STR_EMPTY));
+                    }
+                    if (ConfigTypes.PROJECT_TYPE.contains(ct)) {
+                        projectOnlyConfig.put((ConfigTypes)ct, projectPreferences.get(configKey, STR_EMPTY));
                     }
                 }
             }
+            useGlobal = Boolean.parseBoolean(projectOnlyConfig.get(ConfigTypes.IS_GLOBAL));
         } catch (BackingStoreException e) {
-        }
-
-
-        return ret;
-    }
-
-
-    public void dumpConfig(Map<ConfigTypes, String> config) {
-        Logger.log(IStatus.INFO, "Config:");
-        for (Map.Entry<ConfigTypes, String> entry : config.entrySet()) {
-            Logger.log(IStatus.INFO, configKeys.get(entry.getKey()) + ":" + entry.getValue());
+            e.printStackTrace();
         }
     }
 
+
+    /**
+     * Returns preferences related to this project.
+     * @param global If null the projects internal boolean decides which to return.
+     * @return The configuration which has chosen.
+     */
+    public Map<ConfigTypes, String> getProjectConfig(Boolean global) {
+        Map<ConfigTypes, String> retConfig = new HashMap<>();
+        retConfig.putAll(projectOnlyConfig);
+        if (global == null) {
+            if (useGlobal){
+                retConfig.putAll(globalConfig);
+            } else {
+                retConfig.putAll(commonProjectConfig);
+            }
+            return retConfig;
+        } else { // if we want the projects choice
+            if (global){
+                retConfig.putAll(globalConfig);
+            } else {
+                retConfig.putAll(commonProjectConfig);
+            }
+            return retConfig;
+        }
+    }
+
+    /**
+     * Returns the default configuration for the plug-in.
+     * @return An Unmodifiable view of the default configuration Map.
+     */
+    public Map<ConfigTypes, String> getDefaultConfig() {
+        return ConfigTypes.getCommonDefault();
+    }
+
+    /**
+     * Returns if a project uses the global configuration.
+     * @return True if global, false if not.
+     */
     public boolean isGlobal() {
-        if (project!=null)
-            return (projectPreferences.get(configKeys.get(ConfigTypes.IS_GLOBAL), "true").equals("true"));
-        else
-            return true;
+        return useGlobal;
     }
 
-    public void updateProject(Map<ConfigTypes,String> newConfig){
-        for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet())
-        {            
-            Logger.log(IStatus.INFO, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
-            projectPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
+    /**
+     * Updates the persistent configuration.
+     * @param config The new configuration to be saved.
+     */
+    public void updateProjectConfig(Map<ConfigTypes,String> config){
+        ConfigLogger configLogger = new ConfigLogger("Updated Project configuration with the following:");
+        for (Map.Entry<ConfigTypes, String> entry : config.entrySet())
+        {    
+            projectPreferences.put(entry.getKey().toString(), entry.getValue());
+            configLogger.append(entry);
         }
+        configLogger.log();
         try {
             projectPreferences.flush();
+            storeLoadedPreferences();
             updateServer(CodeCheckerContext.getInstance().getServerObject(project));
         } catch (BackingStoreException e) {
+            Logger.log(IStatus.ERROR, e.getMessage());
+            e.printStackTrace();
         }    	
     }
 
-
-    //updates configuration in eclipse
-    //and restarts the corresponding CodeChecker server(s)
-    public void updateConfig(Map<ConfigTypes, String> newConfig) {        
-        if (project==null){//updating global configuration and all running servers
-            for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {            
-                Logger.log(IStatus.INFO, "updateGlobal(): " + configKeys.get(entry.getKey()) + ":" + entry.getValue());
-                globalPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
-            }
-
-            IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-            for (IProject project : projects) {
-                try {
-                    if (project.hasNature(CodeCheckerNature.NATURE_ID) && isCDTProject(project) ) {
-                        CcConfiguration cc = new CcConfiguration(project);
-                        if (cc.isGlobal()) {
-                            cc.updateServer(CodeCheckerContext.getInstance().getServerObject(project));
-                        }
-                    }
-                } catch (CoreException e) {
-                    // TODO Auto-generated catch block
-                }
-            }
-            try {
-                globalPreferences.flush();
-            } catch (BackingStoreException e) {
-            }
-        }else{//updating the config of the current project only
-            for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet())
-            {            
-                Logger.log(IStatus.INFO, "updateProject(): " + configKeys.get(entry.getKey()) +":"+entry.getValue());
-                projectPreferences.put(configKeys.get(entry.getKey()), entry.getValue());
-            }
-            try {
-                projectPreferences.flush();
-                updateServer(CodeCheckerContext.getInstance().getServerObject(project));
-            } catch (BackingStoreException e) {
-            }       
-        }
-    }
-
-    public static boolean isCDTProject(IProject p){
-        return CoreModel.getDefault().getProjectDescription(p, true)!=null;
-    }
-
+    /**
+     * Return File location relative  to project location.
+     * @param projectRelativeFile The file in question.
+     * @return The location.
+     */
     public String convertFilenameToServer(String projectRelativeFile) {
         return getLocationPrefix() + projectRelativeFile;
     }
 
+    /**
+     * Gets the projects containing folder on disk.
+     * @return The projects location with platform independent pathSeparator appended to it.
+     */
     public String getLocationPrefix() {
-        // TODO Auto-generated method stub
-        return project.getLocation().toOSString() + "/";
+        return project.getLocation().toOSString() + File.separator;
     }
 
+    /**
+     * Strips path from file location.
+     * @param serverFile Only the filename needed from this.
+     * @return Filename stripped of it's path prefix.
+     */
     public String convertFilenameFromServer(String serverFile) {
-        if (getLocationPrefix().equals("")) {
+        if (getLocationPrefix().equals(STR_EMPTY)) {
             return serverFile;
         }
-        return serverFile.replace(getLocationPrefix(), "");
+        return serverFile.replace(getLocationPrefix(), STR_EMPTY);
     }
 
-    public boolean isConfigured() {
-        try {
-            if(project!=null && project.hasNature(CodeCheckerNature.NATURE_ID)&& isCDTProject(project) ) {
-            	return true;
-                /*CodeCheckEnvironmentChecker ccec = CodeCheckerContext.getInstance().getServerObject(project)
-                        .getCodecheckerEnvironment();
-                if (ccec != null) {
-                    int port=CodeCheckerContext.getInstance().getServerObject(project).serverPort;
-                    Logger.log(IStatus.INFO, "checking codechecker on port"+port);
-                    return ccec.isJavaRunner(port);
-                }else
-                    Logger.log(IStatus.INFO, "CodeCheckerContext is null!");
-                return false;*/
-            }
-            return false;
-        } catch (CoreException e) {
-            return false;
+    /**
+     * Checks if the CodeChecker working directory exists, and creates it if not.
+     */
+    public void checkCodeCheckerReportDir() {
+        File ccWorkDir = CODECHECKER_WORKSPACE.toFile();
+        if (!ccWorkDir.exists()) {
+            Boolean b = ccWorkDir.mkdir();
+            Logger.log(IStatus.INFO, "Making cc directory " + b);
+        }
+        File workDir = new File(projectOnlyConfig.get(ConfigTypes.CHECKER_WORKSPACE));
+        if (!workDir.exists()) {
+            Boolean b = workDir.mkdir();
+            Logger.log(IStatus.INFO, "Making directory " + b);
         }
     }
 
+    /**
+     * TODO Will be deleted in next patch.
+     * @param server .
+     */
     public void updateServer(CodecheckerServerThread server) {
         if (project!=null){
             Logger.log(IStatus.INFO, "Updating Server" + project.getName());
-            Map<ConfigTypes, String> config = getConfig();		
-            config.put(ConfigTypes.CHECKER_WORKSPACE, ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
-                    + "/.codechecker/" + project.getName());// codechecker workspace
-            dumpConfig(config);
-            try {
-            	File ccWorkDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker");
-                if (!ccWorkDir.exists()) {
-                    Boolean b = ccWorkDir.mkdir();
-                    Logger.log(IStatus.INFO, "Making cc directory " + b);
-                }
-                File workDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/.codechecker/"
-                        + project.getName());
-                if (!workDir.exists()) {
-                    Boolean b = workDir.mkdir();
-                    Logger.log(IStatus.INFO, "Making directory " + b);
-                }
-                Logger.log(IStatus.INFO, "Restarting server : " + project.getName());
-                CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(config);
-                //ccec.setServerPort(server.serverPort);
-                modifyProjectEnvironmentVariables(ccec.getEnvironmentAddList());
-                server.setCodecheckerEnvironment(ccec);
-                //ConsoleFactory.consoleWrite(
-                //        project.getName() + ":  CodeChecker server listening on port: " + server.serverPort);
+            CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getProjectConfig(null));
+            server.setCodecheckerEnvironment(ccec);
+        }
+    }
 
-            } catch (Exception e) {
-                ConsoleFactory.consoleWrite(project.getName() + ": Failed to start server " + e.getStackTrace().toString());            
-                e.printStackTrace();
-                Logger.log(IStatus.ERROR, "" + e);
-                Logger.log(IStatus.INFO, "" + e.getStackTrace());
+    /**
+     * Adds to build environment variables, to be able to log the compilation commands with lldb.
+     * @param environmentAdd
+     */
+    public void modifyProjectEnvironmentVariables() {
+        CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getProjectConfig(null));
+        final Map<String, String> environmentAdd = ccec.getEnvironmentAddList();
+        if (project!=null){
+            IContributedEnvironment ice = CCorePlugin.getDefault().getBuildEnvironmentManager()
+                .getContributedEnvironment();
+            //we assume that the project is CDT
+            ICProjectDescription prjd = CoreModel.getDefault().getProjectDescription(project, true); 
+            ICConfigurationDescription cfgd = prjd.getActiveConfiguration();
+            ConfigLogger configLogger = new ConfigLogger("Modified the build environment variables with:");
+            for(String key : environmentAdd.keySet()) {
+                if("PATH".equals(key)) {
+                    ice.addVariable(key, environmentAdd.get(key),
+                            IEnvironmentVariable.ENVVAR_PREPEND, STR_EMPTY, cfgd);
+                } else {
+                    ice.addVariable(key, environmentAdd.get(key),
+                            IEnvironmentVariable.ENVVAR_REPLACE, STR_EMPTY, cfgd);
+                }
+                configLogger.append(key + ConfigLogger.SEP + environmentAdd.get(key));
+            }
+            configLogger.log();
+            try {
+                CoreModel.getDefault().setProjectDescription(project, prjd);
+            } catch (CoreException e) {
+                Logger.log(IStatus.ERROR, e.getMessage());
+                Logger.log(IStatus.INFO, e.getStackTrace().toString());
             }
         }
+    }
+
+    /**
+     * @return The global configuration.
+     */
+    public static Map<ConfigTypes, String> getGlobalConfig() {
+        return globalConfig;
+    }
+
+    /**
+     * Initializes the plug-ins internal configuration, Call this method somewhere early.
+     */
+    public static void initGlobalConfig() {
+        globalPreferences = ConfigurationScope.INSTANCE.getNode(CodeCheckerNature.NATURE_ID);
+        validatePersistentGlobalPreferences();
+        globalConfig = new ConcurrentHashMap<>();
+
+        try {
+            ConfigLogger configlogger = new ConfigLogger("Initialized GlobalConfig with:");
+            for (String configKey : globalPreferences.keys()) {
+                ConfigTypes ct = ConfigTypes.getFromString(configKey);
+                if (ct != null) globalConfig.put(ct, globalPreferences.get(configKey, STR_EMPTY));
+                configlogger.append(configKey + ConfigLogger.SEP + globalPreferences.get(configKey, STR_EMPTY));
+            }
+            configlogger.log();
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Validates global preferences of the plug-in.
+     */
+    private static void validatePersistentGlobalPreferences() {
+        if (globalPreferences != null) {
+            try {
+                Set<String> storedGlobalPrefs = Sets.newHashSet(globalPreferences.keys());
+                ConfigLogger configlogger = new ConfigLogger("Missing keys in global config were:", IStatus.WARNING);
+                //These are the valid configuration keys.
+                for (Map.Entry<ConfigTypes, String> entry : ConfigTypes.getCommonDefault().entrySet()) {
+                    //if the key doesn't exist in preferences, put the corresponding key-value in.
+                    if (!storedGlobalPrefs.contains(entry.getKey().toString())){
+                        globalPreferences.put(entry.getKey().toString(), entry.getValue());
+                        configlogger.append(entry);
+                    }
+
+                }
+                configlogger.log();
+                globalPreferences.flush(); // flush only saves changes, so no need for a change flag.
+            } catch (BackingStoreException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Updates both persistent and in memory representation of global configuration.
+     * @param newConfig The new configuration to be flushed.
+     */
+    public static void updateGlobalConfig(Map<ConfigTypes, String> newConfig) {
+        globalConfig = newConfig;
+        for (Map.Entry<ConfigTypes, String> entry : newConfig.entrySet()) {
+            globalPreferences.put(entry.getKey().toString(), entry.getValue());
+        }
+        try {
+            globalPreferences.flush();
+        } catch (BackingStoreException e) {
+            Logger.log(IStatus.ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * Logs the given configuration to Error Log.
+     * @param config The configuration to be logged
+     */
+    public static void logConfig(Map<ConfigTypes, String> config) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<ConfigTypes, String> entry : config.entrySet()) {
+            sb.append(entry.getKey() + ConfigLogger.SEP + entry.getValue() + System.lineSeparator());
+        }
+        Logger.log(IStatus.INFO, "Config: " + System.lineSeparator() + sb.toString());
     }
 }

@@ -182,7 +182,7 @@ public class ReportListView extends ViewPart {
     }
 
     private void jumpToBugPosition(BugPathItem bpi) {
-        CcConfiguration config = new CcConfiguration(currentProject);
+        CcConfiguration config = CodeCheckerContext.getInstance().getConfigForProject(currentProject);
         String relName = config.convertFilenameFromServer(bpi.getFile());
         IFile fileinfo = currentProject.getFile(relName);
 
