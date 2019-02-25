@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.codechecker.eclipse.feature_1.0.0.qualifier.jar" id="org.codechecker.eclipse.feature" version="1.0.0.qualifier">
+      <category name="org.codechecker.eclipse"/>
+   </feature>
+   <category-def name="org.codechecker.eclipse" label="CodeChecker Eclipse Plugin"/>
+</site>

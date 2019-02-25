@@ -7,21 +7,23 @@ This is a C/C++ code analysis plugin for Eclipse that shows bugs detected by the
 ## Requirements
 
 * Linux operating system
-* Recent [CodeChecker](https://github.com/Ericsson/codechecker)
-* [Eclipse](www.eclipse.org): the plugin is currently tested with Eclipse Neon, but any recent Eclipse version should work
+* Recent [CodeChecker](https://github.com/Ericsson/codechecker) (6.8.0 and up)
+* Every eclipse version since [Oxygen 1](https://www.eclipse.org/downloads/packages/release/oxygen/1) (v4.7.0) is supported
 * Eclipse CDT
 * Java SE 1.8
 
 ## Build and install CodeChecker Eclipse Plugin
-### Build
-run `mvn package` in the project's directory in:
 
-`./eclipse-plugin/`
+### Build
+
+Run `mvn -f mavendeps/pom.xml p2:site && mvn clean verify` in the root of the project.
 
 ### Install
-* Copy the `cc.codechecker.eclipse.plugin-0.0.6-SNAPSHOT.jar`:
-    * From: ./eclipse-plugin/eclipse/cc.codechecker.eclipse.plugin/target/
-    * To: the dropins directory of Eclipse
+
+* Add the generated update site thats located under `path/to/cloned/project/releng/org.codechecker.eclipse.update/target/repository/` to `Help -> Install New Software...` in Eclipse
+* Select the newly added repository if not already selected
+* Mark CodeChecker Eclipse Plugin then hit next.
+* If an alert box comes up with unsigned content. Just accept it.
 
 ## How to use
 Make sure that before staring Eclipse:

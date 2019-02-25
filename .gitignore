@@ -4,13 +4,11 @@
 *.swp
 *.swo
 
-# eclipse
-.project
-.settings
-
-# idea
+# Eclipse
 .idea
 *.iml
+target/
+logs/
 
 # Package Files #
 *.jar
@@ -18,7 +16,6 @@
 *.ear
 
 # maven
-target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

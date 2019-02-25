@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+    <extension
+            point="org.eclipse.ui.commands">
+        <command
+                defaultHandler="org.codechecker.eclipse.plugin.command.AddProjectNature"
+                id="org.codechecker.eclipse.plugin.addCcNatureCommand"
+                name="AddCodeCheckerNature">
+        </command>
+    </extension>
+    <extension point="org.eclipse.ui.propertyPages">
+        <page
+                class="org.codechecker.eclipse.plugin.config.project.CcProjectProperties"
+                id="org.codechecker.eclipse.plugin.config.ccProperties"
+                name="CodeChecker">
+            <enabledWhen>
+                <adapt type="org.eclipse.core.resources.IProject">
+                    <test property="org.eclipse.core.resources.projectNature"
+                          value="org.codechecker.eclipse.plugin.CodeCheckerNature"/>
+                </adapt>
+            </enabledWhen>
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.preferencePages">
+        <page id="CcConfiguration"
+            name="CodeChecker"
+            class="org.codechecker.eclipse.plugin.config.global.CcGlobalProperties">
+        </page>
+    </extension>
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution
+                locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+            <command
+                    commandId="org.codechecker.eclipse.plugin.addCcNatureCommand"
+                    label="Add CodeChecker Nature"
+                    style="push">
+                <visibleWhen>
+                        <iterate operator="and">
+                            <not>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.codechecker.eclipse.plugin.CodeCheckerNature"/>
+                            </not>
+                            <or>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.core.cnature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.core.ccnature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.managedbuilder.core.managedBuildNature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.managedbuilder.core.ScannerConfigNature"/>
+                                <test property="org.eclipse.core.resources.projectNature"
+                                    value="org.eclipse.cdt.autotools.core.autotoolsNatureV2"/>
+                            </or>
+                        </iterate>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+    </extension>
+
+    <extension
+            id="cc.codechecker.markers.problemmarker"
+            name="CodeChecker Problems"
+            point="org.eclipse.core.resources.markers">
+        <super
+                type="org.eclipse.core.resources.problemmarker">
+        </super>
+        <persistent
+                value="true">
+        </persistent>
+    </extension>
+
+    <extension
+            point="org.eclipse.ui.views">
+        <category
+                name="CodeChecker"
+                id="org.codechecker.eclipse.plugin.CodeChecker">
+        </category>
+        <view
+                name="Current File"
+                icon="icons/sample.gif"
+                category="org.codechecker.eclipse.plugin.CodeChecker"
+                class="org.codechecker.eclipse.plugin.views.report.list.ReportListView"
+                id="org.codechecker.eclipse.plugin.views.ReportList">
+        </view>
+        <view
+                name="Current Project"
+                icon="icons/sample.gif"
+                category="org.codechecker.eclipse.plugin.CodeChecker"
+                class="org.codechecker.eclipse.plugin.views.report.list.ReportListViewProject"
+                id="org.codechecker.eclipse.plugin.views.ReportListProject">
+        </view>
+        <view
+                name="Custom Config"
+                icon="icons/sample.gif"
+                category="org.codechecker.eclipse.plugin.CodeChecker"
+                class="org.codechecker.eclipse.plugin.views.report.list.ReportListViewCustom"
+                id="org.codechecker.eclipse.plugin.views.ReportListViewCustom">
+        </view>
+    </extension>
+    <extension
+        point="org.eclipse.ui.console.consoleFactories">
+        <consoleFactory
+             class="org.codechecker.eclipse.plugin.views.console.ConsoleFactory"
+             icon="icons/sample.gif"
+             label="CodeChecker Console">
+        </consoleFactory>
+    </extension>
+    <extension
+            point="org.eclipse.help.contexts">
+        <contexts
+                file="contexts.xml">
+        </contexts>
+    </extension>
+    <extension
+            point="org.eclipse.ui.perspectives">
+        <perspective
+                class="org.codechecker.eclipse.plugin.perspective.CodeCheckerPerspectiveFactory"
+                id="cc.codechecker.eclipse.checkerPerspective"
+                name="CodeChecker">
+        </perspective>
+    </extension>
+    <extension
+            id="org.codechecker.eclipse.plugin.CodeCheckerNature"
+            point="org.eclipse.core.resources.natures">
+        <runtime>
+            <run
+                    class="org.codechecker.eclipse.plugin.CodeCheckerNature">
+            </run>
+        </runtime>
+    </extension>
+    <!-- TODO: remove this dependency!!! -->
+    <extension
+            point="org.eclipse.ui.startup">
+        <startup
+                class="org.codechecker.eclipse.plugin.Activator">
+        </startup>
+    </extension>
+
+</plugin>
