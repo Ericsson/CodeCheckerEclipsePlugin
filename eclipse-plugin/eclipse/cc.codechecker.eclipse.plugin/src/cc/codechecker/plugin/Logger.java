@@ -1,5 +1,8 @@
 package cc.codechecker.plugin;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 
@@ -27,5 +30,17 @@ public class Logger {
     //logs to CodeChecker console
     public static void consoleLog(String message){
         ConsoleFactory.consoleWrite(message);
+    }
+    
+    /**
+     * Returns Stack Trace as String.
+     * @param throwable The exception in question.
+     * @return The Stack Trace as String.
+     */
+    public static String getStackTrace(final Throwable throwable) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        throwable.printStackTrace(pw);
+        return sw.getBuffer().toString();
     }
 }

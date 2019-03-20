@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.IContributedEnvironment;
@@ -31,7 +32,6 @@ import cc.codechecker.plugin.Logger;
 import cc.codechecker.plugin.config.Config.ConfigLogger;
 import cc.codechecker.plugin.config.Config.ConfigTypes;
 import cc.codechecker.plugin.runtime.CodeCheckEnvironmentChecker;
-import cc.codechecker.plugin.runtime.CodecheckerServerThread;
 
 /**
  * Stores and manages configurations related to projects and the plug-in.
@@ -160,7 +160,7 @@ public class CcConfiguration {
      * @param global If null the projects internal boolean decides which to return.
      * @return The configuration which has chosen.
      */
-    public Map<ConfigTypes, String> getProjectConfig(Boolean global) {
+    public Map<ConfigTypes, String> getProjectConfig(@Nullable Boolean global) {
         Map<ConfigTypes, String> retConfig = new HashMap<>();
         retConfig.putAll(projectOnlyConfig);
         if (global == null) {
@@ -211,7 +211,6 @@ public class CcConfiguration {
         try {
             projectPreferences.flush();
             storeLoadedPreferences();
-            updateServer(CodeCheckerContext.getInstance().getServerObject(project));
         } catch (BackingStoreException e) {
             Logger.log(IStatus.ERROR, e.getMessage());
             e.printStackTrace();
@@ -219,11 +218,11 @@ public class CcConfiguration {
     }
 
     /**
-     * Return File location relative  to project location.
+     * Return File location relative to project location.
      * @param projectRelativeFile The file in question.
      * @return The location.
      */
-    public String convertFilenameToServer(String projectRelativeFile) {
+    public String getAsProjectRelativePath(String projectRelativeFile) {
         return getLocationPrefix() + projectRelativeFile;
     }
 
@@ -237,14 +236,14 @@ public class CcConfiguration {
 
     /**
      * Strips path from file location.
-     * @param serverFile Only the filename needed from this.
+     * @param path Only the filename needed from this.
      * @return Filename stripped of it's path prefix.
      */
-    public String convertFilenameFromServer(String serverFile) {
+    public String stripProjectPathFromFilePath(String path) {
         if (getLocationPrefix().equals(STR_EMPTY)) {
-            return serverFile;
+            return path;
         }
-        return serverFile.replace(getLocationPrefix(), STR_EMPTY);
+        return path.replace(getLocationPrefix(), STR_EMPTY);
     }
 
     /**
@@ -260,18 +259,6 @@ public class CcConfiguration {
         if (!workDir.exists()) {
             Boolean b = workDir.mkdir();
             Logger.log(IStatus.INFO, "Making directory " + b);
-        }
-    }
-
-    /**
-     * TODO Will be deleted in next patch.
-     * @param server .
-     */
-    public void updateServer(CodecheckerServerThread server) {
-        if (project!=null){
-            Logger.log(IStatus.INFO, "Updating Server" + project.getName());
-            CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getProjectConfig(null));
-            server.setCodecheckerEnvironment(ccec);
         }
     }
 
@@ -307,6 +294,17 @@ public class CcConfiguration {
                 Logger.log(IStatus.INFO, e.getStackTrace().toString());
             }
         }
+    }
+
+    /**
+     *
+     * @return Returns the newly generated analyze log location.
+     */
+    public String getLogFileLocation() {
+        CodeCheckEnvironmentChecker ccec = new CodeCheckEnvironmentChecker(getProjectConfig(null));
+        String logFile = ccec.getLogFileLocation();
+        Logger.log(IStatus.INFO,"Logfile being used is: " + logFile);
+        return logFile;
     }
 
     /**

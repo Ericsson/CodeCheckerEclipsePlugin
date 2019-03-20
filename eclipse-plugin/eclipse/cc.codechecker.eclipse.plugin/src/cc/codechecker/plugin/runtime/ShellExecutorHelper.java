@@ -3,6 +3,8 @@ package cc.codechecker.plugin.runtime;
 import com.google.common.base.Optional;
 
 import org.apache.commons.exec.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.*;
 import java.util.Map;
@@ -67,6 +69,28 @@ public class ShellExecutorHelper {
     }
 
     /**
+     * Job {@link IProgressMonitor} compatible version of the standard
+     * {@link #waitReturnOutput(String,boolean) waitReturnOutput} method.
+     * @param script The string that will be executed.
+     * @param logToConsole If true the execution log will appear on console log.
+     * @param monitor The progress monitor that can be incremented.
+     * @param taskCount The number of separate jobs.
+     * @return The process return value as a String wrapped in an @link {@link Optional}.
+     */
+    public Optional<String> progressableWaitReturnOutput(String script,boolean logToConsole,
+            IProgressMonitor monitor, int taskCount) {
+        Executor ec = build();
+        try {
+            AllLineReader olr = new ProgressableAllLineReader(logToConsole, monitor, taskCount);
+            ec.setStreamHandler(new PumpStreamHandler(olr));
+            ec.execute(buildScriptCommandLine(script), environment);
+            return Optional.of(olr.getOutput());
+        } catch (IOException e) {
+            return Optional.absent();
+        }
+    }
+
+    /**
      * Executes the given bash script with a one sec time limit and returns based on it's exit
      * status.
      *
@@ -82,17 +106,6 @@ public class ShellExecutorHelper {
             return false;
         }
     }
-
-    //TODO UPLIFT
-    /*public Executable getServerObject(String cmd) {
-        Executor ec = build();
-        PidObject pidObject = new PidObject();
-        ec.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
-        ServerSLoggerReader olr = new ServerSLoggerReader(pidObject);
-        ec.setStreamHandler(new PumpStreamHandler(olr));
-        return new Executable(ec, buildScriptCommandLine("echo \"PID> $BASHPID\" ; " + cmd),
-                pidObject);
-    }*/
 
     private CommandLine buildScriptCommandLine(String script) {
         CommandLine cl = new CommandLine("/bin/bash");
@@ -194,6 +207,43 @@ public class ShellExecutorHelper {
             if (logToConsole){
                 SLogger.consoleLog(s);
             }
+        }
+    }
+
+    /**
+     * Extension of the standard {@link AllLineReader}, added {@link IProgressMonitor} as member.
+     *
+     */
+    class ProgressableAllLineReader extends AllLineReader {
+
+        private IProgressMonitor submonitor;
+
+        /**
+         * Constructor.
+         */
+        public ProgressableAllLineReader() {
+            super();
+        }
+
+        /**
+         *
+         * @param ltc Log to Console - If true the execution log will appear on console log.
+         * @param monitor The progress monitor that can be incremented.
+         * @param taskCount The number of separate jobs.
+         */
+        public ProgressableAllLineReader(boolean ltc, IProgressMonitor monitor, int taskCount) {
+            super(ltc);
+            submonitor = SubMonitor.convert(monitor, taskCount);
+        }
+
+        @Override
+        protected void processLine(String s, int i) {
+            submonitor.setTaskName(s);
+            int pos = s.indexOf("successfully");
+            if (pos != -1) {
+                submonitor.worked(1);
+            }
+            super.processLine(s, i);
         }
     }
 

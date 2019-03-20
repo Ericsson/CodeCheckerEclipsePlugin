@@ -7,6 +7,11 @@ import org.eclipse.core.runtime.CoreException;
 import cc.codechecker.plugin.config.CcConfiguration;
 import cc.codechecker.plugin.config.CodeCheckerContext;
 
+/**
+ * Eclipse uses natures as project feature indicators.
+ * This class adds CodeChecker related nature.
+ *
+ */
 public class CodeCheckerNature implements IProjectNature {
 
     public static final String NATURE_ID = "cc.codechecker.plugin.CodeCheckerNature";
@@ -20,10 +25,7 @@ public class CodeCheckerNature implements IProjectNature {
     }
 
     @Override
-    public void deconfigure() throws CoreException {
-        // TODO Auto-generated method stub
-
-    }
+    public void deconfigure() throws CoreException {}
 
     @Override
     public IProject getProject() {

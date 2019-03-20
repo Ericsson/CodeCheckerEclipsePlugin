@@ -83,7 +83,7 @@ public class Activator extends AbstractUIPlugin implements IStartup {
      */
     public void stop(BundleContext context) throws Exception {
         plugin = null;
-        CodeCheckerContext.getInstance().stopServers();
+        ConsoleFactory.consoleWrite("CodeChecker Plugin Stopped");
         super.stop(context);
     }
 

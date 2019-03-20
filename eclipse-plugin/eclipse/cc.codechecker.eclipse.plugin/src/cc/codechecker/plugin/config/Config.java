@@ -11,7 +11,6 @@ import cc.codechecker.plugin.Logger;
 
 /**
  * Classes for handling actual configuration entries, and logging.
- * @author vodorok
  *
  */
 public class Config {
@@ -19,7 +18,6 @@ public class Config {
      * Represents all available configuraton values.
      * Watch form marking comments, because specialized sets (Common, Project)
      * are returned using enumset range,
-     * @author vodorok
      *
      */
     public enum ConfigTypes {
@@ -80,7 +78,6 @@ public class Config {
     
     /**
      * Utility class for easier config logging.
-     * @author vodorok
      *
      */
     public static class ConfigLogger {

@@ -40,7 +40,6 @@ import cc.codechecker.plugin.utils.CheckerItem.LAST_ACTION;
 
 /**
  * Global and project level preferences pages.
- * @author vodorok
  *
  */
 public class CommonGui {

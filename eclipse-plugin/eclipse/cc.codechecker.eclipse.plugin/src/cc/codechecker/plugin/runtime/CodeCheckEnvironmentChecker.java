@@ -4,18 +4,22 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 import cc.codechecker.plugin.config.Config.ConfigTypes;
 
 
-/** This class does....
- * 
+/**
+ * This class checks for Environments used by CodeChecker.
+ *
  */
 public class CodeCheckEnvironmentChecker {
 
-
+    private static final String COMPILATION_COMMANDS = "compilation_commands.json.javarunner";
+    
     public final Optional<String> pythonEnvironment;
     public final String checkerDir; // root directory of CodeChecker
     public final String codeCheckerCommand; // CodecCheker executable path   
@@ -58,14 +62,19 @@ public class CodeCheckEnvironmentChecker {
         environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
 
-        environmentAddList = new HashMap<String, String>(){{
-            put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
-            put("_", checkerDir + "/bin/CodeChecker");
-            put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
-            put("LD_PRELOAD","ldlogger.so");
-            put("CC_LOGGER_FILE", getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner");
-            put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
-        }};
+        environmentAddList = new HashMap<String, String>(){
+            {
+                put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
+                put("_", checkerDir + "/bin/CodeChecker");
+                put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
+                put("LD_PRELOAD","ldlogger.so");
+                put("CC_LOGGER_FILE", getConfigValue(
+                        ConfigTypes.CHECKER_WORKSPACE) + 
+                        File.pathSeparator + 
+                        COMPILATION_COMMANDS);
+                put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
+            }
+        };
 
         if(pythonEnvironment.isPresent()) {
             String pythonEnv = pythonEnvironment.get();
@@ -76,16 +85,17 @@ public class CodeCheckEnvironmentChecker {
 
     /**
      * Checks if the given path to CodeChecker is valid.
-     * @param environmentBefore
-     * @param codeCheckerCommand
+     * @param config The Configuration to be used, 
+     *              populated with {@link ConfigTypes}.
+     * @param codeCheckerBinaryPath Path to CodeChecker.
      */
     public static void getCheckerEnvironment(
-            Map<ConfigTypes, String> config, String codeCheckerCommand) {
+            Map<ConfigTypes, String> config, String codeCheckerBinaryPath) {
 
         ShellExecutorHelper she = new ShellExecutorHelper(
                 getInitialEnvironment(Optional.of(config.get(ConfigTypes.PYTHON_PATH))));
 
-        String cmd=codeCheckerCommand + " -h";
+        String cmd=codeCheckerBinaryPath + " -h";
         SLogger.log(LogI.INFO, "Testing " + cmd);
         Optional<String> ccEnvOutput = she.quickReturnOutput(cmd);
         double test = 0;
@@ -104,7 +114,7 @@ public class CodeCheckEnvironmentChecker {
     /**
      * Returns new environment if using Python virtual environment or System env if not.
      * @param pythonEnvironment Path to Python virtual environment activator.
-     * @return The environemt to be used.
+     * @return The environment to be used.
      */
     private static ImmutableMap<String, String> getInitialEnvironment(Optional<String> pythonEnvironment) {
         if (pythonEnvironment.isPresent()) {
@@ -142,19 +152,8 @@ public class CodeCheckEnvironmentChecker {
     }
 
     public String getLogFileLocation() {
-        return getConfigValue(ConfigTypes.CHECKER_WORKSPACE) + "/compilation_commands.json.javarunner";
-    }
-
-    // renames the logfile, to avoid concurrency issues
-    public Optional<String> moveLogFile() {
-        File f = new File(getLogFileLocation());
-        if (f.exists()) {
-            String newName = getLogFileLocation() + System.nanoTime();
-            f.renameTo(new File(newName));
-
-            return Optional.of(newName);
-        }
-        return Optional.absent();
+        return getConfigValue(ConfigTypes.CHECKER_WORKSPACE) +
+                File.pathSeparator + COMPILATION_COMMANDS;
     }
 
     /**
@@ -167,49 +166,35 @@ public class CodeCheckEnvironmentChecker {
              " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" +
              " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
     }
-    
+
     /**
      * Executes CodeChecker check command
      * on the build log received in the fileName parameter.
      * @param fileName Build log in the http://clang.llvm.org/docs/JSONCompilationDatabase.html format.
+     * @param logToConsole Flag for indicating console logging
+     * @param monitor ProgressMonitor for to be able to increment progress bar.
+     * @param taskCount How many analyze step to be taken.
      * @return CodeChecker check command output
      */
-    public String processLog(String fileName, boolean logToConsole) {
+    public String processLog(String fileName, boolean logToConsole, IProgressMonitor monitor, int taskCount) {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = createAnalyzeCommmand(fileName);
 
         SLogger.log(LogI.INFO, "SERVER_SER_MSG >> processLog >> "+ cmd);
-        Optional<String> ccOutput = she.waitReturnOutput(cmd,logToConsole);
-
+        //Optional<String> ccOutput = she.waitReturnOutput(cmd,logToConsole);
+        Optional<String> ccOutput = she.progressableWaitReturnOutput(cmd,logToConsole, monitor, taskCount);
         if (ccOutput.isPresent()) {
             // assume it succeeded, and delete the log file...
-
-        	she = new ShellExecutorHelper(environmentBefore);
-
-        	//Optional<String> storeOutput = she.waitReturnOutput(createStoreCommand(), logToConsole);
-        	//ccOutput.get().concat(storeOutput.or(""));
-        	//TODO delete report folder
-        	
-        	//Parse last run
             File f = new File(fileName);
             f.delete();
         }
-
         return ccOutput.or("");
     }
 
-    public String parseAnalyzeResult(){
-    	ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
-		return null;
-    	
-    }
-    
     public String getCheckerList() {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = codeCheckerCommand + " checkers";
         Optional<String> ccOutput = she.waitReturnOutput(cmd,false);
         return ccOutput.or("");
     }
-
-
 }
