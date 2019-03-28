@@ -228,7 +228,7 @@ public class CcConfiguration {
 
     /**
      * Gets the projects containing folder on disk.
-     * @return The projects location with platform independent pathSeparator appended to it.
+     * @return The projects location with system dependent name-separator appended to it.
      */
     public String getLocationPrefix() {
         return project.getLocation().toOSString() + File.separator;
