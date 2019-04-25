@@ -25,7 +25,6 @@ import com.google.common.base.Optional;
 
 import org.codechecker.eclipse.plugin.report.BugPathItem;
 import org.codechecker.eclipse.plugin.report.SearchList;
-import org.codechecker.eclipse.plugin.config.CcConfiguration;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
 import org.codechecker.eclipse.plugin.config.filter.Filter;
 import org.codechecker.eclipse.plugin.config.filter.FilterConfiguration;
@@ -182,8 +181,8 @@ public class ReportListView extends ViewPart {
     }
 
     private void jumpToBugPosition(BugPathItem bpi) {
-        CcConfiguration config = CodeCheckerContext.getInstance().getConfigForProject(currentProject);
-        String relName = config.stripProjectPathFromFilePath(bpi.getFile());
+        String relName = CodeCheckerContext.getInstance().getCcProject(currentProject)
+                .stripProjectPathFromFilePath(bpi.getFile());
         IFile fileinfo = currentProject.getFile(relName);
 
         if (fileinfo != null && fileinfo.exists()) {

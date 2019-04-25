@@ -24,6 +24,7 @@ public final class GuiUtils {
     public static final String C_CPP_BUILD = "C/C++ Build";
     public static final String C_CPP_PESPECTIVE = "C/C++";
     public static final String CPP_PROJECT = "C++ Project";
+    public static final String DELETE_RESOURCES = "Delete Resources";
     public static final String ENVIRONMENT = "Environment";
     public static final String FINISH = "Finish";
     public static final String OPEN_PERSP = "Open Perspective";
@@ -127,7 +128,8 @@ public final class GuiUtils {
      */
     public static void deleteProject(String projectName, boolean deleteFromDisk, SWTWorkbenchBot bot) {
         bot.tree().getTreeItem(projectName).contextMenu("Delete").click();
-        SWTBotShell shell = bot.shell("Delete Resources");
+        bot.waitUntil(Conditions.shellIsActive(DELETE_RESOURCES));
+        SWTBotShell shell = bot.shell(DELETE_RESOURCES);
         shell.activate();
         if (deleteFromDisk)
             bot.checkBox("Delete project contents on disk (cannot be undone)").select();

@@ -29,6 +29,8 @@ import org.codechecker.eclipse.plugin.ExternalLogger;
 import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.config.CcConfiguration;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
+import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
 import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
 import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
@@ -71,7 +73,7 @@ public class StartupJob extends Job {
      * @return Return Status.
      */
     public IStatus runInUIThread(IProgressMonitor monitor) {
-        CcConfiguration.initGlobalConfig();
+        CcGlobalConfiguration.getInstance();
         
         try { // TODO: find a better solution...
             Thread.sleep(WAIT_TIME);
@@ -83,7 +85,8 @@ public class StartupJob extends Job {
 
         Logger.log(IStatus.INFO, "adding addResourceChangeListener ");
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener(),
-                IResourceChangeEvent.POST_BUILD | IResourceChangeEvent.POST_CHANGE | IResourceDelta.OPEN);
+                IResourceChangeEvent.POST_BUILD | IResourceChangeEvent.POST_CHANGE |
+                IResourceDelta.OPEN | IResourceChangeEvent.PRE_DELETE);
         
         // check all open projects
         for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
@@ -118,8 +121,8 @@ public class StartupJob extends Job {
         }
         Logger.log(IStatus.INFO, "CodeChecker nature found!");
         
-        CcConfiguration config = new CcConfiguration(project);
-        CodeCheckerContext.getInstance().setConfig(project, config);
+        CodeCheckerProject cCProject = new CodeCheckerProject(project);
+        CodeCheckerContext.getInstance().addCodeCheckerProject(cCProject);
 
         PlistParseJob plistParseJob = new PlistParseJob(project);
         plistParseJob.addJobChangeListener(new JobDoneChangeListener() {
@@ -149,6 +152,23 @@ public class StartupJob extends Job {
         @Override
         public void resourceChanged(final IResourceChangeEvent event) {
             switch (event.getType()) {
+                // before delete unregister project.
+                case IResourceChangeEvent.PRE_DELETE: {
+                    //In PRE_DELETE the resource will always be a project according to the docs.
+                    IProject preDeleteProj = event.getResource().getProject();
+                    Logger.log(IStatus.INFO, "Project " + preDeleteProj.getName() + " is about to be deleted.");
+                    try {
+                        if (preDeleteProj != null && preDeleteProj.hasNature(CodeCheckerNature.NATURE_ID)) {
+                            CodeCheckerContext.getInstance().removeCcProject(preDeleteProj).cleanUp();
+                        }
+                    } catch (CoreException e) {
+                        Logger.log(IStatus.ERROR, "Stopped managing " + preDeleteProj.getName() + " in context of"
+                                + "CodeChecker.");
+                        e.printStackTrace();
+                    }
+
+                    break;
+                }
                 case IResourceChangeEvent.PRE_BUILD: {
                     Logger.log(BUILD, "PreBuild");
                     break;
@@ -198,6 +218,8 @@ public class StartupJob extends Job {
                 default:
                     break;
             }
+            if (event == null || event.getDelta() == null)
+                return;
             try {
                 event.getDelta().accept(new IResourceDeltaVisitor() {
                     public boolean visit(final IResourceDelta delta) throws CoreException {

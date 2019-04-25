@@ -11,9 +11,12 @@ import org.codechecker.eclipse.rcp.shared.utils.Utils;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.waits.Conditions;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,12 +49,11 @@ public class PluginTest {
 
         Path file = null;
         try {
-            file = Utils.loadFileFromBundle("org.codechecker.eclipse.rcp.it.tests",
-                    Utils.RES + CPP_PROJ);
+            file = Utils.loadFileFromBundle("org.codechecker.eclipse.rcp.it.tests", Utils.RES + CPP_PROJ);
         } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
         }
-        
+
         Utils.copyFolder(file,
                 Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString() + File.separator));
 
@@ -65,7 +67,22 @@ public class PluginTest {
     }
 
     /**
-     * Test that after adding nature to a C project, the add nature menu item disappears.
+     * Delete project from Workspace so others can import it.
+     */
+    @AfterClass
+    public static void afterClass() {
+        bot.tree().getTreeItem(CPP_PROJ).contextMenu("Delete").click();
+        SWTBotShell shell = bot.shell("Delete Resources");
+        shell.activate();
+
+        bot.checkBox("Delete project contents on disk (cannot be undone)").select();
+        bot.button("OK").click();
+        bot.waitUntil(Conditions.shellCloses(shell));
+    }
+
+    /**
+     * Test that after adding nature to a C project, the add nature menu item
+     * disappears.
      */
     @Test
     public void testAddNatureDisappears() {

@@ -30,9 +30,10 @@ import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
-
 import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
+import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 import org.codechecker.eclipse.plugin.itemselector.CheckerView;
 import org.codechecker.eclipse.plugin.runtime.CodeCheckEnvironmentChecker;
 import org.codechecker.eclipse.plugin.utils.CheckerItem;
@@ -59,7 +60,8 @@ public class CommonGui {
                               // specific preferences
     private boolean useGlobalSettings;// if this is project specific page,
                                       // whether to use global preferences
-    private CcConfiguration config;
+    private CcConfigurationBase config;
+    private CodeCheckerProject cCProject;
     private Text codeCheckerDirectoryField;// codechecker dir
     private Text pythonEnvField;// CodeChecker python env
     private Text numThreads;// #of analysis threads
@@ -75,6 +77,7 @@ public class CommonGui {
      * Constructor to be used, when only global preferences are to be set.
      */
     public CommonGui() {
+        config = CcGlobalConfiguration.getInstance();
         globalGui = true;
     }
 	
@@ -83,8 +86,9 @@ public class CommonGui {
 	 * @param proj The project which preferences to be set
 	 */
     public CommonGui(IProject proj) {
-        config = CodeCheckerContext.getInstance().getConfigForProject(proj);
-        useGlobalSettings = config.isGlobal();
+        cCProject = CodeCheckerContext.getInstance().getCcProject(proj);
+        config = cCProject.getCurrentConfig();
+        useGlobalSettings = cCProject.isGlobal();
         globalGui = false;
     }
 
@@ -220,9 +224,9 @@ public class CommonGui {
                     @Override
                     public void run() {
                         Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                        Map<ConfigTypes, String> config = getConfigFromFields();
+                        //Map<ConfigTypes, String> config = getConfigFromFields();
                         try {
-                            CodeCheckEnvironmentChecker checkerEnv = new CodeCheckEnvironmentChecker(config);
+                            CodeCheckEnvironmentChecker checkerEnv = new CodeCheckEnvironmentChecker(cCProject);
                             ArrayList<CheckerItem> checkersList = getCheckerList(checkerEnv);
                             CheckerView dialog = new CheckerView(activeShell, checkersList);
 
@@ -240,7 +244,6 @@ public class CommonGui {
             }
         });
         if (!globalGui) {
-            useGlobalSettings = config.isGlobal();
             recursiveSetEnabled(checkerConfigSection, !useGlobalSettings);
             final Composite client3 = toolkit.createComposite(globalConfigSection);
             client3.setLayout(new GridLayout(2, true));
@@ -249,18 +252,24 @@ public class CommonGui {
             globalcc.setSelection(useGlobalSettings);
             globalcc.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
-                    recursiveSetEnabled(checkerConfigSection, false);
-                    useGlobalSettings = true;
-                    setFields(config.getProjectConfig(useGlobalSettings));
+                    if (globalcc.getSelection()) {
+                        recursiveSetEnabled(checkerConfigSection, false);
+                        useGlobalSettings = true;
+                        config = cCProject.getGlobal();
+                        setFields(config.get());
+                    }
                 }
             });
             projectcc = toolkit.createButton(client3, "Use project configuration", SWT.RADIO);
             projectcc.setSelection(!useGlobalSettings);
             projectcc.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
-                    recursiveSetEnabled(checkerConfigSection, true);
-                    useGlobalSettings = false;
-                    setFields(config.getProjectConfig(useGlobalSettings));
+                    if (projectcc.getSelection()) {
+                        recursiveSetEnabled(checkerConfigSection, true);
+                        useGlobalSettings = false;
+                        config = cCProject.getLocal();
+                        setFields(config.get());
+                    }
                 }
             });
 
@@ -348,11 +357,7 @@ public class CommonGui {
     public Map<ConfigTypes, String> loadConfig(boolean resetToDefault) {
         Map<ConfigTypes, String> ret = null;
         if (!resetToDefault) {
-            if (globalGui)
-                ret = CcConfiguration.getGlobalConfig();
-            else {
-                ret = config.getProjectConfig(null);
-            }
+            ret = config.get();
         } else
             ret = config.getDefaultConfig();
 
@@ -396,18 +401,9 @@ public class CommonGui {
         conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
-
-        String g = "true";
-        if (!useGlobalSettings)
-            g = "false";
-        conf.put(ConfigTypes.IS_GLOBAL, g);
-        Logger.log(IStatus.INFO, "Saving project settings: IS_GLOBAL:" + g);
-
-        if (globalGui) {
-            CcConfiguration.updateGlobalConfig(conf);
-        } else {
-            config.updateProjectConfig(conf);
-        }
+        config.update(conf);
+        if(!globalGui)
+            cCProject.useGlobal(useGlobalSettings);
     }
 	
     /**

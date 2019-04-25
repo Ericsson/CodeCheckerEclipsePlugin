@@ -1,15 +1,15 @@
 package org.codechecker.eclipse.plugin.runtime;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
+import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
+import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-
-import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 
 
 /**
@@ -18,37 +18,33 @@ import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
  */
 public class CodeCheckEnvironmentChecker {
 
-    private static final String COMPILATION_COMMANDS = "compilation_commands.json.javarunner";
-    
     public final Optional<String> pythonEnvironment;
     public final String checkerDir; // root directory of CodeChecker
     public final String codeCheckerCommand; // CodecCheker executable path   
     private Map<ConfigTypes,String> config;
+    private CodeCheckerProject project;
     private String checkerList;
 
 	//with specific python. This
     // can be used to run CodeChecker
     public final ImmutableMap<String, String> environmentBefore; 
-    public Map<String, String> environmentAddList;
 
-    public Map<String, String> getEnvironmentAddList() {
-        return environmentAddList;
-    }
-
-    public  Map<ConfigTypes,String> getConfig(){
-        return config;
-    }
-
-    private String getConfigValue(ConfigTypes key) {
-        if (config.containsKey(key))
-            return config.get(key);
+    /**
+     * 
+     * @param project
+     *            The project that will be used for constructing the Environment
+     *            checker.
+     */
+    public CodeCheckEnvironmentChecker(CodeCheckerProject project) {
+        this.project = project;
+        if (project != null)
+            config = project.getCurrentConfig().get();
+        // This is bad design, but until further refactoring it should do.
         else
-            return "";
-    }
+            config = CcGlobalConfiguration.getInstance().get();
 
-    public CodeCheckEnvironmentChecker(Map<ConfigTypes,String> config_m) {
-        config=config_m;
-        if (!config.containsKey(ConfigTypes.PYTHON_PATH) || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
+        if (!config.containsKey(ConfigTypes.PYTHON_PATH)
+                || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
             pythonEnvironment=Optional.absent();
             SLogger.log(LogI.INFO, "pythonenv is not set");
         }
@@ -57,30 +53,29 @@ public class CodeCheckEnvironmentChecker {
             pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
         }
 
-        checkerList=getConfigValue(ConfigTypes.CHECKER_LIST);
+        //checkerList=getConfigValue(ConfigTypes.CHECKER_LIST);
         checkerDir=getConfigValue(ConfigTypes.CHECKER_PATH);
         environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
+    }
 
-        environmentAddList = new HashMap<String, String>(){
-            {
-                put("LD_LIBRARY_PATH", checkerDir + "/ld_logger/lib");
-                put("_", checkerDir + "/bin/CodeChecker");
-                put("CC_LOGGER_GCC_LIKE", getConfigValue(ConfigTypes.COMPILERS));
-                put("LD_PRELOAD","ldlogger.so");
-                put("CC_LOGGER_FILE", getConfigValue(
-                        ConfigTypes.CHECKER_WORKSPACE) + 
-                        File.separator +
-                        COMPILATION_COMMANDS);
-                put("CC_LOGGER_BIN", checkerDir + "/bin/ldlogger");
-            }
-        };
+    /**
+     * @return The Config thats used in the CodeCheckEnvironmentChecker.
+     */
+    public Map<ConfigTypes, String> getConfig() {
+        return config;
+    }
 
-        if(pythonEnvironment.isPresent()) {
-            String pythonEnv = pythonEnvironment.get();
-            environmentAddList.put("PATH", pythonEnv + "/bin:");
-            environmentAddList.put("VIRTUAL_ENV", pythonEnv);
-        }
+    /**
+     * @param key
+     *            The config key for the interesting value.
+     * @return The value for the key or an empty String if it can't be found.
+     */
+    private String getConfigValue(ConfigTypes key) {
+        if (config.containsKey(key))
+            return config.get(key);
+        else
+            return "";
     }
 
     /**
@@ -151,11 +146,6 @@ public class CodeCheckEnvironmentChecker {
         this.checkerList = list;
     }
 
-    public String getLogFileLocation() {
-        return getConfigValue(ConfigTypes.CHECKER_WORKSPACE) +
-                File.separator + COMPILATION_COMMANDS;
-    }
-
     /**
      * Creates a Codechecker analyze command.
      * @param buildLog Path to the compile commands file, which the analyze command uses.
@@ -164,7 +154,7 @@ public class CodeCheckEnvironmentChecker {
     public String createAnalyzeCommmand(String buildLog){
         return codeCheckerCommand + " analyze " + getConfigValue(ConfigTypes.CHECKER_LIST) +
              " -j "+ getConfigValue(ConfigTypes.ANAL_THREADS) + " -n javarunner" +
-             " -o "+ getConfigValue(ConfigTypes.CHECKER_WORKSPACE)+"/results/ " + buildLog;
+             " -o "+ project.getLogFileLocation().getParent().toString() +"/results/ " + buildLog;
     }
 
     /**
