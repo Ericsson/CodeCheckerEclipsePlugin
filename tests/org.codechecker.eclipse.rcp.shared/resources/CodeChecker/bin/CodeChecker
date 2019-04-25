@@ -7,6 +7,17 @@ import sys
 import argparse
 
 """
+Handler function for the checker list.
+"""
+def checkers(args):
+    print(' core.uninitialized.Assign\n'+
+            ' cplusplus.NewDeleteLeaks\n'+
+            ' cplusplus.NewDelete\n'+
+            ' cppcoreguidelines-no-malloc\n'+
+            ' unix.Malloc\n'+
+            ' unix.MallocSizeof')
+
+"""
 Handler function for version information.
 """
 def version(args):
@@ -44,6 +55,10 @@ def main(args):
 
     """ For function extension add a new subparser and a 
     default handler function to it, for the simplest operation """
+    checkers_parser = subparsers.add_parser('checkers',
+        help="List the checkers available for code analysis.")
+    checkers_parser.set_defaults(func=checkers)
+
     version_parser = subparsers.add_parser('version',
         help="Print the version of CodeChecker package that is being used.")
     version_parser.set_defaults(func=version)
