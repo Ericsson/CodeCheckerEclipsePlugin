@@ -1,0 +1,20 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.codechecker.eclipse</groupId>
+    <artifactId>org.codechecker.eclipse.root</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>org.codechecker.eclipse</groupId>
+        <artifactId>org.codechecker.eclipse.configuration</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>./releng/org.codechecker.eclipse.configuration</relativePath>
+    </parent>
+
+    <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>releng</module>
+        <module>tests</module>
+    </modules>
+</project>

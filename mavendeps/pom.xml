@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001 XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.reficio.rcp</groupId>
+    <artifactId>codechecker-mavendeps-p2-site</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.reficio</groupId>
+                <artifactId>p2-maven-plugin</artifactId>
+                <version>1.3.0</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <configuration>
+                            <artifacts>
+                                <artifact><id>javax.xml.parsers:jaxp-api:1.4.5</id></artifact>
+                                <artifact><id>com.google.code.gson:gson:2.3.1</id></artifact>
+                                <artifact><id>com.googlecode.plist:dd-plist:1.21</id></artifact>
+                                <artifact><id>com.google.guava:guava:26.0-jre</id></artifact>
+                                <artifact><id>joda-time:joda-time:2.10.1</id></artifact>
+                                <artifact><id>log4j:log4j:1.2.17</id></artifact>
+                                <artifact><id>org.apache.commons:commons-exec:1.3</id></artifact>
+                                <artifact><id>org.apache.commons:commons-lang3:3.0</id></artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

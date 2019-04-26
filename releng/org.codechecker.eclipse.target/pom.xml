@@ -1,0 +1,14 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.codechecker.eclipse</groupId>
+        <artifactId>org.codechecker.eclipse.releng</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <groupId>org.codechecker.eclipse</groupId>
+    <artifactId>org.codechecker.eclipse.target</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>eclipse-target-definition</packaging>
+
+</project>
+

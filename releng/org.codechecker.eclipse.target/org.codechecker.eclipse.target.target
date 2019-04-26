@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?><target name="org.codechecker.eclipse.target" sequenceNumber="32">
+<locations>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.7.0.201806111355"/>
+<unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="2.7.0.201806111355"/>
+<unit id="org.eclipse.swtbot.feature.group" version="2.7.0.201806111355"/>
+<unit id="org.eclipse.swtbot.forms.feature.group" version="2.7.0.201806111355"/>
+<unit id="org.eclipse.swtbot.generator.feature.feature.group" version="2.7.0.201806111355"/>
+<unit id="org.eclipse.swtbot.ide.feature.group" version="2.7.0.201806111355"/>
+<repository location="http://download.eclipse.org/technology/swtbot/releases/latest"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.tm.terminal.control.feature.feature.group" version="4.0.0.201506040610"/>
+<repository location="https://download.eclipse.org/tm/terminal/updates/4.0/"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.cdt.feature.group" version="9.3.3.201710130142"/>
+<repository location="http://download.eclipse.org/tools/cdt/releases/9.3"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.equinox.sdk.feature.group" version="3.13.0.v20170531-1133"/>
+<unit id="org.eclipse.sdk.ide" version="4.7.0.I20170612-0950"/>
+<repository location="https://download.eclipse.org/eclipse/updates/4.7/"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.hamcrest" version="1.1.0.v20090501071000"/>
+<unit id="org.junit" version="4.12.0.v201504281640"/>
+<unit id="org.mockito" version="1.9.5.v201605172210"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository"/>
+</location>
+<location path="${project_loc}/../../mavendeps/target/repository" type="Directory"/>
+</locations>
+</target>

@@ -1,0 +1,18 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.codechecker.eclipse</groupId>
+    <artifactId>org.codechecker.eclipse.tests</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.codechecker.eclipse</groupId>
+        <artifactId>org.codechecker.eclipse.root</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>org.codechecker.eclipse.rcp.unit.tests</module>
+        <module>org.codechecker.eclipse.rcp.it.tests</module>
+    </modules>
+</project>

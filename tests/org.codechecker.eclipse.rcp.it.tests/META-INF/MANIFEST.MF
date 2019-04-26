@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Integration Tests
+Bundle-SymbolicName: org.codechecker.eclipse.rcp.it.tests
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Vodorok
+Fragment-Host: org.codechecker.eclipse.plugin
+Automatic-Module-Name: org.codechecker.eclipse.rcp.it.tests
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.junit;bundle-version="4.12.0",
+ org.hamcrest;bundle-version="1.1.0",
+ org.eclipse.swtbot.junit4_x;bundle-version="2.7.0",
+ org.eclipse.swtbot.swt.finder;bundle-version="2.7.0",
+ org.eclipse.cdt;bundle-version="9.3.3",
+ org.eclipse.cdt.ui;bundle-version="6.2.0",
+ org.eclipse.cdt.make.core;bundle-version="7.3.0",
+ org.eclipse.cdt.make.ui;bundle-version="7.3.0",
+ org.eclipse.cdt.build.gcc.core;bundle-version="1.0.0",
+ org.eclipse.cdt.gdb.ui;bundle-version="7.0.0",
+ org.eclipse.swtbot.eclipse.finder;bundle-version="2.7.0"

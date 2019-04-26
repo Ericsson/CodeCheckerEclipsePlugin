@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.codechecker.eclipse.feature"
+      label="CodeChecker Eclipse Plugin Core"
+      version="1.0.0.qualifier"
+      provider-name="Ericsson">
+
+   <description url="https://github.com/Ericsson/CodeCheckerEclipsePlugin">
+      [Enter Feature Description here.]
+   </description>
+
+   <copyright url="https://github.com/Ericsson/CodeCheckerEclipsePlugin">
+      [Enter Copyright Description here.]
+   </copyright>
+
+   <license url="https://github.com/Ericsson/CodeCheckerEclipsePlugin/blob/master/LICENSE">
+      [Enter License Description here.]
+   </license>
+
+   <plugin
+         id="com.googlecode.plist.dd-plist"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.guava"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.lang"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.exec"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="joda-time"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="log4j"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.gson"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.codechecker.eclipse.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

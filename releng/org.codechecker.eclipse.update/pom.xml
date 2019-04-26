@@ -1,0 +1,11 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.codechecker.eclipse</groupId>
+        <artifactId>org.codechecker.eclipse.releng</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>org.codechecker.eclipse.update</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>eclipse-repository</packaging>
+</project>
