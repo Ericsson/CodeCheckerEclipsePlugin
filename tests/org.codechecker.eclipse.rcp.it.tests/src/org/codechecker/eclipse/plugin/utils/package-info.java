@@ -1,4 +1,4 @@
 /**
- * Helper classes for unit testing.
+ * Helper classes for integration testing.
  */
 package org.codechecker.eclipse.plugin.utils;

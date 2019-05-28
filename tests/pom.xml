@@ -14,5 +14,24 @@
     <modules>
         <module>org.codechecker.eclipse.rcp.unit.tests</module>
         <module>org.codechecker.eclipse.rcp.it.tests</module>
+        <module>org.codechecker.eclipse.rcp.shared</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <configuration>
+                            <failOnViolation>true</failOnViolation>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

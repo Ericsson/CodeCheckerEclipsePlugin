@@ -1,0 +1,55 @@
+#!/usr/bin/python
+"""
+CodeChecker Stub used to emulate some CodeChecker commands for the tests.
+"""
+
+import sys
+import argparse
+
+"""
+Handler function for version information.
+"""
+def version(args):
+    print("""CodeChecker analyzer version:
+---------------------------------------------------------------
+Kind                 | Version                                 
+---------------------------------------------------------------
+Base package version | 1.2.3                                   
+Package build date   | 1970-01-01T00:00                        
+Git commit ID (hash) | 0000000000000000000000000000000000000000
+Git tag information  | 1.2.3                                   
+---------------------------------------------------------------
+
+CodeChecker web version:
+------------------------------------------------------------------------
+Kind                          | Version                                 
+------------------------------------------------------------------------
+Base package version          | 1.2.3                                   
+Package build date            | 1970-01-01T00:00                        
+Git commit ID (hash)          | 0000000000000000000000000000000000000000
+Git tag information           | 1.2.3                                   
+Configuration schema          | v1.0                                    
+Database schema               | v1.0                                    
+Server supported API (Thrift) | 1.2                                    
+Client API (Thrift)           | 1.2                                    
+------------------------------------------------------------------------""")
+
+def main(args):
+    parser = argparse.ArgumentParser(
+            prog='CodeChecker Stub',
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description='Used for testing the CodeChecker Eclipse plugin')
+
+    subparsers = parser.add_subparsers(help='commands')
+
+    """ For function extension add a new subparser and a 
+    default handler function to it, for the simplest operation """
+    version_parser = subparsers.add_parser('version',
+        help="Print the version of CodeChecker package that is being used.")
+    version_parser.set_defaults(func=version)
+
+    args = parser.parse_args()
+    args.func(args)
+
+if __name__ == "__main__":
+    main(sys.argv)
