@@ -1,18 +1,19 @@
 package org.codechecker.eclipse.plugin.report;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+
+import org.codechecker.eclipse.rcp.shared.utils.Utils;
+import org.eclipse.core.resources.IProject;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
-
-import java.io.File;
-
-import org.eclipse.core.resources.IProject;
-import org.junit.Before;
-import org.junit.Test;
-
-import utils.UrlFileLoader;
 
 public class PlistParserTest {
     private PlistParser parser;
@@ -26,11 +27,17 @@ public class PlistParserTest {
     @Test
     public void ParserTest1() {
 
-        File file = UrlFileLoader.getFileFromUrl("plists", "test_plist_1", "plist");
-        assertThat(file.exists(), is(equalTo(true)));
+        Path file = null;
+        try {
+            file = Utils.loadFileFromBundle("org.codechecker.eclipse.rcp.unit.tests",
+                    Utils.RES + "plists/test_plist_1.plist");
+        } catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
+        }
+        assertThat(file.toFile().exists(), is(equalTo(true)));
 
         SearchList sl = new SearchList();
-        parser.parsePlist(file, sl);
+        parser.parsePlist(file.toFile(), sl);
         assertThat(sl.getCheckers(), hasItem("alpha.core.SizeofPtr"));
     }
 

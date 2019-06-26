@@ -5,6 +5,7 @@
 *.swo
 
 # Eclipse
+bin/
 .idea
 *.iml
 target/
