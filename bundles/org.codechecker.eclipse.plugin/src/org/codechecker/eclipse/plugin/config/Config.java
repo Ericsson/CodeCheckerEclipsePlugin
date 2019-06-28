@@ -23,7 +23,7 @@ public class Config {
     public enum ConfigTypes {
         // Common configuration values
         CHECKER_PATH("codechecker_path"),
-        PYTHON_PATH("python_path"),
+        PYTHON_PATH(""),
         COMPILERS("gcc:g++:clang:clang++"),
         ANAL_THREADS("4"),
         CHECKER_LIST("enabled_checkers"),
@@ -132,7 +132,8 @@ public class Config {
          * Only logs when there is a message added.
          */
         public void log(){
-            if (messageBuilder != null ) Logger.log(IStatus.WARNING, header + messageBuilder.toString());
+            if (messageBuilder != null)
+                Logger.log(IStatus.WARNING, header + messageBuilder.toString());
         }
     }
 }
