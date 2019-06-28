@@ -11,7 +11,9 @@ import org.junit.runners.Suite.SuiteClasses;
  * Test Suite for running the gui tests. Add your class to the Suite class list.
  */
 @RunWith(Suite.class)
-@SuiteClasses({ PluginTest.class, IndicatorTest.class })
+@SuiteClasses({ PluginTest.class,
+    IndicatorTest.class,
+    ConfigurationTest.class})
 public class AllTests {
     
     /**

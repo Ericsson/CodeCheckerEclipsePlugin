@@ -2,20 +2,29 @@ dist: trusty
 install: true
 language: java
 jdk:
-    - oraclejdk8
-
-env: DISPLAY=:99.0
-
+- oraclejdk8
+env:
+  global:
+  - DISPLAY=:99.0
+  - secure: hrhXziFxLKT583LkTdvvnXtGLTlSnULBL5SRQKKDZdVWwqlKKWKxIBsFt8alKXDWbJOo8iLkt55nnOMw8mRg1aEfAqQSRDerzO6wBGS1vLgOSf/IAKAw6cWxVIxbJpX/wE0IrwgX+DSeZUjt3hqaVfDt6KxZ24BGISXJBaBpltDJATsayXCgRy5PMJcU4CN7Lxo+WbQ5EQHUV6gQDgZiYtvM5g+V6cunKFbAFJhm9qZGOjR5H8o7YnL1pbzUg2YIEWZ1YyvW/CE4GvbwczsmeR82JKj/dXFg9thy1+2XGXgQUr+jvSK6k0CEXDqNovHbLmDzBhwgEtADJRLC/HRSz1LbSSDAAv/8Gz6oAj3vASFEmy9SO8djSIlP/7cKsklYoCJ9MOeZJWCjkv59BmiiohreazJqjcCBXHeeSCoVoNkCbihPGyx1yD7J5w4oFnKomfVoQ0MbKQFSTyEdbRaz6TVjqEvu8jLuAF5DpitSGbTDN7TDw20yl9H6tUJv73PBTqzNkUBF7y4QPpQlin9uMQLELKh2zI2oGswwuC/YDGYtyUbe8fNsNmkYKwRCpisLpOtWrDGtUTBZUBNIZiKF5QdRUpqlWEKbClJBhtMMHDAheDCabneF3WHyNW6hZllCx2Y0yRf7MNG4+ZXySnN9WOGPj3/glovlDI1LJufIppY=
 before_install:
-    - sudo apt-get install at-spi2-core
-
+- sudo apt-get install at-spi2-core
 before_script:
-    - sh -e /etc/init.d/xvfb start
-    - sleep 10 # give xvfb some time to start
-
+- sh -e /etc/init.d/xvfb start
+- sleep 10
 script: mvn -f mavendeps/pom.xml p2:site && mvn clean verify
-
 after_failure:
-    - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/work/data/.metadata/.log
-    - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/surefire-reports/*
-
+- cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/work/data/.metadata/.log
+- cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/surefire-reports/*
+- cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.unit.tests/target/surefire-reports/*
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: "$GITHUB_TOKEN"
+  keep-history: true
+  local-dir: releng/org.codechecker.eclipse.update/target/repository
+  repo: vodorok/vodorok.github.io
+  target-branch: master
+  verbose: true
+  on:
+    tags: true

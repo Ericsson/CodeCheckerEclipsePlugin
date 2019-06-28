@@ -3,6 +3,15 @@ package org.codechecker.eclipse.plugin.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.codechecker.eclipse.plugin.CodeCheckerNature;
+import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
+import org.codechecker.eclipse.plugin.report.ReportParser;
+import org.codechecker.eclipse.plugin.report.SearchList;
+import org.codechecker.eclipse.plugin.views.report.list.ReportListView;
+import org.codechecker.eclipse.plugin.views.report.list.ReportListViewCustom;
+import org.codechecker.eclipse.plugin.views.report.list.ReportListViewListener;
+import org.codechecker.eclipse.plugin.views.report.list.ReportListViewProject;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -14,15 +23,6 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
-import org.codechecker.eclipse.plugin.CodeCheckerNature;
-import org.codechecker.eclipse.plugin.Logger;
-import org.codechecker.eclipse.plugin.report.ReportParser;
-import org.codechecker.eclipse.plugin.report.SearchList;
-import org.codechecker.eclipse.plugin.views.report.list.ReportListView;
-import org.codechecker.eclipse.plugin.views.report.list.ReportListViewCustom;
-import org.codechecker.eclipse.plugin.views.report.list.ReportListViewListener;
-import org.codechecker.eclipse.plugin.views.report.list.ReportListViewProject;
 /**
  * The Class CodeCheckerContext.
  */
@@ -41,7 +41,7 @@ public class CodeCheckerContext {
 
     private Map<IProject, SearchList> reports = new HashMap<>();
     
-    private Map<IProject, CcConfiguration> configs = new HashMap<>();
+    private final Map<IProject, CodeCheckerProject> projects = new HashMap<>();
 
     /**
      * Class constructor.
@@ -49,26 +49,27 @@ public class CodeCheckerContext {
     private CodeCheckerContext() {}
 
     /**
-     * Returns a {@link CcConfiguration} object.
-     * .
-     * @param project The project in question.
-     * @return If there is no CcConfiguration stored, then creates a new instance.
+     * Adds a {@link CodeCheckerProject} to the context.
+     * @param project The new project to be added.
      */
-    public CcConfiguration getConfigForProject(IProject project) {
-    	if (!configs.containsKey(project)) 
-    		setConfig(project, new CcConfiguration(project));
-        CcConfiguration.logConfig(configs.get(project).getProjectConfig(null));
-    	return configs.get(project);
+    public void addCodeCheckerProject(CodeCheckerProject project) {
+        projects.put(project.getRelatedProject(), project);
     }
 
     /**
-     * Store a {@link CcConfiguration} object associated with a project.
-     * If there is a configuration already stored, it will be overwritten.
-     * @param project The project in subject.
-     * @param config The new configuration.
+     * @param project This is the key that identifies the {@link CodeCheckerProject}.
+     * @return The project identified by project.
      */
-    public void setConfig(IProject project, CcConfiguration config) {
-        configs.put(project, config);
+    public CodeCheckerProject getCcProject(IProject project) {
+        return projects.get(project);
+    }
+
+    /**
+     * @param project This is the key that identifies the {@link CodeCheckerProject}.
+     * @return The project removed from the managed list.
+     */
+    public CodeCheckerProject removeCcProject(IProject project) {
+        return projects.remove(project);
     }
 
     /**
@@ -232,11 +233,8 @@ public class CodeCheckerContext {
             //Logger.log(IStatus.INFO, "New results do not refer to the active project"+this.activeProject.getName());
             return;
         }
-
-        CcConfiguration config = getConfigForProject(project);
-
         //The actual refresh happens here.
-        String filename = config.getAsProjectRelativePath(file.getProjectRelativePath().toString());
+        String filename = projects.get(project).getAsProjectRelativePath(file.getProjectRelativePath().toString());
         this.refreshCurrent(pages, project, filename, false);
         this.refreshProject(pages, project, false);
         this.refreshCustom(pages, project, "", false);
@@ -258,9 +256,7 @@ public class CodeCheckerContext {
             IProject project = file.getProject();
             try {
                 if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                    CcConfiguration config = getConfigForProject(project);
-
-                    String filename = config.getAsProjectRelativePath(file.getProjectRelativePath().toString());
+                    String filename = projects.get(project).getAsProjectRelativePath(file.getProjectRelativePath().toString());
 
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                     if (activeWindow == null) {

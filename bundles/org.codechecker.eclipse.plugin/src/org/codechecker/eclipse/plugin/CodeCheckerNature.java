@@ -4,8 +4,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 
-import org.codechecker.eclipse.plugin.config.CcConfiguration;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 
 /**
  * Eclipse uses natures as project feature indicators.
@@ -19,9 +19,9 @@ public class CodeCheckerNature implements IProjectNature {
 
     @Override
     public void configure() throws CoreException {
-    	CcConfiguration config = new CcConfiguration(project);
-    	config.modifyProjectEnvironmentVariables();
-    	CodeCheckerContext.getInstance().setConfig(project, config);
+        CodeCheckerProject cCProject = new CodeCheckerProject(project);
+        cCProject.modifyProjectEnvironmentVariables();
+        CodeCheckerContext.getInstance().addCodeCheckerProject(cCProject);
     }
 
     @Override

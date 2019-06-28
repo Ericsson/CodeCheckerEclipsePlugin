@@ -1,7 +1,5 @@
 package org.codechecker.eclipse.plugin;
 
-import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
-
 import org.eclipse.cdt.utils.Platform;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
@@ -72,7 +70,6 @@ public class Activator extends AbstractUIPlugin implements IStartup {
     public void start(BundleContext context) throws Exception {
         ConsoleFactory.consoleWrite("CodeChecker Plugin Started");
         super.start(context);
-
 
         //earlyStartup();
     }

@@ -43,8 +43,8 @@ public class AnalyzeJob extends Job {
     public AnalyzeJob(IProject project) {
         super("Running CodeChecker Analyze");
         this.project = project;
-        ccec = new CodeCheckEnvironmentChecker(CodeCheckerContext.getInstance()
-                .getConfigForProject(project).getProjectConfig(null));
+        ccec = new CodeCheckEnvironmentChecker(
+                CodeCheckerContext.getInstance().getCcProject(project));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class AnalyzeJob extends Job {
      * @return The path to the temporary logfile wrapped in an {@link Optional}.
      */
     private Optional<String> moveLogFile() {
-        String filename = CodeCheckerContext.getInstance().getConfigForProject(project).getLogFileLocation();
+        String filename = CodeCheckerContext.getInstance().getCcProject(project).getLogFileLocation().toString();
         File f = new File(filename);
         if (f.exists()) {
             String newName = filename + System.nanoTime();

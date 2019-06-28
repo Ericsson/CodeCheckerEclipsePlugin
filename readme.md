@@ -14,6 +14,10 @@ This is a C/C++ code analysis plugin for Eclipse that shows bugs detected by the
 
 ## Build and install CodeChecker Eclipse Plugin
 
+### Install from p2 repository
+
+An experimental update site is hosted at <https://vodorok.github.io> , where the latest version of the CCE plugin can be found. Use this in Eclipse to install like any other plug-in. [CodeChecker](https://github.com/Ericsson/codechecker) is still mandatory to install separately.
+
 ### Build
 
 Run `mvn -f mavendeps/pom.xml p2:site && mvn clean verify` in the root of the project.
