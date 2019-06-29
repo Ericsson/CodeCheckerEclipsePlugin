@@ -3,6 +3,16 @@ package org.codechecker.eclipse.plugin.init;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.codechecker.eclipse.plugin.CodeCheckerNature;
+import org.codechecker.eclipse.plugin.ExternalLogger;
+import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
+import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
+import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
+import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
+import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
+import org.codechecker.eclipse.plugin.runtime.SLogger;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -23,18 +33,6 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
-import org.codechecker.eclipse.plugin.CodeCheckerNature;
-import org.codechecker.eclipse.plugin.ExternalLogger;
-import org.codechecker.eclipse.plugin.Logger;
-import org.codechecker.eclipse.plugin.config.CcConfiguration;
-import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
-import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
-import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
-import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
-import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
-import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
-import org.codechecker.eclipse.plugin.runtime.SLogger;
 
 /**
  * This eclipse job is responsible for registering the Build listener.

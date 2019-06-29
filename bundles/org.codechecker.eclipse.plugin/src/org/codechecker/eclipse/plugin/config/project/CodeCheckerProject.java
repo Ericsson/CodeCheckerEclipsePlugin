@@ -35,8 +35,9 @@ import org.osgi.service.prefs.BackingStoreException;
  * (and reports in the future), for one Eclipse project.
  */
 public class CodeCheckerProject implements ConfigurationChangedListener {
+    public static final String COMPILATION_COMMANDS = "compilation_commands.json.javarunner";
+
     protected static final String STR_EMPTY = "";
-    private static final String COMPILATION_COMMANDS = "compilation_commands.json.javarunner";
 
     /**
      * The CodeChecker workspace is where the results folder will be created after an analyze.
