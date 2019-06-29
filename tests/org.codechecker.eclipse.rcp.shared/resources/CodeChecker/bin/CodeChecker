@@ -1,10 +1,69 @@
 #!/usr/bin/python
+from __future__ import print_function
+
 """
 CodeChecker Stub used to emulate some CodeChecker commands for the tests.
 """
 
-import sys
 import argparse
+import os
+import shutil
+import sys
+import time
+
+from tempfile import mkstemp
+
+def preparePlist(path):
+    fileHandle, absPath = mkstemp()
+    substitutePath = path[0:path.find('.codechecker')]
+    with os.fdopen(fileHandle, 'w') as newFile:
+        with open(path) as old_file:
+            for line in old_file:
+                newFile.write(line.replace('{$testWorkspace}', substitutePath))
+
+    #Remove original file
+    os.remove(path)
+    #Move new file
+    shutil.move(absPath, path)
+
+"""
+Handler function for the analysis.
+"""
+def analyze(args):
+    #print(args)
+    div = args.j
+    if div is None:
+        div = 1
+
+    cores = 1/div #this will be the wait time.
+#    try:
+#        print('Making output folder.')
+    os.mkdir(args.o)
+#   except FileExistsError:
+#      print('Output folder already exists.')
+
+    for i in range(4):
+        time.sleep(cores)
+        print('running analyze')
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    print(dir_path)
+    print(args.o)
+
+    shutil.copy2(os.path.join(dir_path,"plists","cppTest.cpp_1.plist"), args.o)
+    shutil.copy2(os.path.join(dir_path,"plists","cppTest.cpp_2.plist"), args.o)
+
+    preparePlist(os.path.join(args.o, "cppTest.cpp_1.plist"))
+    preparePlist(os.path.join(args.o, "cppTest.cpp_2.plist"))
+
+    #In the copied files change the lines pinting to the cppTest.cpp
+
+    #Should check if present:
+    # * -j
+    # * -e checkers
+    # * -O output
+    # ...
+
 
 """
 Handler function for the checker list.
@@ -55,6 +114,17 @@ def main(args):
 
     """ For function extension add a new subparser and a 
     default handler function to it, for the simplest operation """
+    analysis_parser = subparsers.add_parser('analyze',
+        help="Execute the supported code analyzers for the files recorded in a JSON Compilation Database.")
+    analysis_parser.set_defaults(func=analyze)
+    analysis_parser.add_argument("-j", type=int, help='Cores')
+    analysis_parser.add_argument("-e", action='append', help='Explicitly enabled checkers')
+    analysis_parser.add_argument("-d", action='append', help='Explicitly disabled checkers')
+    analysis_parser.add_argument("-n", help='Name')
+    analysis_parser.add_argument("-o", help='Output folder')
+    analysis_parser.add_argument("logFile", type=argparse.FileType('r'),  help='Compilation commands')
+
+
     checkers_parser = subparsers.add_parser('checkers',
         help="List the checkers available for code analysis.")
     checkers_parser.set_defaults(func=checkers)

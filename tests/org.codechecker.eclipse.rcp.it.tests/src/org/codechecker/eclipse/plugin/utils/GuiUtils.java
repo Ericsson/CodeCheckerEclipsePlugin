@@ -20,6 +20,7 @@ public final class GuiUtils {
     public static final String DOT_PROJECT = ".project";
     public static final String APPLY = "Apply";
     public static final String APPLY_AND_CLOSE = "Apply and Close";
+    public static final String BUILD_PROJ = "Build Project";
     public static final String CANCEL = "Cancel";
     public static final String C_CPP_BUILD = "C/C++ Build";
     public static final String C_CPP_PESPECTIVE = "C/C++";
@@ -27,6 +28,7 @@ public final class GuiUtils {
     public static final String DELETE_RESOURCES = "Delete Resources";
     public static final String ENVIRONMENT = "Environment";
     public static final String FINISH = "Finish";
+    public static final String OK = "OK";
     public static final String OPEN_PERSP = "Open Perspective";
     public static final String OTHER_MENU = "Other...";
     public static final String PERSP_MENU = "Perspective";
@@ -38,6 +40,7 @@ public final class GuiUtils {
     public static final String DOT_CODECHECKER = ".codechecker";
     public static final String ADD_NATURE_MENU = "Add CodeChecker Nature";
     public static final String COMP_COMMANDS = "compilation_commands.json.javarunner";
+    public static final String CURRENT_PROJ = "Current Project";
     public static final String BIN = "bin";
     public static final String CC_DIR_WIDGET = "CodeChecker package root directory";
     public static final String CODECHECKER = "CodeChecker";
@@ -47,6 +50,7 @@ public final class GuiUtils {
     public static final String PY_DIR_WIDGET = "Python virtualenv root directory (optional)";
     public static final String GLOBAL_RADIO = "Use global configuration";
     public static final String PROJECT_RADIO = "Use project configuration";
+    public static final String TOGGLE_CHECKERS = "Toggle enabled checkers";
     
     public static final int SHORT_WAIT_TIME = 500; // in milliseconds
     /**
@@ -133,7 +137,7 @@ public final class GuiUtils {
         shell.activate();
         if (deleteFromDisk)
             bot.checkBox("Delete project contents on disk (cannot be undone)").select();
-        bot.button("OK").click();
+        bot.button(OK).click();
         bot.waitUntil(Conditions.shellCloses(shell));
     }
 

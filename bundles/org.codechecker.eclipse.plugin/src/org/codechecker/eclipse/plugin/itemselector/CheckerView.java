@@ -5,12 +5,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.codechecker.eclipse.plugin.utils.CheckerItem;
+import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
+import org.codechecker.eclipse.plugin.utils.SimpleSelectionAdapter;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -18,15 +20,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-
-import org.codechecker.eclipse.plugin.utils.CheckerItem;
-import org.codechecker.eclipse.plugin.utils.SimpleSelectionAdapter;
-import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
 
 public class CheckerView extends Dialog {
 
@@ -138,6 +135,7 @@ public class CheckerView extends Dialog {
                 CheckerView.this.selectAll();
             }
         });
+        buttonSelectAll.setData("org.eclipse.swtbot.widget.key", "selectallbutton");
     }
 
     private void createEnabledCheckersTable() {

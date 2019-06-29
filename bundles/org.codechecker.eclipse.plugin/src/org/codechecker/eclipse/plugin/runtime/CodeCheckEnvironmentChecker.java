@@ -216,7 +216,7 @@ public class CodeCheckEnvironmentChecker {
         ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
         String cmd = "'${CC_BIN}' checkers";
         Optional<String> ccOutput = she.waitReturnOutput(cmd, commandSubstitutionMap, false);
-        return ccOutput.or("");
+        return ccOutput.or("NOCHECKERS");
     }
 
 }
