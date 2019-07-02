@@ -3,8 +3,22 @@ install: true
 language: java
 jdk:
     - oraclejdk8
+    - oraclejdk9
+    - oraclejdk11
+    - openjdk8
 
 env: DISPLAY=:99.0
+
+matrix:
+  include:
+    - jdk: openjdk10
+      before_install:
+        - rm "${JAVA_HOME}/lib/security/cacerts"
+        - ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
+    - jdk: openjdk11
+      before_install:
+        - rm "${JAVA_HOME}/lib/security/cacerts"
+        - ln -s /etc/ssl/certs/java/cacerts "${JAVA_HOME}/lib/security/cacerts"
 
 before_install:
     - sudo apt-get install at-spi2-core
@@ -18,4 +32,4 @@ script: mvn -f mavendeps/pom.xml p2:site && mvn clean verify
 after_failure:
     - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/work/data/.metadata/.log
     - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/surefire-reports/*
-
+    - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.unit.tests/target/work/configuration/*.log
