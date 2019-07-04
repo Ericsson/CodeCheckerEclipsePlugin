@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.runtime.IStatus;
-
 import org.codechecker.eclipse.plugin.Logger;
+import org.eclipse.core.runtime.IStatus;
 
 /**
  * Classes for handling actual configuration entries, and logging.
@@ -26,7 +25,7 @@ public class Config {
         PYTHON_PATH(""),
         COMPILERS("gcc:g++:clang:clang++"),
         ANAL_THREADS("4"),
-        CHECKER_LIST("enabled_checkers"),
+        CHECKER_LIST("--enable-all"),
         // Project configuration values
         IS_GLOBAL("true"),
         CHECKER_WORKSPACE("codechecker_workdir");
