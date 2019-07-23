@@ -9,7 +9,7 @@
     <module name="TreeWalker">
         <module name="AvoidStarImport"/>
         <module name="AvoidStaticImport">
-            <property name="excludes" value="org.hamcrest.MatcherAssert.*,org.hamcrest.Matchers.*,org.hamcrest.CoreMatchers.*,org.mockito.Mockito.*"/>
+            <property name="excludes" value="org.hamcrest.MatcherAssert.*,org.hamcrest.Matchers.*,org.hamcrest.CoreMatchers.*,org.mockito.Mockito.*,org.mockito.Matchers.*,org.junit.Assert.*"/>
         </module>
         <module name="ConstantName"/>
         <module name="DeclarationOrder"/>
