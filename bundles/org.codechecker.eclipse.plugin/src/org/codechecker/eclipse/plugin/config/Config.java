@@ -22,6 +22,8 @@ public class Config {
     public enum ConfigTypes {
         // Common configuration values
         CHECKER_PATH("codechecker_path"),
+        PYTHON_PATH(""),
+        RES_METHOD("PATH"),
         COMPILERS("gcc:g++:clang:clang++"),
         ANAL_THREADS("4"),
         CHECKER_LIST("enabled_checkers"),
