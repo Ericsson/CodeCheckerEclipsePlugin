@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.codechecker.eclipse.plugin.codechecker.ICodeChecker;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
@@ -17,6 +18,7 @@ public abstract class CcConfigurationBase {
     
     protected Map<ConfigTypes, String> config;
     protected IEclipsePreferences preferences;
+    protected ICodeChecker codeChecker;
 
     private final Set<ConfigurationChangedListener> listeners = new HashSet<>();
 
@@ -48,6 +50,23 @@ public abstract class CcConfigurationBase {
      * For checking that the loaded configuration is valid.
      */
     protected abstract void validate();
+
+    /**
+     * @return The CodeChecker being used.
+     */
+    public ICodeChecker getCodeChecker() {
+        return codeChecker;
+    }
+
+    /**
+     * Sets the currently used CodeChecker.
+     * 
+     * @param codeChecker
+     *            The CodeChecker that will be stored.
+     */
+    public void setCodeChecker(ICodeChecker codeChecker) {
+        this.codeChecker = codeChecker;
+    }
 
     /**
      * @return the internal configuration.
