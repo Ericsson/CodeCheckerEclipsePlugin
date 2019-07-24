@@ -7,11 +7,21 @@
 
 ## Development Notes
 
+### General
+
+* The project resembles to, but not exactly same as this [example project](https://github.com/Vodorok/Eclipse-example-project-for-Tycho), could be a good starting point to understand the layout.
 * Requires the Tycho Connector, Eclipse will automatically install it for you when you first import the project
 * Requires Eclipse PDE (Plug-in Development Environment)
 * WindowMaker plugin is recommended
-* Adherence to the [Google Java Style](https://google.github.io/styleguide/javaguide.html) is mandatory
-    * An IntelliJ Idea autoformatter XML configuration file is included in the repo for convenience
+* Coding style:
+  * Adherence to the [Google Java Style](https://google.github.io/styleguide/javaguide.html) is mandatory
+  * New code should avoid checkstyle violations.
+  * Already existing violations should be cleared upon modification.
+  * Fail on violation is disabled on the unit tests and the plugin itself. Rely on codacy findings on github to discover newly added issues until it's turned on.
+
+### Tests
+
+* Please write unit tests for newly added features, as well as integration tests (with SWT bot) if it makes sense. There are a handful of utility methods in the test modules, and there is a shared test project that contains features used by both test.
 
 ## Version Update
 
@@ -40,4 +50,4 @@ The loglevel is specified as follows:
 After modifying the jar file, you will need to restart eclipse for the changes to take effect.
 
 ## Checkstyle
-Checkstyle is configured for this project. See related [documentation](checkstyle.md) for more information.
+Checkstyle is configured for this project. See related [documentation](checkstyle.md) for more information and the developer notes.
