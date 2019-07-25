@@ -3,39 +3,51 @@ package org.codechecker.eclipse.plugin.views.report.list;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.*;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.SWT;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-
-import com.google.common.base.Optional;
-
-
-import org.codechecker.eclipse.plugin.report.BugPathItem;
-import org.codechecker.eclipse.plugin.report.SearchList;
+import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
 import org.codechecker.eclipse.plugin.config.filter.Filter;
 import org.codechecker.eclipse.plugin.config.filter.FilterConfiguration;
+import org.codechecker.eclipse.plugin.report.BugPathItem;
+import org.codechecker.eclipse.plugin.report.SearchList;
 import org.codechecker.eclipse.plugin.views.report.list.action.NewInstanceAction;
 import org.codechecker.eclipse.plugin.views.report.list.action.ShowFilterConfigurationDialog;
 import org.codechecker.eclipse.plugin.views.report.list.action.showas.CheckerGroupAction;
 import org.codechecker.eclipse.plugin.views.report.list.action.showas.CheckerTreeAction;
 import org.codechecker.eclipse.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
 import org.codechecker.eclipse.plugin.views.report.list.provider.label.BasicViewLabelProvider;
-import org.codechecker.eclipse.plugin.Logger;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.ViewPart;
+
+import com.google.common.base.Optional;
 
 public class ReportListView extends ViewPart {
 
@@ -48,7 +60,8 @@ public class ReportListView extends ViewPart {
     private String currentFilename;
     private IProject currentProject;
     private ShowFilterConfigurationDialog showfilterconfigurationdialog;
-
+    private Label message;
+    private Composite client;
     public ReportListView() {
     }
 
@@ -56,9 +69,11 @@ public class ReportListView extends ViewPart {
 
         this.parent = parent;
 
-        parent.setLayout(new GridLayout(1, true));
+        client = new Composite(parent, parent.getStyle());
+        GridLayoutFactory.fillDefaults().numColumns(1).applyTo(client);
+        message = new Label(client, SWT.FLAT);
 
-        viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        viewer = new TreeViewer(client, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         viewer.setContentProvider(new TreeCheckerContentProvider(this));
         viewer.setLabelProvider(new BasicViewLabelProvider(this));
         viewer.setInput(new EmptyModel());
@@ -78,7 +93,7 @@ public class ReportListView extends ViewPart {
         hookDoubleClickAction();
         contributeToActionBars();
 
-        parent.pack();
+        client.pack();
     }
 
     private void hookContextMenu() {
@@ -240,6 +255,7 @@ public class ReportListView extends ViewPart {
     }
 
     public void refresh(Object parent) {
+        client.layout();
         viewer.refresh();
     }
 
@@ -276,6 +292,7 @@ public class ReportListView extends ViewPart {
         //Optional<Long> runId = Optional.absent();
 
         CodeCheckerContext.getInstance().runReportJob(this, currentFileName);
+        refresh(parent);
     }
 
     /**
@@ -285,6 +302,8 @@ public class ReportListView extends ViewPart {
         Logger.log(IStatus.INFO, "OnEditorchanged:"+project.getName());
         if (project != currentProject) {
             this.currentProject = project;
+            message.setText(new StringBuilder().append("Showing reports for: ").append(currentProject.getName())
+                    .append(" project.").toString());
             //CodeCheckerContext.getInstance().runRunListJob(this);
         }
         if (!getViewerRefresh()) {
@@ -322,5 +341,4 @@ public class ReportListView extends ViewPart {
 
     static class EmptyModel {
     }
-
 }
