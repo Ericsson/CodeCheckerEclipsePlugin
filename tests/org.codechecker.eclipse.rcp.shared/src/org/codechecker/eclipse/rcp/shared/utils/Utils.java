@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -72,47 +74,111 @@ public class Utils {
     }
     
     /**
-     * Convenience method for quickly get a runnable CodeChecker.
-     * Has the same effect to loadCodeChecker("CodeChecker").
-     * Copies into the default directory layout, and sets runnable permission to Codechecker.
-     * The path to the runnable CodeChecker will be tmp/<tempTestFolder>/CodeChecker/bin/CodeChecker
-     * @return The path to To the CodeChecker root directory. 
-     *      Will point to tmp/<tempTestFolder>/CodeChecker .
+     * Use this if you want to create a CodeChecker without thinking. This should be
+     * sufficient for most applications. Convenience method for quickly get a
+     * runnable CodeChecker. Has the same effect to
+     * prepareCodeChecker("CodeChecker"). Copies into the default directory layout,
+     * and sets runnable permission to Codechecker. The path to the runnable
+     * CodeChecker will be tmp/<tempTestFolder>/CodeChecker/bin/CodeChecker
+     * 
+     * @return The path to To the CodeChecker root directory. Will point to
+     *         tmp/<tempTestFolder>/CodeChecker .
      */
     public static Path prepareCodeChecker() {
-        return prepareCodeChecker(CODECHECKER);
+        return prepareCodeChecker(CODECHECKER, false);
     }
     
     /**
-     * Copies into the specified directory, and sets runnable permission to Codechecker.
-     * The path to the runnable CodeChecker will be tmp/<tempTestFolder>/<into>/bin/CodeChecker
-     * @param into This will be the name of the CodeChecker root folder.
-     * @return The path to To the CodeChecker root directory. 
-     *      Will point to tmp/<tempTestFolder>/<into> .
+     * This will create a runnable into the default folder. Convenience method for
+     * quickly get a runnable CodeChecker. Has the same effect to
+     * prepareCodeChecker("CodeChecker"). Copies into the default directory layout,
+     * and sets runnable permission to Codechecker. The path to the runnable
+     * CodeChecker will be tmp/<tempTestFolder>/CodeChecker/bin/CodeChecker
+     * 
+     * @param customBuilt
+     *            Set this flag to indicate that the CodeChecker being prepared
+     *            should behave like a Custom built instance requiring a virtual
+     *            environment.
+     * @return The path to To the CodeChecker root directory. Will point to
+     *         tmp/<tempTestFolder>/CodeChecker .
+     */
+    public static Path prepareCodeChecker(boolean customBuilt) {
+        return prepareCodeChecker(CODECHECKER, customBuilt);
+    }
+
+    /**
+     * This will create a runnable prebuilt mimicking CodeChecker instance into the
+     * "into" folder. Copies into the specified directory, and sets runnable
+     * permission to Codechecker. The path to the runnable CodeChecker will be
+     * tmp/<tempTestFolder>/<into>/bin/CodeChecker
+     * 
+     * @param into
+     *            This will be the name of the CodeChecker root folder.
+     * @return The path to To the CodeChecker root directory. Will point to
+     *         tmp/<tempTestFolder>/<into> .
      */
     public static Path prepareCodeChecker(String into) {
-        if (into.isEmpty() || into == null) throw new IllegalArgumentException();
-        
+        return prepareCodeChecker(into, false);
+    }
+
+    /**
+     * Copies into the specified directory, and sets runnable permission to
+     * Codechecker. The path to the runnable CodeChecker will be
+     * tmp/<tempTestFolder>/<into>/bin/CodeChecker
+     * 
+     * @param into
+     *            This will be the name of the CodeChecker root folder.
+     * @param customBuilt
+     *            Set this flag to indicate that the CodeChecker being prepared
+     *            should behave like a Custom built instance requiring a virtual
+     *            environment.
+     * @return The path to To the CodeChecker root directory. Will point to
+     *         tmp/<tempTestFolder>/<into> .
+     */
+    public static Path prepareCodeChecker(String into, boolean customBuilt) {
+        if (into.isEmpty() || into == null)
+            throw new IllegalArgumentException();
+
         Path testDir = null;
         Path ccRoot = null;
         try {
             testDir = Files.createTempDirectory("CCTest");
             testDir.toFile().deleteOnExit();
             testDir = Files.createDirectory(Paths.get(testDir.toString(), into));
-            ccRoot = Utils.loadFileFromBundle("org.codechecker.eclipse.rcp.shared",
-                    Utils.RES + CODECHECKER);
+            ccRoot = Utils.loadFileFromBundle("org.codechecker.eclipse.rcp.shared", Utils.RES + CODECHECKER);
         } catch (IOException | URISyntaxException e1) {
             e1.printStackTrace(System.out);
         }
-        // Get the CodeChecker stub from the test resources, and copy it to a temporary folder.
+        // Get the CodeChecker stub from the test resources, and copy it to a temporary
+        // folder.
         Path ccDir = Utils.copyFolder(ccRoot, testDir);
-        Path ccBinDir = Paths.get( testDir.toAbsolutePath().toString(), CODECHECKER, BIN, CODECHECKER);
+        Path ccBinDir = Paths.get(testDir.toAbsolutePath().toString(), CODECHECKER, BIN, CODECHECKER);
         try {
             // CodeChecker must be runnable.
             Files.setPosixFilePermissions(ccBinDir, PosixFilePermissions.fromString("rwxrwxrwx"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (customBuilt)
+            // tamper CodeChecker to act like a custom built.
+            setCustomBuilt(ccDir);
         return ccDir;
+    }
+
+    /**
+     * Changes the dummy CodeChecker behavior to Custom built like.
+     * 
+     * @param ccDir
+     *            The path to the CodeChecker root.
+     */
+    private static void setCustomBuilt(Path ccDir) {
+        Path bin = ccDir.resolve(Paths.get(BIN, CODECHECKER));
+        try {
+            List<String> allLines = Files.readAllLines(bin).stream()
+                    .map(e -> e.replaceFirst("#CUSTOM_BUILT=True", "CUSTOM_BUILT=True")).collect(Collectors.toList());
+            Files.write(bin, allLines);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

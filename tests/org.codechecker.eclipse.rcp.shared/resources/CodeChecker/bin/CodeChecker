@@ -3,13 +3,21 @@
 CodeChecker Stub used to emulate some CodeChecker commands for the tests.
 """
 
-import sys
 import argparse
+import os
+import sys
+
+#CUSTOM_BUILT=True
+
+def customHandler():
+    os.environ['CC_VIRTUAL_ENV']
 
 """
 Handler function for version information.
 """
 def version(args):
+    if "CUSTOM_BUILT" in globals():
+        customHandler()
     print("""CodeChecker analyzer version:
 ---------------------------------------------------------------
 Kind                 | Version                                 

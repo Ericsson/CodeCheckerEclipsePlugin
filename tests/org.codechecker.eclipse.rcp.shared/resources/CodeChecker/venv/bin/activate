@@ -1,0 +1,3 @@
+CC_VIRTUAL_ENV=1
+export CC_VIRTUAL_ENV
+
