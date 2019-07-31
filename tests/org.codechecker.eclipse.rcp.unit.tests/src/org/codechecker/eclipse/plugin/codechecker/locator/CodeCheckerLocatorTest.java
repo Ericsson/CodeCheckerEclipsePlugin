@@ -23,10 +23,15 @@ public class CodeCheckerLocatorTest {
 
     private static final String ENV_PATH = "PATH";
     private static final String DUMMY = "/home";
+    private static final String GARBAGE = "garbage";
     private static final String ERROR_COULDNT_CREATE_CC = "Couldn't create CodeChecker instance!";
     private static final Path CC_PATH = Utils.prepareCodeChecker();
     private static final Path PATH_CC_PATH = Utils.prepareCodeChecker();
+    private static final Path CUSTOM_CC_PATH = Utils.prepareCodeChecker(true).resolve(Paths.get("bin", "CodeChecker"));
+    private static final Path VENV_PATH = CUSTOM_CC_PATH.getParent().getParent().toAbsolutePath()
+            .resolve(Paths.get("venv"));
     private static final Path NOT_CC_PATH = Paths.get(DUMMY);
+    private static final Path NOT_VENV_PATH = Paths.get(DUMMY);
     // TODO implement virtual environment emulation
     // private static final Path venvPath = Paths.get(DUMMY);
     private static final ICodeCheckerFactory CC_FACTORY = new CodeCheckerFactory();
@@ -96,7 +101,7 @@ public class CodeCheckerLocatorTest {
         thrown.expect(InvalidCodeCheckerException.class);
         thrown.expectMessage(PreBuiltCodeCheckerLocatorService.ERROR);
         // Test garbage
-        serv.findCodeChecker(Paths.get("gdfsg"), null, CC_FACTORY, SHEF);
+        serv.findCodeChecker(Paths.get(GARBAGE), null, CC_FACTORY, SHEF);
 
         // Test not valid
         serv.findCodeChecker(NOT_CC_PATH, null, CC_FACTORY, SHEF);
@@ -105,6 +110,135 @@ public class CodeCheckerLocatorTest {
         serv = cclf.create(ResolutionMethodTypes.PATH);
         try {
             serv.findCodeChecker(CC_PATH, null, CC_FACTORY, SHEF);
+        } catch (InvalidCodeCheckerException e) {
+            fail(ERROR_COULDNT_CREATE_CC);
+        }
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with null - null
+     * Path paramaters as input throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyNullNull() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(NullPointerException.class);
+        // Test null
+        serv.findCodeChecker(null, null, CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with null venv Path
+     * paramaters as input throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyPreCCNull() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(NullPointerException.class);
+        // Test null
+        serv.findCodeChecker(CC_PATH, null, CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with null venv Path
+     * paramaters as input throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyCustCCNull() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(NullPointerException.class);
+        // Test valid Custom - null
+        serv.findCodeChecker(CUSTOM_CC_PATH, null, CC_FACTORY, SHEF);
+
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with Paths pointing
+     * to some random location throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyRandRand() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+
+        thrown.expect(InvalidCodeCheckerException.class);
+        thrown.expectMessage(CustomBuiltCodeCheckerLocatorService.ERROR);
+
+        // Test not valid
+        serv.findCodeChecker(NOT_CC_PATH, NOT_VENV_PATH, CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with Paths pointing
+     * to some random location throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyPreCCRand() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(InvalidCodeCheckerException.class);
+        thrown.expectMessage(CustomBuiltCodeCheckerLocatorService.ERROR);
+        // Test valid Pre - not Venv
+        serv.findCodeChecker(CC_PATH, NOT_VENV_PATH, CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with Paths pointing
+     * to some random location throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyCustCCGarb() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(InvalidCodeCheckerException.class);
+        thrown.expectMessage(CustomBuiltCodeCheckerLocatorService.ERROR);
+        // Test valid Custom - garbage
+        serv.findCodeChecker(CUSTOM_CC_PATH, Paths.get(GARBAGE), CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link CustomBuiltCodeCheckerLocatorService} called with Paths pointing
+     * to some random location throws nullpointer exception.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPyCustCCRand() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        thrown.expect(InvalidCodeCheckerException.class);
+        thrown.expectMessage(CustomBuiltCodeCheckerLocatorService.ERROR);
+        // Test valid Custom - not Venv
+        serv.findCodeChecker(CUSTOM_CC_PATH, NOT_VENV_PATH, CC_FACTORY, SHEF);
+    }
+
+    /**
+     * Test {@link PreBuiltCodeCheckerLocatorService}.
+     * 
+     * @throws InvalidCodeCheckerException
+     *             For testing purposes.
+     */
+    @Test
+    public void testPy() throws InvalidCodeCheckerException {
+        CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PY);
+        // Test valid Custom - Venv
+        try {
+            serv.findCodeChecker(CUSTOM_CC_PATH, VENV_PATH, CC_FACTORY, SHEF);
         } catch (InvalidCodeCheckerException e) {
             fail(ERROR_COULDNT_CREATE_CC);
         }

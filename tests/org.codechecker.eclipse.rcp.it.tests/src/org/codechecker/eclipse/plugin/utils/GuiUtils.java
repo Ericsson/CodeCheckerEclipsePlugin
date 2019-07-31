@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.codechecker.eclipse.plugin.codechecker.locator.ResolutionMethodTypes;
+import org.codechecker.eclipse.plugin.config.CommonGui;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.waits.Conditions;
@@ -46,7 +47,9 @@ public final class GuiUtils {
     public static final String ADD_NATURE_MENU = "Add CodeChecker Nature";
     public static final String COMP_COMMANDS = "compilation_commands.json.javarunner";
     public static final String BIN = "bin";
-    public static final String CC_DIR_WIDGET = "CodeChecker binary:";
+    public static final String VENV = "venv";
+    public static final String CC_DIR_WIDGET = CommonGui.CC_BIN_LABEL;
+    public static final String CC_VENV_WIDGET = CommonGui.VENV_LABEL;
     public static final String CODECHECKER = "CodeChecker";
     public static final String ENVIR_LOGGER_BIN = "CC_LOGGER_BIN";
     public static final String ENVIR_LOGGER_FILE = "CC_LOGGER_FILE";
@@ -130,9 +133,31 @@ public final class GuiUtils {
      * @param bot
      *            The bot to be guided.
      * @param root
-     *            TODO
+     *            If the path passed in ccDir points to the root of the Package.
      */
     public static void setCCBinDir(ResolutionMethodTypes method, Path ccDir, SWTWorkbenchBot bot, boolean root) {
+        setCCBinDir(method, ccDir, null, bot, root);
+    }
+
+    /**
+     * You MUST navigate to the correct preferences page, or the method fails and
+     * possibly throws widget not found exception. Sets The CodeChecker Directory on
+     * the preferences pages.
+     * 
+     * @param method
+     *            The associated radio button to the {@link ResolutionMethodTypes}
+     *            will be clicked on the preferences/properties page.
+     * @param ccDir
+     *            Path to the CodeChecker Root directory.
+     * @param venvDir
+     *            Path to the virtual envioronment.
+     * @param bot
+     *            The bot to be guided.
+     * @param root
+     *            If the path passed in ccDir points to the root of the Package.
+     */
+    public static void setCCBinDir(ResolutionMethodTypes method, Path ccDir, Path venvDir, SWTWorkbenchBot bot,
+            boolean root) {
         SWTBotRadio radio = null;
         switch (method) {
             case PATH:
@@ -153,8 +178,14 @@ public final class GuiUtils {
             if (root)
                 ccDir = Paths.get(ccDir.toAbsolutePath().toString(), BIN, CODECHECKER);
             text.setText(ccDir.toString());
-            bot.sleep(SHORT_WAIT_TIME);
-            // Handle Python specified...
+            if (method == ResolutionMethodTypes.PY /* && venvDir != null */) {
+                SWTBotText venvText = bot.textWithLabel(GuiUtils.CC_VENV_WIDGET);
+                if (root)
+                    venvText.setText(ccDir.getParent().getParent().toAbsolutePath().resolve(Paths.get(VENV))
+                            .toString().toString());
+                else
+                    venvText.setText(ccDir.toAbsolutePath().resolve(Paths.get(VENV)).toString());
+            }
         }
     }
 

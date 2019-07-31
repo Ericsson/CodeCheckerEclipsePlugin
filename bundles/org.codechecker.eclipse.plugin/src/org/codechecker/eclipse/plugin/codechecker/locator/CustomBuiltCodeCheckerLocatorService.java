@@ -23,10 +23,9 @@ public class CustomBuiltCodeCheckerLocatorService extends CodeCheckerLocatorServ
     @Override
     public ICodeChecker findCodeChecker(Path pathToBin, Path pathToVenv,
             ICodeCheckerFactory ccfactory, IShellExecutorHelperFactory sheFactory) throws InvalidCodeCheckerException {
-
         ShellExecutorHelper she = sheFactory.createShellExecutorHelper(System.getenv());
         Optional<String> output = she
-                .quickReturnOutput("source " + pathToVenv.toAbsolutePath().toString() + "/bin/activate ; env");
+                .quickReturnOutput(". " + pathToVenv.toAbsolutePath().toString() + "/bin/activate ; env");
         if (!output.isPresent())
             throw new IllegalArgumentException();
         try {

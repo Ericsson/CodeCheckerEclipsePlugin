@@ -151,4 +151,24 @@ public class IndicatorTest {
         // reset env
         environmentVariables.set(ENV_PATH, origPath);
     }
+
+    /**
+     * Test that with Custom built CodeChecker configured, a confirmation message is
+     * displayed.
+     */
+    @Test
+    public void testCustomCodeCheckerFound() {
+        Path ccDir = Utils.prepareCodeChecker(true);
+        GuiUtils.setCCBinDir(ResolutionMethodTypes.PY, ccDir, bot, true);
+        SWTBotCLabel label = null;
+
+        try {
+            label = new SWTBotCLabel(GuiUtils.findCLabel(FORM_MESSAGE_CC_FOUND, bot));
+        } catch (WidgetNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        assertThat(ERROR_NO_VALID_CC, label, is(IsNull.notNullValue()));
+
+        preferencesShell.close();
+    }
 }
