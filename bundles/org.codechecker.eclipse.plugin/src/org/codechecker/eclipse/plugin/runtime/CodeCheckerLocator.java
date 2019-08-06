@@ -34,7 +34,7 @@ public class CodeCheckerLocator {
     }
 
     private Optional<String> locateSystemCodeChecker() {
-        return shellExecutor.quickReturnFirstLine("/usr/bin/which CodeChecker");
+        return shellExecutor.quickReturnFirstLine("/usr/bin/which CodeChecker", null);
     }
 
 }

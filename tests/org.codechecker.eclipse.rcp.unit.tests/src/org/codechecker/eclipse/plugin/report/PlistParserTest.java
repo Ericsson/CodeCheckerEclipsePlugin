@@ -9,10 +9,10 @@ import org.eclipse.core.resources.IProject;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 
 public class PlistParserTest {
@@ -40,9 +40,4 @@ public class PlistParserTest {
         parser.parsePlist(file.toFile(), sl);
         assertThat(sl.getCheckers(), hasItem("alpha.core.SizeofPtr"));
     }
-
-    /*@Test
-    public void ParserTest2() {
-
-    }*/
 }

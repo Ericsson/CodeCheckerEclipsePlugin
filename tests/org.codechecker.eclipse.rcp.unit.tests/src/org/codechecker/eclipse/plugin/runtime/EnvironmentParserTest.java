@@ -1,8 +1,8 @@
 package org.codechecker.eclipse.plugin.runtime;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
