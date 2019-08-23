@@ -8,7 +8,6 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCLabel;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -74,13 +73,7 @@ public class IndicatorTest {
     @Test
     public void testCodeCheckerFound() {
         Path ccDir = Utils.prepareCodeChecker();
-  
-        SWTBotText text = bot.textWithLabel("CodeChecker package root directory");
-        text.setText(ccDir.toString());
-        text.setFocus();
-        bot.textWithLabel("Python virtualenv root directory (optional)").setFocus();
-        
-        bot.sleep(SHORT_WAIT_TIME);
+        GuiUtils.setCCBinDir(ccDir, bot);
 
         SWTBotCLabel label = null;
         try {

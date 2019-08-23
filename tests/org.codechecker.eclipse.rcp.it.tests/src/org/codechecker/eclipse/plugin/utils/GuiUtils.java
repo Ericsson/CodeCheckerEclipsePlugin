@@ -44,7 +44,7 @@ public final class GuiUtils {
     public static final String ENVIR_LOGGER_BIN = "CC_LOGGER_BIN";
     public static final String ENVIR_LOGGER_FILE = "CC_LOGGER_FILE";
     public static final String LDOGGER = "ldlogger";
-    public static final String PY_DIR_WIDGET = "Python virtualenv root directory (optional)";
+    public static final String THREAD_WIDGET = "Number of analysis threads";
     public static final String GLOBAL_RADIO = "Use global configuration";
     public static final String PROJECT_RADIO = "Use project configuration";
     
@@ -110,10 +110,10 @@ public final class GuiUtils {
     public static void setCCBinDir(Path ccDir, SWTWorkbenchBot bot) {
         SWTBotText text = bot.textWithLabel(GuiUtils.CC_DIR_WIDGET);
         text.setText(ccDir.toString());
-        text.setFocus();
-        bot.textWithLabel(GuiUtils.PY_DIR_WIDGET).setFocus();
+        // text.setFocus();
+        // bot.textWithLabel(THREAD_WIDGET).setFocus();
 
-        bot.sleep(SHORT_WAIT_TIME);
+        // bot.sleep(SHORT_WAIT_TIME);
     }
 
     /**

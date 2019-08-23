@@ -90,7 +90,7 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
      */
     private void setEnvironment() {
         //Initialize to defaults.
-        for (EnvironmentVariables ev :EnvironmentVariables.BASE_TYPE) {
+        for (EnvironmentVariables ev : EnvironmentVariables.values()) {
             environmentVariables.put(ev, ev.getDefaultValue());
         }
         String checkerDir = current.get(ConfigTypes.CHECKER_PATH);
@@ -107,14 +107,6 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
                 Paths.get(codeCheckerWorkspace.toString(),
                         COMPILATION_COMMANDS).toString());
 
-        if (current.isPythonConfigured()) {
-            for (EnvironmentVariables ev :EnvironmentVariables.PYTHON_TYPE) {
-                environmentVariables.put(ev, ev.getDefaultValue());
-            }
-            environmentVariables.put(EnvironmentVariables.PATH,
-                    current.get(ConfigTypes.PYTHON_PATH) + EnvironmentVariables.PATH.getDefaultValue());
-            environmentVariables.put(EnvironmentVariables.VIRTUAL_ENV, current.get(ConfigTypes.PYTHON_PATH));
-        }
         modifyProjectEnvironmentVariables();
     }
 
