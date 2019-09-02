@@ -3,6 +3,7 @@ package org.codechecker.eclipse.plugin.codechecker;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,9 @@ import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.runtime.LogI;
 import org.codechecker.eclipse.plugin.runtime.SLogger;
 import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelper;
+import org.codechecker.eclipse.plugin.usage.StatisticUploader;
+import org.codechecker.eclipse.plugin.usage.UsageInfo;
+import org.codechecker.eclipse.plugin.usage.UsageInfo.CommandType;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -36,6 +40,7 @@ public class CodeChecker implements ICodeChecker {
     private Path location;
     private ShellExecutorHelper she;
     private Map<String, File> subMap;
+    private String version;
 
     /**
      * 
@@ -52,7 +57,7 @@ public class CodeChecker implements ICodeChecker {
         this.she = she;
         subMap = new HashMap<String, File>();
         subMap.put(LOCATION_KEY, path.toAbsolutePath().toFile());
-        getVersion();
+        version = getVersion();
     }
 
     @Override
@@ -70,7 +75,8 @@ public class CodeChecker implements ICodeChecker {
         Optional<String> ccOutput = she.waitReturnOutput(cmd, subMap, false);
         if (!ccOutput.isPresent() || ccOutput.get().isEmpty())
             throw new InvalidCodeCheckerException("Couldn't run CodeChecker version!");
-        return ccOutput.get();
+        return Arrays.stream(ccOutput.get().split("\n")).filter(line -> line.contains("Base package version"))
+                .findFirst().get().split("\\|")[1].trim();
     }
 
     @Override
@@ -87,6 +93,8 @@ public class CodeChecker implements ICodeChecker {
         String cmd = getSubstituteAnalyzeString(config);
 
         SLogger.log(LogI.INFO, "Running analyze Command: " + cmd);
+        new Thread(new StatisticUploader(new UsageInfo(CommandType.analyze_started, version))).start();
+
         Optional<String> ccOutput = she.progressableWaitReturnOutput(cmd, subMap, logToConsole, monitor, taskCount);
 
         return ccOutput.or("");
