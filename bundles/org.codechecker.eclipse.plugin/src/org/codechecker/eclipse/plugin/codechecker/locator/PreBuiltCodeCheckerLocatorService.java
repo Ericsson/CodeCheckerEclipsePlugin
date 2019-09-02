@@ -11,18 +11,18 @@ import org.codechecker.eclipse.plugin.runtime.IShellExecutorHelperFactory;
  * package.
  */
 public class PreBuiltCodeCheckerLocatorService extends CodeCheckerLocatorService {
-    public static final String INVALID = "The path to the CodeChecker binary is not valid";
-    public static final String ERROR = "Couldn't find CodeChecker at the given destination!";
+    public static final String CC_INVALID = "The path to the CodeChecker binary is not valid";
+    public static final String CC_NOT_FOUND = "Couldn't find CodeChecker at the given destination!";
 
     @Override
-    public ICodeChecker findCodeChecker(Path pathToBin, Path pathToVenv,
-            ICodeCheckerFactory ccfactory, IShellExecutorHelperFactory sheFactory) throws InvalidCodeCheckerException {
+    public ICodeChecker findCodeChecker(Path pathToBin, ICodeCheckerFactory ccfactory,
+            IShellExecutorHelperFactory sheFactory) throws InvalidCodeCheckerException {
         if (pathToBin == null)
-            throw new IllegalArgumentException(INVALID);
+            throw new IllegalArgumentException(CC_INVALID);
         try {
             return ccfactory.createCodeChecker(pathToBin, sheFactory.createShellExecutorHelper(System.getenv()));
         } catch (InvalidCodeCheckerException e) {
-            throw new InvalidCodeCheckerException(ERROR);
+            throw new InvalidCodeCheckerException(CC_NOT_FOUND);
         }
     }
 

@@ -72,7 +72,10 @@ public class AnalyzeJob extends Job {
 
         monitor.beginTask("Starting Analysis...", taskCount.get() * 2);
         try {
-            config.getCodeChecker().analyze(logFile, true, monitor, taskCount.get() * 2, config);
+            // TODO make numberOfAnalyzers a parameter depending on the turned on analyzer
+            // engines.
+            int numberOfAnalyzers = 2;
+            config.getCodeChecker().analyze(logFile, true, monitor, taskCount.get() * numberOfAnalyzers, config);
         } catch (NullPointerException e) {
             // TODO: Notify the user somehow that the analyze couldn't be completed, because
             // there is no CodeChecker configured.

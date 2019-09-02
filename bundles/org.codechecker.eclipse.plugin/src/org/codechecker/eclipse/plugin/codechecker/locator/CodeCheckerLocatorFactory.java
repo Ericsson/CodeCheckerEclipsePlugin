@@ -18,8 +18,6 @@ public class CodeCheckerLocatorFactory {
                 return new EnvCodeCheckerLocatorService();
             case PRE:
                 return new PreBuiltCodeCheckerLocatorService();
-            case PY:
-                return new CustomBuiltCodeCheckerLocatorService();
             default:
                 return null;
         }

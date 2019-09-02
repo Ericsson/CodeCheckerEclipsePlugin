@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerException;
 import org.codechecker.eclipse.plugin.config.CcConfigurationBase;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Interface representing a CodeChecker package.
@@ -15,30 +16,34 @@ public interface ICodeChecker {
      * 
      * @return The checker list.
      */
+    @NonNull
     public String getCheckers();
 
     /**
-     * Returns the full and complete version string of the CodeChecker package.
+     * Returns the full and complete version string of the CodeChecker package. The
+     * returned String will never be empty.
      * 
      * @return The version String.
      * @throws InvalidCodeCheckerException
      *             Thrown when no version string can be returned.
      */
+    @NonNull
     public String getVersion() throws InvalidCodeCheckerException;
 
     /**
-     * To get the location of the CodeChecker binary.
+     * To get the location of the CodeChecker binary. The returned String will never
+     * be empty.
      * 
      * @return The path.
      */
     public Path getLocation();
 
     /**
-     * Executes CodeChecker check command on the build log received in the fileName
+     * Executes CodeChecker check command on the build log received in the logFile
      * parameter.
      * 
      * @param logFile
-     *            A Path to the build log in the followin format:
+     *            A Path to the build log in the following format:
      *            http://clang.llvm.org/docs/JSONCompilationDatabase.html .
      * @param logToConsole
      *            Flag for indicating console logging.

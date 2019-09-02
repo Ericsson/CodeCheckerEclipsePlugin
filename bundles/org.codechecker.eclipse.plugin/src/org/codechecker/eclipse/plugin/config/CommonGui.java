@@ -10,7 +10,6 @@ import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.codechecker.CodeCheckerFactory;
 import org.codechecker.eclipse.plugin.codechecker.ICodeChecker;
 import org.codechecker.eclipse.plugin.codechecker.locator.CodeCheckerLocatorService;
-import org.codechecker.eclipse.plugin.codechecker.locator.CustomBuiltCodeCheckerLocatorService;
 import org.codechecker.eclipse.plugin.codechecker.locator.EnvCodeCheckerLocatorService;
 import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerException;
 import org.codechecker.eclipse.plugin.codechecker.locator.PreBuiltCodeCheckerLocatorService;
@@ -38,7 +37,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -59,7 +57,6 @@ import org.eclipse.ui.forms.widgets.Section;
 public class CommonGui {
 
     public static final String CC_BIN_LABEL = "CodeChecker binary:";
-    public static final String VENV_LABEL = "Virtual env:";
 
     private static final String VALID_PACKAGE = "CodeChecker being used: ";
     private static final String BROSWE = "Browse";
@@ -81,13 +78,10 @@ public class CommonGui {
 
     private Button pathCc;
     private Button preBuiltCc;
-    private Button customBuiltCc;
+
     private Composite ccDirClient;
     private Text codeCheckerDirectoryField;// codechecker dir
-    private Button codeCheckerDirectoryFieldBrowse;
-    private Composite ccVenvClient;
-    private Text pythonEnvField;// CodeChecker python env
-    private Button pythonEnvFieldBrowse;
+
     private ResolutionMethodTypes currentResMethod;
 
     private Section checkerConfigSection;
@@ -286,12 +280,6 @@ public class CommonGui {
                 .applyTo(ccDirClient);
         ccDirClient.setBackground(client.getBackground());
 
-        ccVenvClient = toolkit.createComposite(client);
-        GridLayoutFactory.fillDefaults().numColumns(FORM_COLUMNS).applyTo(ccVenvClient);
-        GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).span(FORM_COLUMNS, FORM_ONE_ROW)
-                .applyTo(ccVenvClient);
-        ccVenvClient.setBackground(client.getBackground());
-
         pathCc = toolkit.createButton(resolutionType, "Search in PATH", SWT.RADIO);
         pathCc.setData(ResolutionMethodTypes.PATH);
         pathCc.addSelectionListener(new PackageResolutionSelectionAdapter());
@@ -299,10 +287,6 @@ public class CommonGui {
         preBuiltCc = toolkit.createButton(resolutionType, "Pre built package", SWT.RADIO);
         preBuiltCc.setData(ResolutionMethodTypes.PRE);
         preBuiltCc.addSelectionListener(new PackageResolutionSelectionAdapter());
-
-        customBuiltCc = toolkit.createButton(resolutionType, "Custom built package", SWT.RADIO);
-        customBuiltCc.setData(ResolutionMethodTypes.PY);
-        customBuiltCc.addSelectionListener(new PackageResolutionSelectionAdapter());
 
         codeCheckerDirectoryField = addTextField(toolkit, ccDirClient, CC_BIN_LABEL, "");
         codeCheckerDirectoryField.addModifyListener(new ModifyListener() {
@@ -312,7 +296,7 @@ public class CommonGui {
             }
         });
 
-        codeCheckerDirectoryFieldBrowse = new Button(ccDirClient, SWT.PUSH);
+        Button codeCheckerDirectoryFieldBrowse = new Button(ccDirClient, SWT.PUSH);
         codeCheckerDirectoryFieldBrowse.setText(BROSWE);
         codeCheckerDirectoryFieldBrowse.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
@@ -327,27 +311,6 @@ public class CommonGui {
             }
         });
 
-        pythonEnvField = addTextField(toolkit, ccVenvClient, VENV_LABEL, "");
-        pythonEnvField.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                locateCodeChecker();
-            }
-        });
-        pythonEnvFieldBrowse = new Button(ccVenvClient, SWT.PUSH);
-        pythonEnvFieldBrowse.setText(BROSWE);
-        pythonEnvFieldBrowse.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event) {
-                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
-                dlg.setFilterPath(codeCheckerDirectoryField.getText());
-                dlg.setText("Browse python environment");
-                String dir = dlg.open();
-                if (dir != null) {
-                    pythonEnvField.setText(dir);
-                    locateCodeChecker();
-                }
-            }
-        });
         changeDirectoryInputs();
         return packageConfigSection;
 
@@ -362,15 +325,9 @@ public class CommonGui {
             switch (currentResMethod) {
                 case PATH:
                     recursiveSetEnabled(ccDirClient, false);
-                    recursiveSetEnabled(ccVenvClient, false);
                     break;
                 case PRE:
                     recursiveSetEnabled(ccDirClient, true);
-                    recursiveSetEnabled(ccVenvClient, false);
-                    break;
-                case PY:
-                    recursiveSetEnabled(ccDirClient, true);
-                    recursiveSetEnabled(ccVenvClient, true);
                     break;
                 default:
                     break;
@@ -389,16 +346,13 @@ public class CommonGui {
             case PRE:
                 serv = new PreBuiltCodeCheckerLocatorService();
                 break;
-            case PY:
-                serv = new CustomBuiltCodeCheckerLocatorService();
-                break;
             default:
                 break;
         }
         ICodeChecker cc = null;
         try {
             cc = serv.findCodeChecker(Paths.get(codeCheckerDirectoryField.getText()),
-                    Paths.get(pythonEnvField.getText()), new CodeCheckerFactory(), new ShellExecutorHelperFactory());
+                    new CodeCheckerFactory(), new ShellExecutorHelperFactory());
             form.setMessage(VALID_PACKAGE + cc.getLocation().toString(), IMessageProvider.INFORMATION);
             if (globalGui || (!globalGui && !useGlobalSettings))
                 recursiveSetEnabled(checkerConfigSection, true);
@@ -494,7 +448,7 @@ public class CommonGui {
             ret = config.get();
         } else
             ret = config.getDefaultConfig();
-        currentResMethod = ResolutionMethodTypes.getFromString(config.get(ConfigTypes.RES_METHOD));
+        currentResMethod = ResolutionMethodTypes.valueOf(config.get(ConfigTypes.RES_METHOD));
         return ret;
     }
 	
@@ -504,16 +458,12 @@ public class CommonGui {
     public void setFields() {
         pathCc.setSelection(false);
         preBuiltCc.setSelection(false);
-        customBuiltCc.setSelection(false);
         switch (currentResMethod) {
             case PATH:
                 pathCc.setSelection(true);
                 break;
             case PRE:
                 preBuiltCc.setSelection(true);
-                break;
-            case PY:
-                customBuiltCc.setSelection(true);
                 break;
             default:
                 break;

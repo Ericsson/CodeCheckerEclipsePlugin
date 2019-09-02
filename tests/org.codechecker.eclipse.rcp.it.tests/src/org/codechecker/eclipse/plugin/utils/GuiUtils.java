@@ -52,7 +52,6 @@ public final class GuiUtils {
     public static final String ENVIR_LOGGER_FILE = "CC_LOGGER_FILE";
     public static final String LDOGGER = "ldlogger";
     public static final String THREAD_WIDGET = "Number of analysis threads";
-    public static final String PY_DIR_WIDGET = "Virtual env:";
     public static final String GLOBAL_RADIO = "Use global configuration";
     public static final String PROJECT_RADIO = "Use project configuration";
     
@@ -142,18 +141,15 @@ public final class GuiUtils {
             case PRE:
                 radio = bot.radio("Pre built package");
                 break;
-            case PY:
-                radio = bot.radio("Custom built package");
-                break;
             default:
                 break;
         }
         radio.click();
         if (method != ResolutionMethodTypes.PATH || ccDir != null) {
             SWTBotText text = bot.textWithLabel(GuiUtils.CC_DIR_WIDGET);
-            if (root)
-                ccDir = Paths.get(ccDir.toAbsolutePath().toString(), BIN, CODECHECKER);
-            text.setText(ccDir.toString());
+            // if the given path is the package root, extend it to the concrete binary else
+            // it could be used directly.
+            text.setText(root ? ccDir.resolve(Paths.get(BIN, CODECHECKER)).toString() : ccDir.toString());
             bot.sleep(SHORT_WAIT_TIME);
         }
     }

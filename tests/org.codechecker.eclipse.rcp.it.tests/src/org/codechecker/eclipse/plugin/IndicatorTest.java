@@ -71,7 +71,7 @@ public class IndicatorTest {
     public void testNoCodeCheckerFoundInPath() {
         SWTBotCLabel label = null;
         try {
-            label = bot.clabel(EnvCodeCheckerLocatorService.ERROR);
+            label = bot.clabel(EnvCodeCheckerLocatorService.CC_NOT_FOUND);
         } catch (WidgetNotFoundException e) {
             System.out.println(e.getMessage());
         }
@@ -90,7 +90,7 @@ public class IndicatorTest {
 
         SWTBotCLabel label = null;
         try {
-            label = bot.clabel(PreBuiltCodeCheckerLocatorService.ERROR);
+            label = bot.clabel(PreBuiltCodeCheckerLocatorService.CC_NOT_FOUND);
         } catch (WidgetNotFoundException e) {
             System.out.println(e.getMessage());
         }

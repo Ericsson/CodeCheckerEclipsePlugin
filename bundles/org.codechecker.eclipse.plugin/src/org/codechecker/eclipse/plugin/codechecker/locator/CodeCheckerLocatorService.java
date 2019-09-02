@@ -14,8 +14,6 @@ public abstract class CodeCheckerLocatorService {
     /**
      * @param pathToBin
      *            Path to CodeChecker package root.
-     * @param pathToVenv
-     *            Path to the root of the virtual environment.
      * @param ccfactory
      *            An {@link ICodeCheckerFactory} that will create the CodeChecker.
      * @param sheFactory
@@ -24,7 +22,6 @@ public abstract class CodeCheckerLocatorService {
      * @throws InvalidCodeCheckerException
      *             Thrown when the {@link ICodeChecker} instantiation fails.
      */
-    public abstract ICodeChecker findCodeChecker(Path pathToBin, Path pathToVenv, ICodeCheckerFactory ccfactory,
-            IShellExecutorHelperFactory sheFactory)
+    public abstract ICodeChecker findCodeChecker(Path pathToBin, ICodeCheckerFactory ccfactory, IShellExecutorHelperFactory sheFactory)
             throws InvalidCodeCheckerException;
 }

@@ -27,8 +27,6 @@ public class CodeCheckerLocatorTest {
     private static final Path CC_PATH = Utils.prepareCodeChecker();
     private static final Path PATH_CC_PATH = Utils.prepareCodeChecker();
     private static final Path NOT_CC_PATH = Paths.get(DUMMY);
-    // TODO implement virtual environment emulation
-    // private static final Path venvPath = Paths.get(DUMMY);
     private static final ICodeCheckerFactory CC_FACTORY = new CodeCheckerFactory();
     private static final IShellExecutorHelperFactory SHEF = new ShellExecutorHelperFactory();
 
@@ -58,9 +56,9 @@ public class CodeCheckerLocatorTest {
     public void testPath() throws InvalidCodeCheckerException {
         CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PATH);
         thrown.expect(InvalidCodeCheckerException.class);
-        thrown.expectMessage(EnvCodeCheckerLocatorService.ERROR);
+        thrown.expectMessage(EnvCodeCheckerLocatorService.CC_NOT_FOUND);
 
-        serv.findCodeChecker(null, null, CC_FACTORY, SHEF);
+        serv.findCodeChecker(null, CC_FACTORY, SHEF);
         // prepare PATH envval
         String origPath = System.getenv(ENV_PATH);
         String newPath = origPath.concat(":" + PATH_CC_PATH.toAbsolutePath().toString() + "/bin/");
@@ -70,7 +68,7 @@ public class CodeCheckerLocatorTest {
 
         serv = cclf.create(ResolutionMethodTypes.PATH);
         try {
-            serv.findCodeChecker(null, null, CC_FACTORY, SHEF);
+            serv.findCodeChecker(null, CC_FACTORY, SHEF);
         } catch (InvalidCodeCheckerException e) {
             fail(ERROR_COULDNT_CREATE_CC);
         }
@@ -89,22 +87,22 @@ public class CodeCheckerLocatorTest {
         CodeCheckerLocatorService serv = cclf.create(ResolutionMethodTypes.PRE);
 
         thrown.expect(RuntimeException.class);
-        thrown.expectMessage(PreBuiltCodeCheckerLocatorService.INVALID);
+        thrown.expectMessage(PreBuiltCodeCheckerLocatorService.CC_INVALID);
         // Test null
-        serv.findCodeChecker(null, null, CC_FACTORY, SHEF);
+        serv.findCodeChecker(null, CC_FACTORY, SHEF);
 
         thrown.expect(InvalidCodeCheckerException.class);
-        thrown.expectMessage(PreBuiltCodeCheckerLocatorService.ERROR);
+        thrown.expectMessage(PreBuiltCodeCheckerLocatorService.CC_NOT_FOUND);
         // Test garbage
-        serv.findCodeChecker(Paths.get("gdfsg"), null, CC_FACTORY, SHEF);
+        serv.findCodeChecker(Paths.get("gdfsg"), CC_FACTORY, SHEF);
 
         // Test not valid
-        serv.findCodeChecker(NOT_CC_PATH, null, CC_FACTORY, SHEF);
+        serv.findCodeChecker(NOT_CC_PATH, CC_FACTORY, SHEF);
 
         // Test valid
         serv = cclf.create(ResolutionMethodTypes.PATH);
         try {
-            serv.findCodeChecker(CC_PATH, null, CC_FACTORY, SHEF);
+            serv.findCodeChecker(CC_PATH, CC_FACTORY, SHEF);
         } catch (InvalidCodeCheckerException e) {
             fail(ERROR_COULDNT_CREATE_CC);
         }
