@@ -65,14 +65,6 @@ public abstract class CcConfigurationBase {
     }
 
     /**
-     * @return True if the python values are set.
-     */
-    public boolean isPythonConfigured() {
-        return !(!config.containsKey(ConfigTypes.PYTHON_PATH)
-                || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty()));
-    }
-
-    /**
      * Returns the default configuration for the plug-in.
      * @return An Unmodifiable view of the default configuration Map.
      */

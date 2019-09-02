@@ -4,15 +4,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
 import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * This class checks for Environments used by CodeChecker.
@@ -24,14 +21,12 @@ public class CodeCheckEnvironmentChecker {
 
     private static final String HELP_ARGUMENT = "-h";
     private static final int WAIT_TIME_MULTIPLYER = 1000; // in milliseconds
+    private static final Map<String, String> SYS_ENV = System.getenv();
     
-    public final Optional<String> pythonEnvironment;
     public final String checkerDir; // root directory of CodeChecker
     public final String codeCheckerCommand; // CodecCheker executable path   
 
-    public final ImmutableMap<String, String> environmentBefore;
-
-    public Map<String, File> commandSubstitutionMap;
+    private Map<String, File> commandSubstitutionMap;
 
     private Map<ConfigTypes,String> config;
     private CodeCheckerProject project;
@@ -51,21 +46,9 @@ public class CodeCheckEnvironmentChecker {
         else
             config = CcGlobalConfiguration.getInstance().get();
 
-        if (!config.containsKey(ConfigTypes.PYTHON_PATH)
-                || (config.containsKey(ConfigTypes.PYTHON_PATH) && config.get(ConfigTypes.PYTHON_PATH).isEmpty())){
-            pythonEnvironment=Optional.absent();
-            SLogger.log(LogI.INFO, "pythonenv is not set");
-        }
-        else{
-            SLogger.log(LogI.INFO, "pythonenv is set to:" + config.get(ConfigTypes.PYTHON_PATH));
-            pythonEnvironment=Optional.of(config.get(ConfigTypes.PYTHON_PATH));
-        }
-
         //checkerList=getConfigValue(ConfigTypes.CHECKER_LIST);
         checkerDir=getConfigValue(ConfigTypes.CHECKER_PATH);
-        environmentBefore = getInitialEnvironment(pythonEnvironment);
         codeCheckerCommand = checkerDir+"/bin/CodeChecker";
-
 
         commandSubstitutionMap = new HashMap<String, File>() {{
                 put("CC_BIN", new File(codeCheckerCommand));
@@ -105,8 +88,7 @@ public class CodeCheckEnvironmentChecker {
     public static void getCheckerEnvironment(
             Map<ConfigTypes, String> config, String codeCheckerBinaryPath) {
 
-        ShellExecutorHelper she = new ShellExecutorHelper(
-                getInitialEnvironment(Optional.of(config.get(ConfigTypes.PYTHON_PATH))));
+        ShellExecutorHelper she = new ShellExecutorHelper(SYS_ENV);
 
         String cmd = "'${CC_BINARY}' " + HELP_ARGUMENT;
         @SuppressWarnings("serial")
@@ -127,34 +109,6 @@ public class CodeCheckEnvironmentChecker {
                     substitutinMap.get(CC_BINARY).getAbsolutePath() + " " + HELP_ARGUMENT);
             throw new IllegalArgumentException("Couldn't run the specified CodeChecker for " +
                     "environment testing!");
-        }
-    }
-
-    /**
-     * Returns new environment if using Python virtual environment or System env if not.
-     * @param pythonEnvironment Path to Python virtual environment activator.
-     * @return The environment to be used.
-     */
-    private static ImmutableMap<String, String> getInitialEnvironment(Optional<String> pythonEnvironment) {
-        if (pythonEnvironment.isPresent()) {
-            ShellExecutorHelper she = new ShellExecutorHelper(System.getenv());
-            File pyEnv = new File(pythonEnvironment.get() + "/bin/activate");
-            String cmd = "source '${PY_ENV}' ; env";
-            @SuppressWarnings("serial")
-            Map<String, File> substitutionMap = new HashMap<String, File>() {{ put("PY_ENV", pyEnv); }};
-            Optional<String> output = she.quickReturnOutput(cmd, substitutionMap);
-            if (!output.isPresent()) {
-                Logger.log(IStatus.ERROR, "Couldn't check the python environment!");
-                throw new IllegalArgumentException("Couldn't check the given python environment!");
-            } else {
-                ImmutableMap<String, String> environment = (new EnvironmentParser()).parse(output
-                        .get());
-                return environment;
-            }
-
-        } else {
-            SLogger.log(LogI.INFO, "Python Env not specified. Using original system env.");
-            return ImmutableMap.copyOf(System.getenv());
         }
     }
 
@@ -194,7 +148,7 @@ public class CodeCheckEnvironmentChecker {
      * @return CodeChecker check command output
      */
     public String processLog(String buildLog, boolean logToConsole, IProgressMonitor monitor, int taskCount) {
-        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+        ShellExecutorHelper she = new ShellExecutorHelper(SYS_ENV);
         String cmd = createAnalyzeCommmand(buildLog);
         SLogger.log(LogI.INFO, "SERVER_SER_MSG >> processLog >> "+ cmd);
         Optional<String> ccOutput = she.progressableWaitReturnOutput(cmd, commandSubstitutionMap, logToConsole, monitor, taskCount);
@@ -213,7 +167,7 @@ public class CodeCheckEnvironmentChecker {
      * @return A String containing the checkers. One at a line.
      */
     public String getCheckerList() {
-        ShellExecutorHelper she = new ShellExecutorHelper(environmentBefore);
+        ShellExecutorHelper she = new ShellExecutorHelper(SYS_ENV);
         String cmd = "'${CC_BIN}' checkers";
         Optional<String> ccOutput = she.waitReturnOutput(cmd, commandSubstitutionMap, false);
         return ccOutput.or("");

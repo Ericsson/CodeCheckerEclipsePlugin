@@ -1,8 +1,5 @@
 package org.codechecker.eclipse.plugin.config;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
 
 /**
@@ -14,14 +11,7 @@ public enum EnvironmentVariables {
     CC_LOGGER_GCC_LIKE("clang", IEnvironmentVariable.ENVVAR_REPLACE),
     LD_PRELOAD("ldlogger.so", IEnvironmentVariable.ENVVAR_REPLACE),
     CC_LOGGER_FILE("logfile", IEnvironmentVariable.ENVVAR_REPLACE),
-    CC_LOGGER_BIN("/bin/ldlogger", IEnvironmentVariable.ENVVAR_REPLACE),
-    //python variables comes after this;
-    PATH("/bin:", IEnvironmentVariable.ENVVAR_PREPEND),
-    VIRTUAL_ENV("pythonEnv", IEnvironmentVariable.ENVVAR_REPLACE);
-
-    public static Set<EnvironmentVariables> BASE_TYPE = EnumSet.range(LD_LIBRARY_PATH, CC_LOGGER_BIN);
-    public static Set<EnvironmentVariables> PYTHON_TYPE = EnumSet.range(PATH, VIRTUAL_ENV);
-    public static Set<EnvironmentVariables> ALL = EnumSet.range(LD_LIBRARY_PATH, VIRTUAL_ENV);
+    CC_LOGGER_BIN("/bin/ldlogger", IEnvironmentVariable.ENVVAR_REPLACE);
 
     private String defaultValue;
     private int method;

@@ -29,7 +29,6 @@ Run `mvn -f mavendeps/pom.xml p2:site && mvn clean verify` in the root of the pr
 Make sure that before staring Eclipse:
 
 * CodeChecker/bin directory is included in PATH (e.g.: `export PATH="/home/<username>/CodeChecker/bin/:$PATH"`)
-* Python virtualenv with CodeChecker dependencies is sourced (e.g.: `source /home/<username>/venv/bin/activate`)
 
 __Currently the plugin is only usable with a CDT project.__
 

@@ -5,11 +5,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
+import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
+import org.codechecker.eclipse.plugin.itemselector.CheckerView;
+import org.codechecker.eclipse.plugin.runtime.CodeCheckEnvironmentChecker;
+import org.codechecker.eclipse.plugin.utils.CheckerItem;
+import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -18,9 +28,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
@@ -30,14 +38,6 @@ import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
-import org.codechecker.eclipse.plugin.Logger;
-import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
-import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
-import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
-import org.codechecker.eclipse.plugin.itemselector.CheckerView;
-import org.codechecker.eclipse.plugin.runtime.CodeCheckEnvironmentChecker;
-import org.codechecker.eclipse.plugin.utils.CheckerItem;
-import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
 
 /**
  * Global and project level preferences pages.
@@ -63,7 +63,7 @@ public class CommonGui {
     private CcConfigurationBase config;
     private CodeCheckerProject cCProject;
     private Text codeCheckerDirectoryField;// codechecker dir
-    private Text pythonEnvField;// CodeChecker python env
+
     private Text numThreads;// #of analysis threads
     private Text cLoggers;// #C compiler commands to catch
 
@@ -151,9 +151,10 @@ public class CommonGui {
         checkerConfigSection.setText("Configuration");
 
         codeCheckerDirectoryField = addTextField(toolkit, client, "CodeChecker package root directory", "");
-        codeCheckerDirectoryField.addListener(SWT.FocusOut, new Listener() {
+        codeCheckerDirectoryField.addModifyListener(new ModifyListener() {
+
             @Override
-            public void handleEvent(Event event) {
+            public void modifyText(ModifyEvent e) {
                 try {
                     Map<ConfigTypes, String> changedConfig = getConfigFromFields();
                     CodeCheckEnvironmentChecker.getCheckerEnvironment(changedConfig,
@@ -183,21 +184,6 @@ public class CommonGui {
                     } catch (IllegalArgumentException e1) {
                         form.setMessage(INVALID_PACKAGE, IMessageProvider.ERROR);
                     }
-                }
-            }
-        });
-
-        pythonEnvField = addTextField(toolkit, client, "Python virtualenv root directory (optional)", "");
-        final Button pythonEnvFieldBrowse = new Button(client, SWT.PUSH);
-        pythonEnvFieldBrowse.setText(BROSWE);
-        pythonEnvFieldBrowse.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event) {
-                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
-                dlg.setFilterPath(codeCheckerDirectoryField.getText());
-                dlg.setText("Browse python environment");
-                String dir = dlg.open();
-                if (dir != null) {
-                    pythonEnvField.setText(dir);
                 }
             }
         });
@@ -371,7 +357,6 @@ public class CommonGui {
 	 */
     public void setFields(Map<ConfigTypes, String> config) {
         codeCheckerDirectoryField.setText(config.get(ConfigTypes.CHECKER_PATH));
-        pythonEnvField.setText(config.get(ConfigTypes.PYTHON_PATH));
         checkerListArg = config.get(ConfigTypes.CHECKER_LIST);
         cLoggers.setText(config.get(ConfigTypes.COMPILERS));
         numThreads.setText(config.get(ConfigTypes.ANAL_THREADS));
@@ -384,7 +369,6 @@ public class CommonGui {
     public Map<ConfigTypes, String> getConfigFromFields() {
         Map<ConfigTypes, String> conf = new HashMap<>();
         conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-        conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
         conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
@@ -397,7 +381,6 @@ public class CommonGui {
     public void saveConfig() {
         Map<ConfigTypes, String> conf = new HashMap<ConfigTypes, String>();
         conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-        conf.put(ConfigTypes.PYTHON_PATH, pythonEnvField.getText());
         conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
