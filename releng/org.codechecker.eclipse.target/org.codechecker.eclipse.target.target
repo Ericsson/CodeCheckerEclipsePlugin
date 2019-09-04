@@ -21,6 +21,7 @@
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.equinox.sdk.feature.group" version="3.13.0.v20170531-1133"/>
 <unit id="org.eclipse.sdk.ide" version="4.7.0.I20170612-0950"/>
+<unit id="org.eclipse.swt.tools.feature.feature.group" version="3.106.0.v20170503-0851"/>
 <repository location="https://download.eclipse.org/eclipse/updates/4.7/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">

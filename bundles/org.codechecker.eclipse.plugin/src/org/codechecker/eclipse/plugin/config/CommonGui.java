@@ -1,22 +1,32 @@
 package org.codechecker.eclipse.plugin.config;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.codechecker.CodeCheckerFactory;
+import org.codechecker.eclipse.plugin.codechecker.ICodeChecker;
+import org.codechecker.eclipse.plugin.codechecker.locator.CodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.EnvCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerException;
+import org.codechecker.eclipse.plugin.codechecker.locator.PreBuiltCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.ResolutionMethodTypes;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
 import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
 import org.codechecker.eclipse.plugin.itemselector.CheckerView;
-import org.codechecker.eclipse.plugin.runtime.CodeCheckEnvironmentChecker;
+import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelperFactory;
 import org.codechecker.eclipse.plugin.utils.CheckerItem;
 import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -27,7 +37,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -45,9 +56,9 @@ import org.eclipse.ui.forms.widgets.Section;
  */
 public class CommonGui {
 
-    private static final String CC_BINARY = "/bin/CodeChecker";
-    private static final String VALID_PACKAGE = "CodeChecker package directory is valid";
-    private static final String INVALID_PACKAGE = "CodeChecker package directory is invalid";
+    public static final String CC_BIN_LABEL = "CodeChecker binary:";
+
+    private static final String VALID_PACKAGE = "CodeChecker being used: ";
     private static final String BROSWE = "Browse";
     private static final String CHECKER_ENABLED = " -e ";
     private static final String CHECKER_DISABLED = " -d ";
@@ -55,6 +66,7 @@ public class CommonGui {
 
     private static final int TEXTWIDTH = 200;
     private static final int FORM_COLUMNS = 3;
+    private static final int FORM_ONE_ROW = 1;
 
     private boolean globalGui;// whether this class is for global or project
                               // specific preferences
@@ -62,8 +74,17 @@ public class CommonGui {
                                       // whether to use global preferences
     private CcConfigurationBase config;
     private CodeCheckerProject cCProject;
+    private ICodeChecker codeChecker;
+
+    private Button pathCc;
+    private Button preBuiltCc;
+
+    private Composite ccDirClient;
     private Text codeCheckerDirectoryField;// codechecker dir
 
+    private ResolutionMethodTypes currentResMethod;
+
+    private Section checkerConfigSection;
     private Text numThreads;// #of analysis threads
     private Text cLoggers;// #C compiler commands to catch
 
@@ -136,73 +157,31 @@ public class CommonGui {
         layout.maxNumColumns = 1;
         form.getBody().setLayout(layout);
 
+        loadConfig(false);
+
         Section globalConfigSection = null;
         if (!globalGui) {
             globalConfigSection = toolkit.createSection(form.getBody(), ExpandableComposite.EXPANDED);
         }
-        final Section checkerConfigSection = toolkit.createSection(form.getBody(),
-                ExpandableComposite.TITLE_BAR | ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED);
+
+        Section packageSection = createConfigSection(toolkit);
+
+        checkerConfigSection = toolkit.createSection(form.getBody(),
+                ExpandableComposite.SHORT_TITLE_BAR | ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED);
         checkerConfigSection.setEnabled(true);
 
-        final Composite client = toolkit.createComposite(checkerConfigSection);
-        client.setLayout(new GridLayout(FORM_COLUMNS, false));
+        final Composite comp = toolkit.createComposite(checkerConfigSection);
+        comp.setLayout(new GridLayout(FORM_COLUMNS, false));
 
-        checkerConfigSection.setClient(client);
-        checkerConfigSection.setText("Configuration");
+        checkerConfigSection.setClient(comp);
+        checkerConfigSection.setText("Analysis options");
 
-        codeCheckerDirectoryField = addTextField(toolkit, client, "CodeChecker package root directory", "");
-        codeCheckerDirectoryField.addModifyListener(new ModifyListener() {
+        numThreads = addTextField(toolkit, comp, "Number of analysis threads", "4");
+        toolkit.createLabel(comp, "");
+        cLoggers = addTextField(toolkit, comp, "Compiler commands to log", "gcc:g++:clang:clang++");
+        toolkit.createLabel(comp, "");
 
-            @Override
-            public void modifyText(ModifyEvent e) {
-                try {
-                    Map<ConfigTypes, String> changedConfig = getConfigFromFields();
-                    CodeCheckEnvironmentChecker.getCheckerEnvironment(changedConfig,
-                            changedConfig.get(ConfigTypes.CHECKER_PATH) + CC_BINARY);
-                    form.setMessage(VALID_PACKAGE, IMessageProvider.INFORMATION);
-                } catch (IllegalArgumentException e1) {
-                    form.setMessage(INVALID_PACKAGE, IMessageProvider.ERROR);
-                }
-            }
-        });
-
-        final Button codeCheckerDirectoryFieldBrowse = new Button(client, SWT.PUSH);
-        codeCheckerDirectoryFieldBrowse.setText(BROSWE);
-        codeCheckerDirectoryFieldBrowse.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent event) {
-                DirectoryDialog dlg = new DirectoryDialog(client.getShell());
-                dlg.setFilterPath(codeCheckerDirectoryField.getText());
-                dlg.setText("Browse codechecker root");
-                String dir = dlg.open();
-                if (dir != null) {
-                    codeCheckerDirectoryField.setText(dir);
-                    try {
-                        Map<ConfigTypes, String> changedConfig = getConfigFromFields();
-                        CodeCheckEnvironmentChecker.getCheckerEnvironment(changedConfig,
-                                changedConfig.get(ConfigTypes.CHECKER_PATH) + CC_BINARY);
-                        form.setMessage(VALID_PACKAGE, IMessageProvider.INFORMATION);
-                    } catch (IllegalArgumentException e1) {
-                        form.setMessage(INVALID_PACKAGE, IMessageProvider.ERROR);
-                    }
-                }
-            }
-        });
-
-        numThreads = addTextField(toolkit, client, "Number of analysis threads", "4");
-        toolkit.createLabel(client, "");
-        cLoggers = addTextField(toolkit, client, "Compiler commands to log", "gcc:g++:clang:clang++");
-        toolkit.createLabel(client, "");
-
-        Map<ConfigTypes, String> configMap = loadConfig(false);
-        try {
-            CodeCheckEnvironmentChecker.getCheckerEnvironment(configMap,
-                    configMap.get(ConfigTypes.CHECKER_PATH) + CC_BINARY);
-            form.setMessage(VALID_PACKAGE, IMessageProvider.INFORMATION);
-        } catch (IllegalArgumentException e1) {
-            form.setMessage(INVALID_PACKAGE, IMessageProvider.ERROR);
-        }
-
-        final Button checkers = toolkit.createButton(client, "Toggle enabled checkers", SWT.PUSH);
+        final Button checkers = toolkit.createButton(comp, "Toggle enabled checkers", SWT.PUSH);
         checkers.addSelectionListener(new SelectionAdapter() {
 
             public void widgetSelected(SelectionEvent e) {
@@ -212,12 +191,10 @@ public class CommonGui {
                         Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
                         //Map<ConfigTypes, String> config = getConfigFromFields();
                         try {
-                            CodeCheckEnvironmentChecker checkerEnv = new CodeCheckEnvironmentChecker(cCProject);
-                            ArrayList<CheckerItem> checkersList = getCheckerList(checkerEnv);
+                            ArrayList<CheckerItem> checkersList = getCheckerList();
                             CheckerView dialog = new CheckerView(activeShell, checkersList);
 
                             int result = dialog.open();
-
                             if (result == 0) {
                                 checkerListArg = checkerListToCheckerListArg(dialog.getCheckersList());
                             }
@@ -229,46 +206,172 @@ public class CommonGui {
                 action.run();
             }
         });
+        checkers.setData("org.eclipse.swtbot.widget.checkersKey", "checkesButton");
         if (!globalGui) {
-            recursiveSetEnabled(checkerConfigSection, !useGlobalSettings);
+            recursiveSetEnabled(form.getBody(), !useGlobalSettings);
             final Composite client3 = toolkit.createComposite(globalConfigSection);
             client3.setLayout(new GridLayout(2, true));
             globalConfigSection.setClient(client3);
             globalcc = toolkit.createButton(client3, "Use global configuration", SWT.RADIO);
-            globalcc.setSelection(useGlobalSettings);
             globalcc.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
                     if (globalcc.getSelection()) {
                         recursiveSetEnabled(checkerConfigSection, false);
+                        recursiveSetEnabled(packageSection, false);
                         useGlobalSettings = true;
                         config = cCProject.getGlobal();
-                        setFields(config.get());
+                        setFields();
+                        locateCodeChecker();
                     }
                 }
             });
+            globalcc.setSelection(useGlobalSettings);
             projectcc = toolkit.createButton(client3, "Use project configuration", SWT.RADIO);
-            projectcc.setSelection(!useGlobalSettings);
             projectcc.addSelectionListener(new SelectionAdapter() {
                 public void widgetSelected(SelectionEvent event) {
                     if (projectcc.getSelection()) {
                         recursiveSetEnabled(checkerConfigSection, true);
+                        recursiveSetEnabled(packageSection, true);
                         useGlobalSettings = false;
                         config = cCProject.getLocal();
-                        setFields(config.get());
+                        setFields();
+                        changeDirectoryInputs();
+                        locateCodeChecker();
                     }
                 }
             });
-
+            projectcc.setSelection(!useGlobalSettings);
+            changeDirectoryInputs();
         }
+        setFields();
+        locateCodeChecker();
         return form.getBody();
     }
 
-	/**
-	 * Recursive control state modifier.
-	 * If the control is {@link Composite} toggles it state and all of it's children {@link Control}.
-	 * @param control The parent control.
-	 * @param b The state to be set.
-	 */
+    /**
+     * Creates the resolution method group, and the package directory inputs.
+     * 
+     * @param toolkit
+     *            The toolkit to be used.
+     * @return The encapsulating Section.
+     */
+    private Section createConfigSection(FormToolkit toolkit) {
+
+        final Section packageConfigSection = toolkit.createSection(form.getBody(),
+                ExpandableComposite.SHORT_TITLE_BAR | ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED);
+        packageConfigSection.setEnabled(true);
+
+        final Composite client = toolkit.createComposite(packageConfigSection);
+        client.setLayout(new GridLayout(FORM_COLUMNS, false));
+
+        packageConfigSection.setClient(client);
+        packageConfigSection.setText("Configuration");
+
+        Group resolutionType = new Group(client, SWT.NULL);
+        resolutionType.setText("CodeChecker resolution method.");
+        GridLayoutFactory.fillDefaults().numColumns(1).applyTo(resolutionType);
+        GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER)
+                .span(FORM_COLUMNS, FORM_ONE_ROW).applyTo(resolutionType);
+        resolutionType.setBackground(client.getBackground());
+
+        ccDirClient = toolkit.createComposite(client);
+        GridLayoutFactory.fillDefaults().numColumns(FORM_COLUMNS).applyTo(ccDirClient);
+        GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).span(FORM_COLUMNS, FORM_ONE_ROW)
+                .applyTo(ccDirClient);
+        ccDirClient.setBackground(client.getBackground());
+
+        pathCc = toolkit.createButton(resolutionType, "Search in PATH", SWT.RADIO);
+        pathCc.setData(ResolutionMethodTypes.PATH);
+        pathCc.addSelectionListener(new PackageResolutionSelectionAdapter());
+
+        preBuiltCc = toolkit.createButton(resolutionType, "Pre built package", SWT.RADIO);
+        preBuiltCc.setData(ResolutionMethodTypes.PRE);
+        preBuiltCc.addSelectionListener(new PackageResolutionSelectionAdapter());
+
+        codeCheckerDirectoryField = addTextField(toolkit, ccDirClient, CC_BIN_LABEL, "");
+        codeCheckerDirectoryField.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                locateCodeChecker();
+            }
+        });
+
+        Button codeCheckerDirectoryFieldBrowse = new Button(ccDirClient, SWT.PUSH);
+        codeCheckerDirectoryFieldBrowse.setText(BROSWE);
+        codeCheckerDirectoryFieldBrowse.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent event) {
+                FileDialog dlg = new FileDialog(client.getShell());
+                dlg.setFilterPath(codeCheckerDirectoryField.getText());
+                dlg.setText("Browse CodeChecker binary");
+                String dir = dlg.open();
+                if (dir != null) {
+                    codeCheckerDirectoryField.setText(dir);
+                    locateCodeChecker();
+                }
+            }
+        });
+
+        changeDirectoryInputs();
+        return packageConfigSection;
+
+    }
+
+    /**
+     * Changes directory input widgets depending on the resolution method radio
+     * group.
+     */
+    public void changeDirectoryInputs() {
+        if (!useGlobalSettings)
+            switch (currentResMethod) {
+                case PATH:
+                    recursiveSetEnabled(ccDirClient, false);
+                    break;
+                case PRE:
+                    recursiveSetEnabled(ccDirClient, true);
+                    break;
+                default:
+                    break;
+            }
+    }
+
+    /**
+     * Tries to find a CodeChecker package.
+     */
+    public void locateCodeChecker() {
+        CodeCheckerLocatorService serv = null;
+        switch (currentResMethod) {
+            case PATH:
+                serv = new EnvCodeCheckerLocatorService();
+                break;
+            case PRE:
+                serv = new PreBuiltCodeCheckerLocatorService();
+                break;
+            default:
+                break;
+        }
+        ICodeChecker cc = null;
+        try {
+            cc = serv.findCodeChecker(Paths.get(codeCheckerDirectoryField.getText()),
+                    new CodeCheckerFactory(), new ShellExecutorHelperFactory());
+            form.setMessage(VALID_PACKAGE + cc.getLocation().toString(), IMessageProvider.INFORMATION);
+            if (globalGui || (!globalGui && !useGlobalSettings))
+                recursiveSetEnabled(checkerConfigSection, true);
+        } catch (InvalidCodeCheckerException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+            recursiveSetEnabled(checkerConfigSection, false);
+            form.setMessage(e.getMessage(), IMessageProvider.ERROR);
+        }
+        this.codeChecker = cc;
+    }
+
+    /**
+     * Recursive control state modifier. If the control is {@link Composite} toggles
+     * it state and all of it's children {@link Control}.
+     * 
+     * @param control
+     *            The parent control.
+     * @param b
+     *            The state to be set.
+     */
     public void recursiveSetEnabled(Control control, Boolean b) {
         if (control instanceof Composite) {
             Composite comp = (Composite) control;
@@ -281,14 +384,13 @@ public class CommonGui {
 
     /**
      * Returns The all checkers from CodeChecker.
-     * @param ccec The Environment Checker to be used.
      * @return A list of all available checkers.
      */
-    private ArrayList<CheckerItem> getCheckerList(CodeCheckEnvironmentChecker ccec) {
+    private ArrayList<CheckerItem> getCheckerList() {
         // ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
         ArrayList<CheckerItem> checkersList = new ArrayList<>(); //
         // new Checkers List
-        String s = ccec.getCheckerList();
+        String s = codeChecker.getCheckers();
         String[] newCheckersSplit = s.split("\n");
         // old Checkers Command
         //String[] checkersCommand = checkerListArg.split(CHECKER_SEPARATOR);
@@ -346,16 +448,26 @@ public class CommonGui {
             ret = config.get();
         } else
             ret = config.getDefaultConfig();
-
-        setFields(ret);
+        currentResMethod = ResolutionMethodTypes.valueOf(config.get(ConfigTypes.RES_METHOD));
         return ret;
     }
 	
 	/**
 	 * Sets the form fields with the given config maps values.
-	 * @param config The config which values are taken.
 	 */
-    public void setFields(Map<ConfigTypes, String> config) {
+    public void setFields() {
+        pathCc.setSelection(false);
+        preBuiltCc.setSelection(false);
+        switch (currentResMethod) {
+            case PATH:
+                pathCc.setSelection(true);
+                break;
+            case PRE:
+                preBuiltCc.setSelection(true);
+                break;
+            default:
+                break;
+        }
         codeCheckerDirectoryField.setText(config.get(ConfigTypes.CHECKER_PATH));
         checkerListArg = config.get(ConfigTypes.CHECKER_LIST);
         cLoggers.setText(config.get(ConfigTypes.COMPILERS));
@@ -384,6 +496,8 @@ public class CommonGui {
         conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
+        conf.put(ConfigTypes.RES_METHOD, currentResMethod.toString());
+        config.setCodeChecker(codeChecker);
         config.update(conf);
         if(!globalGui)
             cCProject.useGlobal(useGlobalSettings);
@@ -420,4 +534,19 @@ public class CommonGui {
         // TODO Auto-generated method stub
     }
 
+    /**
+     * Callback for the Resolution method selection listener.
+     */
+    private class PackageResolutionSelectionAdapter extends SelectionAdapter {
+        @Override
+        public void widgetSelected(SelectionEvent event) {
+            boolean isSelected = ((Button) event.getSource()).getSelection();
+            if (isSelected) {
+                currentResMethod = (ResolutionMethodTypes) event.widget.getData();
+                changeDirectoryInputs();
+                locateCodeChecker();
+            }
+        }
+
+    }
 }

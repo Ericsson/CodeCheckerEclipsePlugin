@@ -94,12 +94,19 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
             environmentVariables.put(ev, ev.getDefaultValue());
         }
         String checkerDir = current.get(ConfigTypes.CHECKER_PATH);
+        String checkerRootDir = "";
+        try {
+            checkerRootDir = Paths.get(checkerDir).getParent().getParent().toAbsolutePath().toString();
+        } catch (NullPointerException e) {
+            checkerRootDir = checkerDir;
+        }
+
         environmentVariables.put(EnvironmentVariables.LD_LIBRARY_PATH,
-                checkerDir + EnvironmentVariables.LD_LIBRARY_PATH.getDefaultValue());
+                checkerRootDir + EnvironmentVariables.LD_LIBRARY_PATH.getDefaultValue());
         environmentVariables.put(EnvironmentVariables._,
                 checkerDir + EnvironmentVariables._.getDefaultValue());
         environmentVariables.put(EnvironmentVariables.CC_LOGGER_BIN,
-                checkerDir + EnvironmentVariables.CC_LOGGER_BIN.getDefaultValue());
+                checkerRootDir + EnvironmentVariables.CC_LOGGER_BIN.getDefaultValue());
         environmentVariables.put(EnvironmentVariables.CC_LOGGER_GCC_LIKE,
                 current.get(ConfigTypes.COMPILERS));
         // The current path to workspace is always handled by this project.
