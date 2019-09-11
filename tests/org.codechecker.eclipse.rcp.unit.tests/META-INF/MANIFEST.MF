@@ -13,6 +13,7 @@ Require-Bundle: org.junit,
  org.objenesis;bundle-version="1.0.0",
  org.codechecker.eclipse.rcp.shared;bundle-version="1.0.0",
  com.google.guava,
- com.github.stefanbirkner.system-rules;bundle-version="1.19.0"
+ com.github.stefanbirkner.system-rules;bundle-version="1.19.0",
+ javax.annotation;bundle-version="1.2.0"
 Bundle-ClassPath: .,
  resources/

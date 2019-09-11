@@ -7,10 +7,15 @@ This is a C/C++ code analysis plugin for Eclipse that shows bugs detected by the
 ## Requirements
 
 * Linux operating system
+
 * Recent [CodeChecker](https://github.com/Ericsson/codechecker) (6.8.0 and up)
-* Every eclipse version since [Oxygen 1](https://www.eclipse.org/downloads/packages/release/oxygen/1) (v4.7.0) is supported
+
+* Every eclipse version since [Phtoton](https://www.eclipse.org/downloads/packages/release/photon/r) (v4.8.0) is supported
+  * Should work with v4.7.0 Oxygen, but this version is untested currently.
+
 * Eclipse CDT
-* Java SE 1.8
+
+* Java SE 1.8 (for building, an equivalent jdk).
 
 ## Build and install CodeChecker Eclipse Plugin
 

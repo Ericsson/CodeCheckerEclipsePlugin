@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="org.codechecker.eclipse.target" sequenceNumber="32">
+<?pde version="3.8"?><target name="org.codechecker.eclipse.target" sequenceNumber="33">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.7.0.201806111355"/>
@@ -19,17 +19,17 @@
 <repository location="http://download.eclipse.org/tools/cdt/releases/9.3"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.equinox.sdk.feature.group" version="3.13.0.v20170531-1133"/>
-<unit id="org.eclipse.sdk.ide" version="4.7.0.I20170612-0950"/>
-<unit id="org.eclipse.swt.tools.feature.feature.group" version="3.106.0.v20170503-0851"/>
-<repository location="https://download.eclipse.org/eclipse/updates/4.7/"/>
+<unit id="org.eclipse.equinox.sdk.feature.group" version="3.14.0.v20180518-2029"/>
+<unit id="org.eclipse.sdk.ide" version="4.8.0.I20180611-0500"/>
+<repository location="https://download.eclipse.org/eclipse/updates/4.8/"/>
 </location>
+<location path="${project_loc}/../../mavendeps/target/repository" type="Directory"/>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="javax.annotation" version="1.2.0.v201602091430"/>
 <unit id="org.hamcrest" version="1.1.0.v20090501071000"/>
 <unit id="org.junit" version="4.12.0.v201504281640"/>
 <unit id="org.mockito" version="1.9.5.v201605172210"/>
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository"/>
 </location>
-<location path="${project_loc}/../../mavendeps/target/repository" type="Directory"/>
 </locations>
 </target>
