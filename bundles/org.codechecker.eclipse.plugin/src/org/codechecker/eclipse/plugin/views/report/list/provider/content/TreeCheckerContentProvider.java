@@ -5,18 +5,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.codechecker.eclipse.plugin.report.BugPathItem;
+import org.codechecker.eclipse.plugin.report.ProblemInfo;
+import org.codechecker.eclipse.plugin.report.ReportInfo;
+import org.codechecker.eclipse.plugin.report.SearchList;
+import org.codechecker.eclipse.plugin.views.report.list.ReportListView;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-
-import org.codechecker.eclipse.plugin.report.BugPathItem;
-import org.codechecker.eclipse.plugin.report.ProblemInfo;
-import org.codechecker.eclipse.plugin.report.ReportInfo;
-import org.codechecker.eclipse.plugin.report.SearchList;
-import org.codechecker.eclipse.plugin.views.report.list.ReportListView;
 
 public class TreeCheckerContentProvider implements ITreeContentProvider {
 
@@ -74,12 +73,14 @@ public class TreeCheckerContentProvider implements ITreeContentProvider {
         if (parentElement instanceof String) {
 
             String parent = (String) parentElement;
-            int parentDots = parent.split("\\.").length;
+            int parentLevel = parent.split("\\.").length;
 
             Set<Object> tops = new HashSet<>();
             for (String s : this.reportListView.getReportList().get().getCheckers()) {
-                if (s.startsWith(parent) && !s.equals(parent)) {
-                    tops.add(parent + "." + s.split("\\.")[parentDots]);
+                String[] splitted = s.split("\\.");
+                if (splitted.length > parentLevel && splitted[parentLevel - 1].equals(parent)
+                        && !s.equals(parent)) {
+                    tops.add(parent + "." + splitted[parentLevel]);
                 }
             }
 
