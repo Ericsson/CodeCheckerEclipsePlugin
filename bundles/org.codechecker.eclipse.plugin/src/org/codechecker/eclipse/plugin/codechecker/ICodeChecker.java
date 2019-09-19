@@ -6,6 +6,7 @@ import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerExce
 import org.codechecker.eclipse.plugin.config.CcConfigurationBase;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * Interface representing a CodeChecker package.
@@ -40,10 +41,15 @@ public interface ICodeChecker {
 
     /**
      * Returns the analyze command to be run, without extra parameters.
-     *
+     * 
+     * @param logFile
+     *            A Path to the build log in the following format:
+     *            http://clang.llvm.org/docs/JSONCompilationDatabase.html .
+     * @param config
+     *            The configuration being used.
      * @return The analyze command as String.
      */
-    public String getAnalyzeString(CcConfigurationBase config, Path logFile);
+    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile);
 
     /**
      * Executes CodeChecker check command on the build log received in the logFile

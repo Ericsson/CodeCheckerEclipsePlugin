@@ -58,6 +58,9 @@ public class CommonGui {
     private static final int FORM_COLUMNS = 3;
     private static final int FORM_ONE_ROW = 1;
 
+    private static final int AN_CMD_DISP_HGT = 300;
+    private static final int TRI_LINE_TEXT_HGT = 52;
+
     private boolean globalGui;// whether this class is for global or project
                               // specific preferences
     private boolean useGlobalSettings;// if this is project specific page,
@@ -176,7 +179,7 @@ public class CommonGui {
 
         toolkit.createLabel(comp, "Extra analysis options");
         analysisOptions = toolkit.createText(comp, "", SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
-        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, 52).applyTo(analysisOptions);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, TRI_LINE_TEXT_HGT).applyTo(analysisOptions);
         analysisOptions.addModifyListener(new ModifyListener() {
 
             @Override
@@ -199,7 +202,7 @@ public class CommonGui {
         toolkit.createLabel(comp, "");
         toolkit.createLabel(comp, "Final analysis command");
         analysisCmdDisplay = toolkit.createText(comp, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, 300).applyTo(analysisCmdDisplay);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, AN_CMD_DISP_HGT).applyTo(analysisCmdDisplay);
         analysisCmdDisplay.setEditable(false);
         analysisCmdDisplay.getVerticalBar().setEnabled(true);
         toolkit.createLabel(comp, "");
