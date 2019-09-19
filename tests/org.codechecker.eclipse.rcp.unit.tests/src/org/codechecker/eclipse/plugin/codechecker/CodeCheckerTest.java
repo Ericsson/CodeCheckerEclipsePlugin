@@ -113,10 +113,8 @@ public class CodeCheckerTest {
         }
         CcConfigurationBase configMock = mock(CcConfigurationBase.class);
         final String cores = "3 ";
-        final String checkers = "-e Checker 1, -e Checker2 ";
-        final String analyzeMockString = "Running analysis! with" + cores + checkers;
+        final String analyzeMockString = "Running analysis! with" + cores;
         when(configMock.get(ConfigTypes.ANAL_THREADS)).thenReturn(cores);
-        when(configMock.get(ConfigTypes.CHECKER_LIST)).thenReturn(checkers);
         NullProgressMonitor mon = new NullProgressMonitor();
         when(mockShe.progressableWaitReturnOutput(anyString(), Mockito.anyMap(), Mockito.anyBoolean(), Mockito.eq(mon),
                 Mockito.eq(RUN_COUNT)))
