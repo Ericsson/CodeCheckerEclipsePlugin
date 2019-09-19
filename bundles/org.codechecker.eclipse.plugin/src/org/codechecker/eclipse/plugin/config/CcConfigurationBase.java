@@ -3,7 +3,6 @@ package org.codechecker.eclipse.plugin.config;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.codechecker.eclipse.plugin.codechecker.ICodeChecker;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
@@ -26,14 +25,6 @@ public abstract class CcConfigurationBase {
      * Base Constructor.
      */
     public CcConfigurationBase() {}
-
-    /**
-     * Copy constructor for initializing.
-     * @param other The other instance.
-     */
-    public CcConfigurationBase(CcConfigurationBase other) {
-        this.config = other.get().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-    }
 
     /**
      * For Updates the configuration.

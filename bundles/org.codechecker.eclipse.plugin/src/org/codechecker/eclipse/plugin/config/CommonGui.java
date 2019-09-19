@@ -1,5 +1,6 @@
 package org.codechecker.eclipse.plugin.config;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,6 +95,9 @@ public class CommonGui {
     private Button globalcc;
     private Button projectcc;
     
+    private Text analysisOptions;
+    private Text analysisCmdDisplay;
+
     /**
      * Constructor to be used, when only global preferences are to be set.
      */
@@ -179,6 +183,36 @@ public class CommonGui {
         numThreads = addTextField(toolkit, comp, "Number of analysis threads", "4");
         toolkit.createLabel(comp, "");
         cLoggers = addTextField(toolkit, comp, "Compiler commands to log", "gcc:g++:clang:clang++");
+        toolkit.createLabel(comp, "");
+
+        toolkit.createLabel(comp, "Extra analysis options");
+        analysisOptions = toolkit.createText(comp, "", SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, 52).applyTo(analysisOptions);
+        analysisOptions.addModifyListener(new ModifyListener() {
+
+            @Override
+            public void modifyText(ModifyEvent e) {
+                config.get().put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
+                Path originalLogFile = null;
+                if (!globalGui) {
+                    originalLogFile = cCProject.getLogFileLocation();
+                }
+                if (codeChecker != null)
+                    analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile));
+                checkerConfigSection.layout();
+                checkerConfigSection.getParent().layout();
+                comp.layout(true);
+                comp.getParent().layout(true);
+            }
+        });
+        analysisOptions.getVerticalBar().setEnabled(true);
+
+        toolkit.createLabel(comp, "");
+        toolkit.createLabel(comp, "Final analysis command");
+        analysisCmdDisplay = toolkit.createText(comp, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, 300).applyTo(analysisCmdDisplay);
+        analysisCmdDisplay.setEditable(false);
+        analysisCmdDisplay.getVerticalBar().setEnabled(true);
         toolkit.createLabel(comp, "");
 
         final Button checkers = toolkit.createButton(comp, "Toggle enabled checkers", SWT.PUSH);
@@ -472,6 +506,7 @@ public class CommonGui {
         checkerListArg = config.get(ConfigTypes.CHECKER_LIST);
         cLoggers.setText(config.get(ConfigTypes.COMPILERS));
         numThreads.setText(config.get(ConfigTypes.ANAL_THREADS));
+        analysisOptions.setText(config.get(ConfigTypes.ANAL_OPTIONS));
     }
 	
     /**
@@ -494,6 +529,7 @@ public class CommonGui {
         Map<ConfigTypes, String> conf = new HashMap<ConfigTypes, String>();
         conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
         conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
+        conf.put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
         conf.put(ConfigTypes.RES_METHOD, currentResMethod.toString());

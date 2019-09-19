@@ -82,9 +82,7 @@ public class CodeChecker implements ICodeChecker {
 
         subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
         subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
-        String cmd = LOCATION_SUB + " analyze " + config.get(ConfigTypes.CHECKER_LIST) + " -j "
-                + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o "
-                + RESULTS_SUB + " " + LOGFILE_SUB;
+        String cmd = getSubstituteAnalyzeString(config);
 
         SLogger.log(LogI.INFO, "Running analyze Command: " + cmd);
         Optional<String> ccOutput = she.progressableWaitReturnOutput(cmd, subMap, logToConsole, monitor, taskCount);
@@ -92,4 +90,31 @@ public class CodeChecker implements ICodeChecker {
         return ccOutput.or("");
     }
 
+    @Override
+    public String getAnalyzeString(CcConfigurationBase config, Path logFile) {
+        if (logFile != null) {
+            subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
+            subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
+        }
+
+        String[] temp = getSubstituteAnalyzeString(config).split(" ");
+        StringBuilder cmd = new StringBuilder();
+        for (String s : temp) {
+            if (s.startsWith("${")) {
+                StringBuilder sb = new StringBuilder(s);
+                sb.delete(0, 2).deleteCharAt(sb.length() - 1);
+                if (subMap.containsKey(sb.toString()))
+                    s = subMap.get(sb.toString()).toString();
+            }
+            cmd.append(s);
+            cmd.append(' ');
+        }
+        return cmd.toString();
+    }
+
+    private String getSubstituteAnalyzeString(CcConfigurationBase config) {
+        return LOCATION_SUB + " analyze" + " -j "
+                + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o " + RESULTS_SUB + " " + LOGFILE_SUB
+                + " " + config.get(ConfigTypes.ANAL_OPTIONS);
+    }
 }

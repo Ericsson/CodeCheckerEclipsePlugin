@@ -39,6 +39,13 @@ public interface ICodeChecker {
     public Path getLocation();
 
     /**
+     * Returns the analyze command to be run, without extra parameters.
+     *
+     * @return The analyze command as String.
+     */
+    public String getAnalyzeString(CcConfigurationBase config, Path logFile);
+
+    /**
      * Executes CodeChecker check command on the build log received in the logFile
      * parameter.
      * 
