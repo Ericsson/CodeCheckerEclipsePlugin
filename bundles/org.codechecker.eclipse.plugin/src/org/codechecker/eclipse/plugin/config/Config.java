@@ -25,12 +25,12 @@ public class Config {
         RES_METHOD("PATH"),
         COMPILERS("gcc:g++:clang:clang++"),
         ANAL_THREADS("4"),
-        CHECKER_LIST("enabled_checkers"),
+        ANAL_OPTIONS(""),
         // Project configuration values
         IS_GLOBAL("true"),
         CHECKER_WORKSPACE("codechecker_workdir");
 
-        public static Set<ConfigTypes> COMMON_TYPE = EnumSet.range(CHECKER_PATH, CHECKER_LIST);
+        public static Set<ConfigTypes> COMMON_TYPE = EnumSet.range(CHECKER_PATH, ANAL_OPTIONS);
         public static Set<ConfigTypes> PROJECT_TYPE = EnumSet.range(IS_GLOBAL, CHECKER_WORKSPACE);
         private String defaultValue;
 

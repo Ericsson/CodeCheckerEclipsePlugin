@@ -11,9 +11,7 @@ import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.google.common.collect.Sets;
@@ -79,17 +77,6 @@ public class CcConfiguration extends CcConfigurationBase {
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Returns preferences related to this project.
-     * @return The configuration which the objects internal boolean has chosen.
-     */
-    @Override
-    public Map<ConfigTypes, String> get() {
-        Map<ConfigTypes, String> retConfig = new HashMap<>();
-        retConfig.putAll(config);
-        return retConfig;
     }
 
     /**

@@ -1,9 +1,8 @@
 package org.codechecker.eclipse.plugin.config;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.codechecker.eclipse.plugin.Logger;
@@ -17,13 +16,9 @@ import org.codechecker.eclipse.plugin.codechecker.locator.ResolutionMethodTypes;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
 import org.codechecker.eclipse.plugin.config.project.CodeCheckerProject;
-import org.codechecker.eclipse.plugin.itemselector.CheckerView;
 import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelperFactory;
-import org.codechecker.eclipse.plugin.utils.CheckerItem;
-import org.codechecker.eclipse.plugin.utils.CheckerItem.LAST_ACTION;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -40,10 +35,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.ColumnLayout;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -60,13 +53,13 @@ public class CommonGui {
 
     private static final String VALID_PACKAGE = "CodeChecker being used: ";
     private static final String BROSWE = "Browse";
-    private static final String CHECKER_ENABLED = " -e ";
-    private static final String CHECKER_DISABLED = " -d ";
-    private static final String CHECKER_SEPARATOR = " ";
 
     private static final int TEXTWIDTH = 200;
     private static final int FORM_COLUMNS = 3;
     private static final int FORM_ONE_ROW = 1;
+
+    private static final int AN_CMD_DISP_HGT = 300;
+    private static final int TRI_LINE_TEXT_HGT = 52;
 
     private boolean globalGui;// whether this class is for global or project
                               // specific preferences
@@ -94,6 +87,9 @@ public class CommonGui {
     private Button globalcc;
     private Button projectcc;
     
+    private Text analysisOptions;
+    private Text analysisCmdDisplay;
+
     /**
      * Constructor to be used, when only global preferences are to be set.
      */
@@ -181,32 +177,36 @@ public class CommonGui {
         cLoggers = addTextField(toolkit, comp, "Compiler commands to log", "gcc:g++:clang:clang++");
         toolkit.createLabel(comp, "");
 
-        final Button checkers = toolkit.createButton(comp, "Toggle enabled checkers", SWT.PUSH);
-        checkers.addSelectionListener(new SelectionAdapter() {
+        toolkit.createLabel(comp, "Extra analysis options");
+        analysisOptions = toolkit.createText(comp, "", SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, TRI_LINE_TEXT_HGT).applyTo(analysisOptions);
+        analysisOptions.addModifyListener(new ModifyListener() {
 
-            public void widgetSelected(SelectionEvent e) {
-                Action action = new Action() {
-                    @Override
-                    public void run() {
-                        Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                        //Map<ConfigTypes, String> config = getConfigFromFields();
-                        try {
-                            ArrayList<CheckerItem> checkersList = getCheckerList();
-                            CheckerView dialog = new CheckerView(activeShell, checkersList);
-
-                            int result = dialog.open();
-                            if (result == 0) {
-                                checkerListArg = checkerListToCheckerListArg(dialog.getCheckersList());
-                            }
-                        } catch (IllegalArgumentException e) {
-                            Logger.log(IStatus.INFO, "Codechecker environment is invalid" + e);
-                        }
-                    }
-                };
-                action.run();
+            @Override
+            public void modifyText(ModifyEvent e) {
+                config.get().put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
+                Path originalLogFile = null;
+                if (!globalGui) {
+                    originalLogFile = cCProject.getLogFileLocation();
+                }
+                if (codeChecker != null)
+                    analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile));
+                checkerConfigSection.layout();
+                checkerConfigSection.getParent().layout();
+                comp.layout(true);
+                comp.getParent().layout(true);
             }
         });
-        checkers.setData("org.eclipse.swtbot.widget.checkersKey", "checkesButton");
+        analysisOptions.getVerticalBar().setEnabled(true);
+
+        toolkit.createLabel(comp, "");
+        toolkit.createLabel(comp, "Final analysis command");
+        analysisCmdDisplay = toolkit.createText(comp, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+        GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, AN_CMD_DISP_HGT).applyTo(analysisCmdDisplay);
+        analysisCmdDisplay.setEditable(false);
+        analysisCmdDisplay.getVerticalBar().setEnabled(true);
+        toolkit.createLabel(comp, "");
+
         if (!globalGui) {
             recursiveSetEnabled(form.getBody(), !useGlobalSettings);
             final Composite client3 = toolkit.createComposite(globalConfigSection);
@@ -383,61 +383,6 @@ public class CommonGui {
     }
 
     /**
-     * Returns The all checkers from CodeChecker.
-     * @return A list of all available checkers.
-     */
-    private ArrayList<CheckerItem> getCheckerList() {
-        // ArrayList<CheckerItem> defaultCheckersList = new ArrayList<>();
-        ArrayList<CheckerItem> checkersList = new ArrayList<>(); //
-        // new Checkers List
-        String s = codeChecker.getCheckers();
-        String[] newCheckersSplit = s.split("\n");
-        // old Checkers Command
-        //String[] checkersCommand = checkerListArg.split(CHECKER_SEPARATOR);
-        //List<String> oldCheckersCommand = Arrays.asList(checkersCommand);
-        for (String it : newCheckersSplit) {
-            // String checkerName = it.split(" ")[2];
-            String checkerName = it;
-            CheckerItem check = new CheckerItem(checkerName);
-            boolean defaultEnabled = false;
-
-            if (it.split(CHECKER_SEPARATOR)[1].equals("+"))
-                defaultEnabled = true;
-            if (defaultEnabled) {
-                if (checkerListArg.contains(CHECKER_DISABLED + checkerName)) {
-                    check.setLastAction(LAST_ACTION.DESELECTION);
-                } else {
-                    check.setLastAction(LAST_ACTION.SELECTION);
-                }
-            } else {
-                if (checkerListArg.contains(CHECKER_ENABLED + checkerName)) {
-                    check.setLastAction(LAST_ACTION.SELECTION);
-                } else {
-                    check.setLastAction(LAST_ACTION.DESELECTION);
-                }
-            }
-            checkersList.add(check);
-        }
-        return checkersList;
-    }
-
-    /**
-     * Returns Stringified checkerlist configuration.
-     * @param chl The internal list of checkers.
-     * @return The string list of checkers prefixed with state.
-     */
-    protected String checkerListToCheckerListArg(List<CheckerItem> chl) {
-        StringBuilder checkerListArg = new StringBuilder();
-        for (int i = 0; i < chl.size(); ++i) {
-            if (chl.get(i).getLastAction() == LAST_ACTION.SELECTION)
-                checkerListArg.append(CHECKER_ENABLED + chl.get(i).getText() + CHECKER_SEPARATOR);
-            else
-                checkerListArg.append(CHECKER_DISABLED + chl.get(i).getText() + CHECKER_SEPARATOR);
-        }
-        return checkerListArg.toString();
-    }
-
-    /**
      * Loads config from {@link CcConfiguration}.
      * @param resetToDefault If set, the default config is used.
      * @return The configuration map thats represent the preferences.
@@ -469,9 +414,9 @@ public class CommonGui {
                 break;
         }
         codeCheckerDirectoryField.setText(config.get(ConfigTypes.CHECKER_PATH));
-        checkerListArg = config.get(ConfigTypes.CHECKER_LIST);
         cLoggers.setText(config.get(ConfigTypes.COMPILERS));
         numThreads.setText(config.get(ConfigTypes.ANAL_THREADS));
+        analysisOptions.setText(config.get(ConfigTypes.ANAL_OPTIONS));
     }
 	
     /**
@@ -481,7 +426,6 @@ public class CommonGui {
     public Map<ConfigTypes, String> getConfigFromFields() {
         Map<ConfigTypes, String> conf = new HashMap<>();
         conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-        conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
         return conf;
@@ -493,7 +437,7 @@ public class CommonGui {
     public void saveConfig() {
         Map<ConfigTypes, String> conf = new HashMap<ConfigTypes, String>();
         conf.put(ConfigTypes.CHECKER_PATH, codeCheckerDirectoryField.getText());
-        conf.put(ConfigTypes.CHECKER_LIST, checkerListArg);
+        conf.put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
         conf.put(ConfigTypes.ANAL_THREADS, numThreads.getText());
         conf.put(ConfigTypes.COMPILERS, cLoggers.getText());
         conf.put(ConfigTypes.RES_METHOD, currentResMethod.toString());

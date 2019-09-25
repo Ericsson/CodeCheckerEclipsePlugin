@@ -14,6 +14,7 @@ import org.codechecker.eclipse.plugin.runtime.SLogger;
 import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelper;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.base.Optional;
 
@@ -21,6 +22,7 @@ import com.google.common.base.Optional;
  * Internal representation of a CodeChecker package.
  */
 public class CodeChecker implements ICodeChecker {
+    private static final String OPTION_SEPARATOR = " ";
 
     private static final String LOCATION_KEY = "location";
     private static final String RESULTS_KEY = "results";
@@ -82,9 +84,7 @@ public class CodeChecker implements ICodeChecker {
 
         subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
         subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
-        String cmd = LOCATION_SUB + " analyze " + config.get(ConfigTypes.CHECKER_LIST) + " -j "
-                + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o "
-                + RESULTS_SUB + " " + LOGFILE_SUB;
+        String cmd = getSubstituteAnalyzeString(config);
 
         SLogger.log(LogI.INFO, "Running analyze Command: " + cmd);
         Optional<String> ccOutput = she.progressableWaitReturnOutput(cmd, subMap, logToConsole, monitor, taskCount);
@@ -92,4 +92,32 @@ public class CodeChecker implements ICodeChecker {
         return ccOutput.or("");
     }
 
+    @Override
+    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile) {
+        if (logFile != null) {
+            subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
+            subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
+        }
+
+        String[] temp = getSubstituteAnalyzeString(config).split(OPTION_SEPARATOR);
+        StringBuilder cmd = new StringBuilder();
+        for (String s : temp) {
+            String tempString = s;
+            if (s.startsWith("${")) {
+                StringBuilder sb = new StringBuilder(tempString);
+                sb.delete(0, 2).deleteCharAt(sb.length() - 1);
+                if (subMap.containsKey(sb.toString()))
+                    tempString = subMap.get(sb.toString()).toString();
+            }
+            cmd.append(tempString);
+            cmd.append(OPTION_SEPARATOR);
+        }
+        return cmd.toString();
+    }
+
+    private String getSubstituteAnalyzeString(CcConfigurationBase config) {
+        return LOCATION_SUB + " analyze" + " -j "
+                + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o " + RESULTS_SUB + OPTION_SEPARATOR
+                + LOGFILE_SUB + OPTION_SEPARATOR + config.get(ConfigTypes.ANAL_OPTIONS);
+    }
 }
