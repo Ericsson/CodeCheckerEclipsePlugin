@@ -33,3 +33,5 @@ after_failure:
     - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/work/data/.metadata/.log
     - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.it.tests/target/surefire-reports/*
     - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.unit.tests/target/work/configuration/*.log
+    - cat $TRAVIS_BUILD_DIR/tests/org.codechecker.eclipse.rcp.unit.tests/target/surefire-reports/*
+

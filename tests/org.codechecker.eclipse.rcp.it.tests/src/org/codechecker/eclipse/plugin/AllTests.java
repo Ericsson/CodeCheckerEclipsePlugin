@@ -12,10 +12,12 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ PluginTest.class,
-    IndicatorTest.class,
-    ConfigurationTest.class})
+        IndicatorTest.class, ConfigurationTest.class,
+        AnalysisTest.class, })
 public class AllTests {
     
+    private static SWTWorkbenchBot bot;
+
     /**
      * Never called.
      */
@@ -28,7 +30,7 @@ public class AllTests {
     @BeforeClass
     public static void setup() {
         //clearWs();
-        SWTWorkbenchBot bot = new SWTWorkbenchBot();
+        bot = new SWTWorkbenchBot();
         GuiUtils.closeWelcomeIfPresent(bot);
         GuiUtils.changePerspectiveTo(GuiUtils.C_CPP_PESPECTIVE, bot);
     }
