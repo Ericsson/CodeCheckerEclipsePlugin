@@ -50,6 +50,8 @@ import org.eclipse.ui.forms.widgets.Section;
 public class CommonGui {
 
     public static final String CC_BIN_LABEL = "CodeChecker binary:";
+    public static final String CC_EXTRA_CMD_LABEL = "Extra analysis options";
+    public static final String CC_FINAL_DISP_LABEL = "Final analysis command";
 
     private static final String VALID_PACKAGE = "CodeChecker being used: ";
     private static final String BROSWE = "Browse";
@@ -89,6 +91,8 @@ public class CommonGui {
     
     private Text analysisOptions;
     private Text analysisCmdDisplay;
+
+    private Composite comp;
 
     /**
      * Constructor to be used, when only global preferences are to be set.
@@ -177,30 +181,20 @@ public class CommonGui {
         cLoggers = addTextField(toolkit, comp, "Compiler commands to log", "gcc:g++:clang:clang++");
         toolkit.createLabel(comp, "");
 
-        toolkit.createLabel(comp, "Extra analysis options");
+        toolkit.createLabel(comp, CC_EXTRA_CMD_LABEL);
         analysisOptions = toolkit.createText(comp, "", SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
         GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, TRI_LINE_TEXT_HGT).applyTo(analysisOptions);
         analysisOptions.addModifyListener(new ModifyListener() {
 
             @Override
             public void modifyText(ModifyEvent e) {
-                config.get().put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
-                Path originalLogFile = null;
-                if (!globalGui) {
-                    originalLogFile = cCProject.getLogFileLocation();
-                }
-                if (codeChecker != null)
-                    analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile));
-                checkerConfigSection.layout();
-                checkerConfigSection.getParent().layout();
-                comp.layout(true);
-                comp.getParent().layout(true);
+                refreshDisplay();
             }
         });
         analysisOptions.getVerticalBar().setEnabled(true);
 
         toolkit.createLabel(comp, "");
-        toolkit.createLabel(comp, "Final analysis command");
+        toolkit.createLabel(comp, CC_FINAL_DISP_LABEL);
         analysisCmdDisplay = toolkit.createText(comp, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
         GridDataFactory.fillDefaults().grab(false, true).hint(TEXTWIDTH, AN_CMD_DISP_HGT).applyTo(analysisCmdDisplay);
         analysisCmdDisplay.setEditable(false);
@@ -293,6 +287,7 @@ public class CommonGui {
             @Override
             public void modifyText(ModifyEvent e) {
                 locateCodeChecker();
+                refreshDisplay();
             }
         });
 
@@ -307,6 +302,7 @@ public class CommonGui {
                 if (dir != null) {
                     codeCheckerDirectoryField.setText(dir);
                     locateCodeChecker();
+                    refreshDisplay();
                 }
             }
         });
@@ -476,6 +472,22 @@ public class CommonGui {
      */
     public void init(IWorkbench workbench) {
         // TODO Auto-generated method stub
+    }
+
+    private void refreshDisplay() {
+        config.get().put(ConfigTypes.ANAL_OPTIONS, analysisOptions.getText());
+        Path originalLogFile = null;
+        if (!globalGui) {
+            originalLogFile = cCProject.getLogFileLocation();
+        }
+        if (codeChecker != null)
+            analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile));
+        checkerConfigSection.layout();
+        checkerConfigSection.getParent().layout();
+        if (comp != null) {
+            comp.layout(true);
+            comp.getParent().layout(true);
+        }
     }
 
     /**
