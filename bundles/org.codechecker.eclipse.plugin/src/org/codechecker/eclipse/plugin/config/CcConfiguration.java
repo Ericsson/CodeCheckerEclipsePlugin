@@ -1,14 +1,22 @@
 package org.codechecker.eclipse.plugin.config;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.codechecker.eclipse.plugin.CodeCheckerNature;
 import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.codechecker.CodeCheckerFactory;
+import org.codechecker.eclipse.plugin.codechecker.locator.CodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.EnvCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerException;
+import org.codechecker.eclipse.plugin.codechecker.locator.PreBuiltCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.ResolutionMethodTypes;
 import org.codechecker.eclipse.plugin.config.Config.ConfigLogger;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
 import org.codechecker.eclipse.plugin.config.global.CcGlobalConfiguration;
+import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelperFactory;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.IStatus;
@@ -31,6 +39,28 @@ public class CcConfiguration extends CcConfigurationBase {
         this.project = project;
         preferences = new ProjectScope(project).getNode(CodeCheckerNature.NATURE_ID);
         load();
+
+        // set CodeChecker
+        ResolutionMethodTypes resMethod = ResolutionMethodTypes.valueOf(config.get(ConfigTypes.RES_METHOD));
+        CodeCheckerLocatorService serv = null;
+        switch (resMethod) {
+            case PATH:
+                serv = new EnvCodeCheckerLocatorService();
+                break;
+            case PRE:
+                serv = new PreBuiltCodeCheckerLocatorService();
+                break;
+            default:
+                break;
+        }
+        try {
+            codeChecker = serv.findCodeChecker(Paths.get(config.get(ConfigTypes.CHECKER_PATH)),
+                    new CodeCheckerFactory(),
+                    new ShellExecutorHelperFactory());
+        } catch (InvalidCodeCheckerException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+            Logger.log(IStatus.ERROR, "Cannot load CodeChecker from: " + config.get(ConfigTypes.CHECKER_PATH));
+            Logger.log(IStatus.ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -72,7 +102,8 @@ public class CcConfiguration extends CcConfigurationBase {
                     }
                 }
                 configLogger.log();
-                preferences.flush(); // flush only saves changes, so no need for a change flag.
+                if (project.isAccessible())
+                    preferences.flush(); // flush only saves changes, so no need for a change flag.
             } catch (BackingStoreException e) {
                 e.printStackTrace();
             }

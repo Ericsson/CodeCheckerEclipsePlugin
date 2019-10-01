@@ -105,7 +105,8 @@ public class StartupJob extends Job {
      * @param project The project that got opened.
      */
     private void projectOpened(IProject project) {
-        if (project == null)
+        // We should return if the project is inaccessible.
+        if (project == null || !project.isAccessible())
             return;
         try {
             // If CodecheCker nature is not set or the project is non-CDT we can't parse anything.

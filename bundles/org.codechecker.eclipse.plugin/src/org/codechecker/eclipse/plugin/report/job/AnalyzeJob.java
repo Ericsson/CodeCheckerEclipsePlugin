@@ -77,8 +77,7 @@ public class AnalyzeJob extends Job {
             int numberOfAnalyzers = 2;
             config.getCodeChecker().analyze(logFile, true, monitor, taskCount.get() * numberOfAnalyzers, config);
         } catch (NullPointerException e) {
-            // TODO: Notify the user somehow that the analyze couldn't be completed, because
-            // there is no CodeChecker configured.
+            Logger.log(IStatus.ERROR, "Could not complete the analysis");
         }
 
         deleteLogFile();
