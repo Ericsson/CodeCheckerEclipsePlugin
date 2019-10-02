@@ -15,6 +15,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.google.common.base.Optional;
 
@@ -113,13 +115,21 @@ public class CodeCheckerTest {
         }
         CcConfigurationBase configMock = mock(CcConfigurationBase.class);
         final String cores = "3 ";
-        final String analyzeMockString = "Running analysis! with" + cores;
+        final String extra = "-e unix";
         when(configMock.get(ConfigTypes.ANAL_THREADS)).thenReturn(cores);
+        when(configMock.get(ConfigTypes.ANAL_OPTIONS)).thenReturn(extra);
         NullProgressMonitor mon = new NullProgressMonitor();
         when(mockShe.progressableWaitReturnOutput(anyString(), Mockito.anyMap(), Mockito.anyBoolean(), Mockito.eq(mon),
-                Mockito.eq(RUN_COUNT)))
-                .thenReturn(Optional.of(analyzeMockString));
+                Mockito.eq(RUN_COUNT))).then(new Answer<Optional<String>>() {
+
+                    @Override
+                    public Optional<String> answer(InvocationOnMock invocation) throws Throwable {
+                        Object[] args = invocation.getArguments();
+                        return Optional.of((String) args[0]);
+                    }
+                });
         String analyzeResult = codeChecker.analyze(Paths.get(DUMMY), true, mon, RUN_COUNT, configMock);
-        assertThat("Analyze result isn't the same as specified", analyzeResult.equals(analyzeMockString));
+        assertThat("Analyze result isn't the same as specified", analyzeResult.contains("-j " + cores));
+        assertThat("Analyze result isn't contains the extra parameters", analyzeResult.contains(extra));
     }
 }
