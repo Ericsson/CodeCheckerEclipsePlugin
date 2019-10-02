@@ -254,26 +254,23 @@ public class CodeCheckerContext {
             activeEditorPart = partRef;
             IFile file = ((IFileEditorInput) partRef.getEditorInput()).getFile();
             IProject project = file.getProject();
-            try {
-                if (project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                    String filename = projects.get(project).getAsProjectRelativePath(file.getProjectRelativePath().toString());
 
-                    IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                    if (activeWindow == null) {
-                        Logger.log(IStatus.ERROR, NULL_WINDOW);
-                        return;
-                    }
-                    IWorkbenchPage[] pages = activeWindow.getPages();
+            CodeCheckerProject ccProj = projects.get(project);
+            String filename = "";
+            if (ccProj != null)
+                filename = ccProj.getAsProjectRelativePath(file.getProjectRelativePath().toString());
 
-                    this.refreshProject(pages, project, true);
-                    this.refreshCurrent(pages, project, filename, true);
-                    this.refreshCustom(pages, project, "", true);
-                    this.activeProject = project;
-                }
-            } catch (CoreException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (activeWindow == null) {
+                Logger.log(IStatus.ERROR, NULL_WINDOW);
+                return;
             }
+            IWorkbenchPage[] pages = activeWindow.getPages();
+
+            this.refreshProject(pages, project, true);
+            this.refreshCurrent(pages, project, filename, true);
+            this.refreshCustom(pages, project, "", true);
+            this.activeProject = project;
         }
     }
 
@@ -333,7 +330,19 @@ public class CodeCheckerContext {
      */
     public void runReportJob(ReportListView target, String currentFileName) {
         IProject project = target.getCurrentProject();
-        if (project == null) return;
+        if (project == null)
+            return;
+        try {
+            if (!project.hasNature(CodeCheckerNature.NATURE_ID)) {
+                target.clearModel();
+                return;
+            }
+        } catch (CoreException e) {
+            // If there is a problem with the project, clear it anyway.
+            target.clearModel();
+            return;
+        }
+
         Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
 
         ReportParser parser = new ReportParser(reports.get(project), currentFileName);
