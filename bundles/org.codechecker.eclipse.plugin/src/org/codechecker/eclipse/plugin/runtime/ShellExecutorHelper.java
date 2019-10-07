@@ -1,22 +1,29 @@
 package org.codechecker.eclipse.plugin.runtime;
 
-import com.google.common.base.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Vector;
 
-import org.apache.commons.exec.*;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.LogOutputStream;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.annotation.Nullable;
 
-import java.io.*;
-import java.util.Map;
-import java.util.Vector;
+import com.google.common.base.Optional;
 
 public class ShellExecutorHelper {
 
     private static final int DEFAULT_TIMEOUT = 1000; // in milliseconds
     private static final String WRAP_CHARACTER = "\"";
 
+    private Executor ec;
     final Map<String, String> environment;
 
     public ShellExecutorHelper(Map<String, String> environment) {
@@ -32,7 +39,7 @@ public class ShellExecutorHelper {
      * @return The first line of the script's output in an Optional wrapper.
      */
     public Optional<String> quickReturnFirstLine(String cmd, @Nullable Map<String, File> substitutionMap) {
-        Executor ec = build(DEFAULT_TIMEOUT);
+        ec = build(DEFAULT_TIMEOUT);
         try {
             OneLineReader olr = new OneLineReader();
             ec.setStreamHandler(new PumpStreamHandler(olr));
@@ -63,7 +70,7 @@ public class ShellExecutorHelper {
      * @return The script's output in an Optional wrapper.
      */
     public Optional<String> quickReturnOutput(String cmd, @Nullable Map<String, File> substitutionMap, double timeOut) {
-        Executor ec = build(new Double(timeOut).longValue());
+        ec = build(new Double(timeOut).longValue());
         try {
             AllLineReader olr = new AllLineReader();
             ec.setStreamHandler(new PumpStreamHandler(olr));
@@ -83,7 +90,7 @@ public class ShellExecutorHelper {
      * @return The script's output in an Optional wrapper.
      */
     public Optional<String> waitReturnOutput(String cmd, @Nullable Map<String, File> substitutionMap, boolean logToConsole) {
-        Executor ec = build();
+        ec = build();
         try {
             AllLineReader olr = new AllLineReader(logToConsole);
             ec.setStreamHandler(new PumpStreamHandler(olr));
@@ -107,7 +114,7 @@ public class ShellExecutorHelper {
      */
     public Optional<String> progressableWaitReturnOutput(String cmd, @Nullable Map<String, File> substitutionMap,
             boolean logToConsole, IProgressMonitor monitor, int taskCount) {
-        Executor ec = build();
+        ec = build();
         try {
             AllLineReader olr = new ProgressableAllLineReader(logToConsole, monitor, taskCount);
             ec.setStreamHandler(new PumpStreamHandler(olr));
@@ -127,7 +134,7 @@ public class ShellExecutorHelper {
      * @return true if successful
      */
     public boolean quickAndSuccessfull(String cmd, @Nullable Map<String, File> substitutionMap) {
-        Executor ec = build(DEFAULT_TIMEOUT);
+        ec = build(DEFAULT_TIMEOUT);
         try {
             ec.execute(buildScriptCommandLine(cmd, substitutionMap), environment);
             return true;
@@ -171,6 +178,10 @@ public class ShellExecutorHelper {
         //executor.setWorkingDirectory(new File(workingDirectory.or(".")));
         executor.setWatchdog(ew);
         return executor;
+    }
+
+    public void cancel() {
+        ec.getWatchdog().destroyProcess();
     }
 
     class PidObject {

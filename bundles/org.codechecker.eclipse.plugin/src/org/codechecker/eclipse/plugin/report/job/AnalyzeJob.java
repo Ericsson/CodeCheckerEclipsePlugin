@@ -84,6 +84,11 @@ public class AnalyzeJob extends Job {
         return Status.OK_STATUS;
     }
     
+    @Override
+    protected void canceling() {
+        config.getCodeChecker().cancelAnalyze();
+    }
+
     /**
      * Creates a copy of the log file created by ld logger, to avoid concurrency
      * issues.
@@ -107,4 +112,5 @@ public class AnalyzeJob extends Job {
             Logger.log(IStatus.ERROR, "Couldn't delete the temporary log file!");
         }
     }
+
 }
