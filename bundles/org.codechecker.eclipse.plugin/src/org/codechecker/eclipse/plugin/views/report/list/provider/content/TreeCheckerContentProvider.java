@@ -73,12 +73,12 @@ public class TreeCheckerContentProvider implements ITreeContentProvider {
         if (parentElement instanceof String) {
 
             String parent = (String) parentElement;
-            int parentLevel = parent.split("\\.").length;
-
+            String[] splittedParent = parent.split("\\.");
+            int parentLevel = splittedParent.length;
             Set<Object> tops = new HashSet<>();
             for (String s : this.reportListView.getReportList().get().getCheckers()) {
                 String[] splitted = s.split("\\.");
-                if (splitted.length > parentLevel && splitted[parentLevel - 1].equals(parent)
+                if (splitted.length > parentLevel && splitted[parentLevel - 1].equals(splittedParent[parentLevel - 1])
                         && !s.equals(parent)) {
                     tops.add(parent + "." + splitted[parentLevel]);
                 }
