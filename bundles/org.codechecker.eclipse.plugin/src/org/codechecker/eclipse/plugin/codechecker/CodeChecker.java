@@ -120,4 +120,9 @@ public class CodeChecker implements ICodeChecker {
                 + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o " + RESULTS_SUB + OPTION_SEPARATOR
                 + LOGFILE_SUB + OPTION_SEPARATOR + config.get(ConfigTypes.ANAL_OPTIONS);
     }
+
+    @Override
+    public void cancelAnalyze() {
+        she.cancel();
+    }
 }

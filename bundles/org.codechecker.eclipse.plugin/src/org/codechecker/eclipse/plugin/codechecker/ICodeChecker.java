@@ -70,4 +70,6 @@ public interface ICodeChecker {
      */
     public String analyze(Path logFile, boolean logToConsole, IProgressMonitor monitor, int taskCount,
             CcConfigurationBase config);
+
+    public void cancelAnalyze();
 }
