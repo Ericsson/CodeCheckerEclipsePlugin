@@ -23,6 +23,18 @@ public class ConsoleFactory implements IConsoleFactory{
 
     public static void consoleWrite(String msg) {
         console = getConsole();
+        if (console != null) {
+            IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
+            IConsole[] existing = manager.getConsoles();
+            boolean exists = false;
+            for (int i = 0; i < existing.length; i++) {
+                if (console == existing[i])
+                    exists = true;
+            }
+            if (!exists)
+                manager.addConsoles(new IConsole[] { console });
+            manager.showConsoleView(console);
+        }
         MessageConsoleStream out = console.newMessageStream();
         out.println(msg);
     }
