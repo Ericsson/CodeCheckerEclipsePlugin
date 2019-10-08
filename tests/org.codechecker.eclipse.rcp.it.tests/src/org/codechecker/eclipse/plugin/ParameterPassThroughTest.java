@@ -65,6 +65,8 @@ public class ParameterPassThroughTest {
         bot.tree().getTreeItem("Executable").getNode("Hello World C++ Project").select();
         bot.button(GuiUtils.FINISH).click();
 
+        bot.sleep(GuiUtils.SHORT_WAIT_TIME);
+
         project = bot.tree().getTreeItem(CR_PROJ);
         project.contextMenu(GuiUtils.ADD_NATURE_MENU).click();
         project.contextMenu(GuiUtils.PROPERTIES).click();
@@ -84,6 +86,15 @@ public class ParameterPassThroughTest {
         extra.setText(EXTRA);
 
         assertThat("Display not contains extra parameters", extra.getText().contains(EXTRA));
+
+        GuiUtils.applyCloseProperties(propertiesShell, bot);
+        
+        project.contextMenu(GuiUtils.PROPERTIES).click();
+        propertiesShell = bot.shell(GuiUtils.PROPERTIES_FOR + CR_PROJ);
+        propertiesShell.activate();
+
+        extra = bot.textWithLabel(CommonGui.CC_EXTRA_CMD_LABEL);
+        assertThat("Display not contains extra parameters after reopen", extra.getText().contains(EXTRA));
 
         GuiUtils.applyCloseProperties(propertiesShell, bot);
 

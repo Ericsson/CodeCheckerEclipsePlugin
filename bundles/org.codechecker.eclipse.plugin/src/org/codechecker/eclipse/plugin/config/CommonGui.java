@@ -409,6 +409,7 @@ public class CommonGui {
             default:
                 break;
         }
+        analysisOptions.setText(config.get(ConfigTypes.ANAL_OPTIONS));
         codeCheckerDirectoryField.setText(config.get(ConfigTypes.CHECKER_PATH));
         cLoggers.setText(config.get(ConfigTypes.COMPILERS));
         numThreads.setText(config.get(ConfigTypes.ANAL_THREADS));
