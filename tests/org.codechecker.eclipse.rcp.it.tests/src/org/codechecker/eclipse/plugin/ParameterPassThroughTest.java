@@ -94,7 +94,7 @@ public class ParameterPassThroughTest {
         propertiesShell.activate();
 
         extra = bot.textWithLabel(CommonGui.CC_EXTRA_CMD_LABEL);
-        assertThat("Display not contains extra parameters after reopen", extra.getText().contains(EXTRA));
+        assertThat("Display does not contains extra parameters after reopen", extra.getText().contains(EXTRA));
 
         GuiUtils.applyCloseProperties(propertiesShell, bot);
 
