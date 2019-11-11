@@ -12,7 +12,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ PluginTest.class, IndicatorTest.class, ParameterPassThroughTest.class,
-    ConfigurationTest.class, AnalysisTest.class })
+        ConfigurationTest.class/* , AnalysisTest.class */ })
 public class AllTests {
     
     private static SWTWorkbenchBot bot;

@@ -128,7 +128,7 @@ public class CodeCheckerTest {
                         return Optional.of((String) args[0]);
                     }
                 });
-        String analyzeResult = codeChecker.analyze(Paths.get(DUMMY), true, mon, RUN_COUNT, configMock);
+        String analyzeResult = codeChecker.analyze(Paths.get(DUMMY), true, mon, RUN_COUNT, configMock, null);
         assertThat("Analyze result isn't the same as specified", analyzeResult.contains("-j " + cores));
         assertThat("Analyze result isn't contains the extra parameters", analyzeResult.contains(extra));
     }

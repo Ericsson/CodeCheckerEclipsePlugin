@@ -27,3 +27,4 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.codechecker.eclipse.plugin,
  org.codechecker.eclipse.plugin.runtime
+Import-Package: com.google.gson
