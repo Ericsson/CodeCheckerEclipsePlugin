@@ -46,7 +46,7 @@ public final class GuiUtils {
     // CodeChecker related strings.
     public static final String DOT_CODECHECKER = ".codechecker";
     public static final String ADD_NATURE_MENU = "Add CodeChecker Nature";
-    public static final String COMP_COMMANDS = "compilation_commands.json.javarunner";
+    public static final String COMP_COMMANDS = "compilation_commands.json";
     public static final String CURRENT_PROJ = "Current Project";
     public static final String BIN = "bin";
     public static final String CC_DIR_WIDGET = "CodeChecker binary:";

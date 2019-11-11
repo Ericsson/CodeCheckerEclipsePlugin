@@ -27,9 +27,11 @@ public class CodeChecker implements ICodeChecker {
     private static final String LOCATION_KEY = "location";
     private static final String RESULTS_KEY = "results";
     private static final String LOGFILE_KEY = "logFile";
+    private static final String SKIPFILE_KEY = "skipFile";
     private static final String LOCATION_SUB = "${location}";
     private static final String RESULTS_SUB = "${results}";
     private static final String LOGFILE_SUB = "${logFile}";
+    private static final String SKIPFILE_SUB = "${skipFile}";
 
     private static final String RESULTS_FOLDER = RESULTS_KEY;
 
@@ -80,10 +82,15 @@ public class CodeChecker implements ICodeChecker {
 
     @Override
     public String analyze(Path logFile, boolean logToConsole, IProgressMonitor monitor, int taskCount,
-            CcConfigurationBase config) {
+            CcConfigurationBase config, @Nullable Path skipFile) {
 
         subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
         subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
+
+        if (skipFile != null) {
+            subMap.put(SKIPFILE_KEY, skipFile.toAbsolutePath().toFile());
+        }
+
         String cmd = getSubstituteAnalyzeString(config);
 
         SLogger.log(LogI.INFO, "Running analyze Command: " + cmd);
@@ -93,7 +100,7 @@ public class CodeChecker implements ICodeChecker {
     }
 
     @Override
-    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile) {
+    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile, @Nullable Path skipFile) {
         if (logFile != null) {
             subMap.put(RESULTS_KEY, logFile.getParent().toAbsolutePath().resolve(Paths.get(RESULTS_FOLDER)).toFile());
             subMap.put(LOGFILE_KEY, logFile.toAbsolutePath().toFile());
@@ -116,9 +123,17 @@ public class CodeChecker implements ICodeChecker {
     }
 
     private String getSubstituteAnalyzeString(CcConfigurationBase config) {
-        return LOCATION_SUB + " analyze" + " -j "
-                + config.get(ConfigTypes.ANAL_THREADS) + " -n javarunner" + " -o " + RESULTS_SUB + OPTION_SEPARATOR
-                + LOGFILE_SUB + OPTION_SEPARATOR + config.get(ConfigTypes.ANAL_OPTIONS);
+        StringBuilder sb = new StringBuilder();
+        sb.append(LOCATION_SUB).append(OPTION_SEPARATOR).append("analyze").append(OPTION_SEPARATOR).append("-j");
+        sb.append(OPTION_SEPARATOR).append(config.get(ConfigTypes.ANAL_THREADS)).append(OPTION_SEPARATOR);
+        if (subMap.get(SKIPFILE_KEY) != null)
+            sb.append("--skip").append(OPTION_SEPARATOR).append(SKIPFILE_SUB).append(OPTION_SEPARATOR);
+        sb.append("-o").append(OPTION_SEPARATOR).append(RESULTS_SUB).append(OPTION_SEPARATOR).append(LOGFILE_SUB);
+        sb.append(OPTION_SEPARATOR).append(config.get(ConfigTypes.ANAL_OPTIONS));
+
+        // Logger.log(IStatus.INFO, sb.toString());
+
+        return sb.toString();
     }
 
     @Override

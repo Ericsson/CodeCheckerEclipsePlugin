@@ -1,41 +1,66 @@
 package org.codechecker.eclipse.plugin.views.report.list;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.*;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.SWT;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-
-import com.google.common.base.Optional;
-
-
-import org.codechecker.eclipse.plugin.report.BugPathItem;
-import org.codechecker.eclipse.plugin.report.SearchList;
+import org.codechecker.eclipse.plugin.Activator;
+import org.codechecker.eclipse.plugin.Logger;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
 import org.codechecker.eclipse.plugin.config.filter.Filter;
 import org.codechecker.eclipse.plugin.config.filter.FilterConfiguration;
+import org.codechecker.eclipse.plugin.report.BugPathItem;
+import org.codechecker.eclipse.plugin.report.SearchList;
+import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
+import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
+import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
 import org.codechecker.eclipse.plugin.views.report.list.action.NewInstanceAction;
 import org.codechecker.eclipse.plugin.views.report.list.action.ShowFilterConfigurationDialog;
 import org.codechecker.eclipse.plugin.views.report.list.action.showas.CheckerGroupAction;
 import org.codechecker.eclipse.plugin.views.report.list.action.showas.CheckerTreeAction;
 import org.codechecker.eclipse.plugin.views.report.list.provider.content.TreeCheckerContentProvider;
 import org.codechecker.eclipse.plugin.views.report.list.provider.label.BasicViewLabelProvider;
-import org.codechecker.eclipse.plugin.Logger;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import com.google.common.base.Optional;
 
 public class ReportListView extends ViewPart {
 
@@ -49,6 +74,9 @@ public class ReportListView extends ViewPart {
     private IProject currentProject;
     private ShowFilterConfigurationDialog showfilterconfigurationdialog;
 
+    private Label message;
+    private Composite client;
+
     public ReportListView() {
     }
 
@@ -56,9 +84,66 @@ public class ReportListView extends ViewPart {
 
         this.parent = parent;
 
-        parent.setLayout(new GridLayout(1, true));
+        client = new Composite(parent, parent.getStyle());
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(client);
 
-        viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        Button analyzeBtn = new Button(client, SWT.PUSH);
+        analyzeBtn.setToolTipText("Reanalyze current file");
+        analyzeBtn.setImage(
+                AbstractUIPlugin.imageDescriptorFromPlugin(Activator.PLUGIN_ID, "icons/analyze.png").createImage());
+        analyzeBtn.addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseUp(MouseEvent e) {
+                // if (currentFilename == null || currentProject == null)
+                // return;
+                IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+                        .getActiveEditor();
+                if (editor == null)
+                    return;
+                IEditorInput input = editor.getEditorInput();
+                if (input == null)
+                    return;
+                Path file = null;
+                IProject proj = null;
+                try {
+                    file = ((FileEditorInput) input).getPath().toFile().toPath();
+                    proj = ((FileEditorInput) input).getFile().getProject();
+                } catch (Exception ex) {
+                    return;
+                }
+                if (file == null)
+                    return;
+                AnalyzeJob analyzeJob = new AnalyzeJob(proj, file);
+                PlistParseJob plistParseJob = new PlistParseJob(proj);
+                analyzeJob.setRule(proj);
+                plistParseJob.setRule(proj);
+                final IProject fproj = proj;
+                plistParseJob.addJobChangeListener(new JobDoneChangeListener() {
+                    @Override
+                    public void done(IJobChangeEvent event) {
+                        CodeCheckerContext.getInstance().refresAsync(fproj);
+                    }
+                });
+
+                analyzeJob.schedule();
+                plistParseJob.schedule();
+            }
+
+            @Override
+            public void mouseDown(MouseEvent e) {
+                ; // noop
+            }
+
+            @Override
+            public void mouseDoubleClick(MouseEvent e) {
+                ; // noop
+            }
+        });
+
+        message = new Label(client, SWT.FLAT);
+
+        viewer = new TreeViewer(client, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         viewer.setContentProvider(new TreeCheckerContentProvider(this));
         viewer.setLabelProvider(new BasicViewLabelProvider(this));
         viewer.setInput(new EmptyModel());
@@ -68,6 +153,7 @@ public class ReportListView extends ViewPart {
         treeGridData.grabExcessVerticalSpace = true;
         treeGridData.verticalAlignment = GridData.FILL;
         treeGridData.horizontalAlignment = GridData.FILL;
+        treeGridData.horizontalSpan = 2;
         viewer.getControl().setLayoutData(treeGridData);
         this.showfilterconfigurationdialog = new ShowFilterConfigurationDialog(this);
         this.viewerRefresh = true;
@@ -78,7 +164,7 @@ public class ReportListView extends ViewPart {
         hookDoubleClickAction();
         contributeToActionBars();
 
-        parent.pack();
+        client.pack();
     }
 
     private void hookContextMenu() {
@@ -240,6 +326,7 @@ public class ReportListView extends ViewPart {
     }
 
     public void refresh(Object parent) {
+        client.layout();
         viewer.refresh();
     }
 
@@ -318,6 +405,27 @@ public class ReportListView extends ViewPart {
 
     public void setViewerRefresh(boolean viewerRefresh) {
         this.viewerRefresh = viewerRefresh;
+    }
+
+    public void refresAsync(Runnable s) {
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                s.run();
+            }
+        });
+    }
+
+    public void setAnalyzeMsg() {
+        setMessage("Analyzing");
+    }
+
+    public void setEmptyMsg() {
+        setMessage("");
+    }
+
+    private void setMessage(String m) {
+        this.message.setText(m);
+        refresh(parent);
     }
 
     static class EmptyModel {

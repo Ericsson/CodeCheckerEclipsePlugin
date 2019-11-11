@@ -3,10 +3,14 @@ package org.codechecker.eclipse.plugin.config.project;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.codechecker.eclipse.plugin.CodeCheckerNature;
 import org.codechecker.eclipse.plugin.Logger;
@@ -30,12 +34,19 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+
 /**
  * The CodeChecker project encapsulates the project level configuration,
  * (and reports in the future), for one Eclipse project.
  */
 public class CodeCheckerProject implements ConfigurationChangedListener {
-    public static final String COMPILATION_COMMANDS = "compilation_commands.json.javarunner";
+    public static final String COMPILATION_COMMANDS = "compilation_commands.json";
+    public static final String MASTER_COMPILATION_COMMANDS = "master_compilation_commands.json";
 
     protected static final String STR_EMPTY = "";
 
@@ -55,6 +66,11 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
 
     private Map<EnvironmentVariables, String> environmentVariables = new HashMap<>();
 
+    // These can't be final, because a project can be moved.
+    private Path origCompCmd;
+    private Path masterCompCmd;
+    private Path tempCompCmd;
+
     //TODO Reports logically belongs to the projects. should add them here from the CodeCheckerContext.
     //private Map<IProject, SearchList> reports = new HashMap<>();
 
@@ -66,6 +82,9 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
         codeCheckerWorkspace = Paths.get(
                 ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(), ".codechecker", project.getName());
 
+        origCompCmd = codeCheckerWorkspace.resolve(COMPILATION_COMMANDS);
+        masterCompCmd = codeCheckerWorkspace.resolve(MASTER_COMPILATION_COMMANDS);
+        
         local = new CcConfiguration(project);
         local.registerChangeListener(this);
 
@@ -146,6 +165,92 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Merges a build log to an other.
+     * 
+     * @param newLogFile
+     *            this file will be merged into master_compilation_commands.json.
+     */
+    public void mergeCompilationLog() {
+        if (!Files.exists(masterCompCmd, LinkOption.NOFOLLOW_LINKS))
+            try {
+                Files.copy(tempCompCmd, masterCompCmd, StandardCopyOption.REPLACE_EXISTING);
+                return;
+            } catch (IOException e1) {
+                Logger.log(IStatus.ERROR, "Couldn't copy master log file.");
+            }
+
+        Set<ComilationCommand> ccmds = null;
+        Set<ComilationCommand> master_ccmds = null;
+
+        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+        try (JsonReader reader = new JsonReader(Files.newBufferedReader(tempCompCmd))) {
+            ccmds = gson.fromJson(reader, new TypeToken<Set<ComilationCommand>>() {
+            }.getType());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try (JsonReader reader = new JsonReader(Files.newBufferedReader(masterCompCmd))) {
+            master_ccmds = gson.fromJson(reader, new TypeToken<Set<ComilationCommand>>() {
+            }.getType());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (ccmds != null)
+            master_ccmds.addAll(ccmds);
+
+        try (JsonWriter writer = new JsonWriter(
+                Files.newBufferedWriter(masterCompCmd, StandardOpenOption.TRUNCATE_EXISTING))) {
+            writer.setIndent("\t");
+            gson.toJson(master_ccmds, new TypeToken<Set<ComilationCommand>>() {
+            }.getType(), writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        deleteTemporaryLogFile();
+    }
+
+    /**
+     * Delete the specified logfile after the analysis.
+     */
+    public void deleteTemporaryLogFile() {
+        try {
+            Files.delete(tempCompCmd);
+        } catch (IOException e) {
+            Logger.log(IStatus.ERROR, "Couldn't delete the log file!" + tempCompCmd.toString());
+        }
+    }
+
+    /**
+     * Delete the specified logfile after the analysis.
+     */
+    public void deleteMasterLogFile() {
+        try {
+            Files.delete(masterCompCmd);
+        } catch (IOException e) {
+            Logger.log(IStatus.ERROR, "Couldn't delete the log file!" + masterCompCmd.toString());
+        }
+    }
+
+    /**
+     * Creates a copy of the log file created by ld logger, to avoid concurrency
+     * issues.
+     * 
+     * @throws IOException
+     *             Thrown when the copying fails.
+     */
+    public Path copyLogFile() throws IOException {
+        if (Files.exists(origCompCmd, LinkOption.NOFOLLOW_LINKS))
+            tempCompCmd = Files.move(origCompCmd,
+                    origCompCmd.resolveSibling(origCompCmd.getFileName().toString() + System.nanoTime()),
+                    StandardCopyOption.REPLACE_EXISTING);
+        return tempCompCmd;
+    }
+
 
     /**
      * Initializes project related fields.
@@ -237,8 +342,9 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
     * @return Returns the newly generated analyze log location.
     */
     public Path getLogFileLocation() {
-        return Paths.get(codeCheckerWorkspace.toString(),
-                COMPILATION_COMMANDS);
+        return masterCompCmd;
+        // return Paths.get(codeCheckerWorkspace.toString(),
+        // COMPILATION_COMMANDS);
     }
 
     /**
@@ -302,5 +408,49 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
      */
     public boolean isGlobal() {
         return isGlobal;
+    }
+
+    /**
+     * Pojo for compilation command records. For the time being one
+     * {@link ComilationCommand} equals the other if their file members equals.
+     */
+    private static class ComilationCommand {
+        String directory;
+        String command;
+        String file;
+
+        /**
+         * For debug purposes
+         */
+        @Override
+        public String toString() {
+            return directory + " " + command + " " + file;
+        }
+
+        /**
+         * Compilation command uniqueing.
+         */
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) return true;
+            if (! (o instanceof ComilationCommand)) return false;
+            ComilationCommand cc = (ComilationCommand) o;
+            if (Paths.get(file).isAbsolute())
+                return file.equals(cc.file);
+            else
+                return (Paths.get(directory, file).toAbsolutePath().toString()
+                        .equals(Paths.get(cc.directory, cc.file).toAbsolutePath().toString()));
+        }
+
+        /**
+         * Because the equals method is overridden.
+         */
+        @Override
+        public int hashCode() {
+            if (Paths.get(file).isAbsolute())
+                return file.hashCode();
+            else
+                return Paths.get(directory, file).toAbsolutePath().toString().hashCode();
+        }
     }
 }
