@@ -31,7 +31,7 @@ public class CompilationLogHelper {
     public static void createCompilationLog(String projectName) {
         // get the correct location which is eclipseWs/.codechecker/{$projectName}/
         Path workspaceRoot = Paths.get(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString(),
-                GuiUtils.DOT_CODECHECKER, projectName, CodeCheckerProject.COMPILATION_COMMANDS);
+                GuiUtils.DOT_CODECHECKER, projectName, CodeCheckerProject.MASTER_COMPILATION_COMMANDS);
         // create a compilation log to the project.
         try {
             Files.createFile(workspaceRoot);

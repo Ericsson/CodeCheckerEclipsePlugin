@@ -16,7 +16,9 @@ import org.codechecker.eclipse.rcp.shared.utils.Utils;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.swt.finder.waits.DefaultCondition;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.BeforeClass;
@@ -102,9 +104,11 @@ public class AnalysisTest {
 
         assertThat(ERROR_MISSING_CHECKERS, bot.tree(1).hasItems(), is(false));
 
-        // Build the project
-        bot.viewByTitle(GuiUtils.CURRENT_PROJ).show();
-        project.contextMenu(GuiUtils.BUILD_PROJ).click();
+        SWTBotButton analyzeBtn = bot.buttonWithTooltip("Reanalyze current file");
+        SWTBotEditor editor = bot.activeEditor();
+        editor.setFocus();
+
+        analyzeBtn.click();
 
         bot.waitUntil(new DefaultCondition() {
             @Override
@@ -126,8 +130,7 @@ public class AnalysisTest {
         bot.tree(1).getTreeItem(UNIX).getNode(UNIX_MALLOC).getNode(REPORT).getNode(REPORT_LONG).select();
         bot.tree(1).getTreeItem(UNIX).getNode(UNIX_MALLOC).getNode(REPORT).getNode(REPORT_LONG).doubleClick();
 
-        assertThat("Editor did not get active upon report selection",
-                bot.activeEditor().getTitle().equals(EDITOR));
+        assertThat("Editor did not get active upon report selection", bot.activeEditor().getTitle().equals(EDITOR));
     }
 
 }

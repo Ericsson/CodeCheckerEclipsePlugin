@@ -25,6 +25,9 @@ import org.eclipse.ui.PlatformUI;
  */
 public class AnalyzeJob extends Job {
 
+    public static final String SKIP_ENABLE = "+";
+    public static final String SKIP_DISABLE = "-";
+
     private CodeCheckerProject project;
     private CcConfigurationBase config;
     private Path logFile;
@@ -50,10 +53,12 @@ public class AnalyzeJob extends Job {
     }
 
     /**
-     * Constructor for making an analyze job, for one file;
+     * Constructor for making an analyze job, for one file.
      * 
      * @param project
      *            The eclipse project that's will be analyzed.
+     * @param file
+     *            File to be analyzed.
      */
     public AnalyzeJob(IProject project, Path file) {
         super("Running CodeChecker Analyze");
@@ -118,12 +123,12 @@ public class AnalyzeJob extends Job {
     
     public void createSkipFile() {
         StringBuilder sb = new StringBuilder();
-        sb.append("+").append(fileToAnalyze.toAbsolutePath().toString()).append(System.lineSeparator());
-        sb.append("+").append("*.hpp").append(System.lineSeparator());
-        sb.append("+").append("*.h").append(System.lineSeparator());
-        sb.append("+").append("*.hh").append(System.lineSeparator());
-        sb.append("+").append("*.hxx").append(System.lineSeparator());
-        sb.append("-").append(project.getLocationPrefix()).append("*").append(System.lineSeparator());
+        sb.append(SKIP_ENABLE).append(fileToAnalyze.toAbsolutePath().toString()).append(System.lineSeparator());
+        sb.append(SKIP_ENABLE).append("*.hpp").append(System.lineSeparator());
+        sb.append(SKIP_ENABLE).append("*.h").append(System.lineSeparator());
+        sb.append(SKIP_ENABLE).append("*.hh").append(System.lineSeparator());
+        sb.append(SKIP_ENABLE).append("*.hxx").append(System.lineSeparator());
+        sb.append(SKIP_DISABLE).append(project.getLocationPrefix()).append("*").append(System.lineSeparator());
         try {
             skipFile = Files.createTempFile("skipFile", null);
             Files.write(skipFile, sb.toString().getBytes(), StandardOpenOption.CREATE);
