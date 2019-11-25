@@ -291,23 +291,20 @@ public class StartupJob extends Job {
         
         @Override
         public void notHandled(String commandId, NotHandledException exception) {
-            ;
+            Logger.log(IStatus.INFO, "notHandled not Implemented");
         }
 
         @Override
         public void postExecuteFailure(String commandId, ExecutionException exception) {
-            ;
+            Logger.log(IStatus.INFO, "postExecuteFailure not Implemented");
         }
 
         @Override
         public void postExecuteSuccess(String commandId, Object returnValue) {
             if (IWorkbenchCommandConstants.FILE_SAVE.equals(commandId)) {
                 Logger.log(IStatus.INFO, "There was a save event!");
-                try {
-                    analyzeJob.schedule();
-                    plistParseJob.schedule();
-                } catch (Exception e) {
-                }
+                analyzeJob.schedule();
+                plistParseJob.schedule();
             }
         }
 

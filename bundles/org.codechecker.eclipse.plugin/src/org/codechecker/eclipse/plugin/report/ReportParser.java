@@ -46,10 +46,10 @@ public class ReportParser implements Runnable {
                             // if
                             // (Iterables.getLast(rep.getChildren().orNull().getItems()).getFile().equals(currentFileName))
                             // {
-                        filteredReoports.addReports(ImmutableList.of(rep));
-                        for (SearchListener listener : listeners) {
-                            listener.onPartsArrived(filteredReoports);
-                        }
+                            filteredReoports.addReports(ImmutableList.of(rep));
+                            for (SearchListener listener : listeners) {
+                                listener.onPartsArrived(filteredReoports);
+                            }
                     }
             for (SearchListener listener : listeners){
                 listener.onTotalCountAvailable(filteredReoports, 1);

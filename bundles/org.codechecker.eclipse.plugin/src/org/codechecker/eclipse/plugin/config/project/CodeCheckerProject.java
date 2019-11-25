@@ -168,9 +168,6 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
 
     /**
      * Merges a build log to an other.
-     * 
-     * @param newLogFile
-     *            this file will be merged into master_compilation_commands.json.
      */
     public void mergeCompilationLog() {
         if (!Files.exists(masterCompCmd, LinkOption.NOFOLLOW_LINKS))
@@ -181,31 +178,31 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
                 Logger.log(IStatus.ERROR, "Couldn't copy master log file.");
             }
 
-        Set<ComilationCommand> ccmds = null;
-        Set<ComilationCommand> master_ccmds = null;
+        Set<CompilationCommand> ccmds = null;
+        Set<CompilationCommand> masteCcmds = null;
 
         Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         try (JsonReader reader = new JsonReader(Files.newBufferedReader(tempCompCmd))) {
-            ccmds = gson.fromJson(reader, new TypeToken<Set<ComilationCommand>>() {
+            ccmds = gson.fromJson(reader, new TypeToken<Set<CompilationCommand>>() {
             }.getType());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try (JsonReader reader = new JsonReader(Files.newBufferedReader(masterCompCmd))) {
-            master_ccmds = gson.fromJson(reader, new TypeToken<Set<ComilationCommand>>() {
+            masteCcmds = gson.fromJson(reader, new TypeToken<Set<CompilationCommand>>() {
             }.getType());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         if (ccmds != null)
-            master_ccmds.addAll(ccmds);
+            masteCcmds.addAll(ccmds);
 
         try (JsonWriter writer = new JsonWriter(
                 Files.newBufferedWriter(masterCompCmd, StandardOpenOption.TRUNCATE_EXISTING))) {
             writer.setIndent("\t");
-            gson.toJson(master_ccmds, new TypeToken<Set<ComilationCommand>>() {
+            gson.toJson(masteCcmds, new TypeToken<Set<CompilationCommand>>() {
             }.getType(), writer);
         } catch (IOException e) {
             e.printStackTrace();
@@ -221,7 +218,7 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
         try {
             Files.delete(tempCompCmd);
         } catch (IOException e) {
-            Logger.log(IStatus.ERROR, "Couldn't delete the log file!" + tempCompCmd.toString());
+            Logger.log(IStatus.ERROR, "Couldn't delete the Temporary log file!" + tempCompCmd.toString());
         }
     }
 
@@ -232,7 +229,7 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
         try {
             Files.delete(masterCompCmd);
         } catch (IOException e) {
-            Logger.log(IStatus.ERROR, "Couldn't delete the log file!" + masterCompCmd.toString());
+            Logger.log(IStatus.ERROR, "Couldn't delete the Master log file!" + masterCompCmd.toString());
         }
     }
 
@@ -242,6 +239,7 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
      * 
      * @throws IOException
      *             Thrown when the copying fails.
+     * @return The temporary compilation command.
      */
     public Path copyLogFile() throws IOException {
         if (Files.exists(origCompCmd, LinkOption.NOFOLLOW_LINKS))
@@ -414,17 +412,17 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
      * Pojo for compilation command records. For the time being one
      * {@link ComilationCommand} equals the other if their file members equals.
      */
-    private static class ComilationCommand {
-        String directory;
-        String command;
-        String file;
+    private static class CompilationCommand {
+        private String directory;
+        private String command;
+        private String file;
 
         /**
-         * For debug purposes
+         * For debug purposes.
          */
         @Override
         public String toString() {
-            return directory + " " + command + " " + file;
+            return directory + ' ' + command + ' ' + file;
         }
 
         /**
@@ -433,8 +431,9 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
         @Override
         public boolean equals(Object o) {
             if (o == this) return true;
-            if (! (o instanceof ComilationCommand)) return false;
-            ComilationCommand cc = (ComilationCommand) o;
+            if (!(o instanceof CompilationCommand))
+                return false;
+            CompilationCommand cc = (CompilationCommand) o;
             if (Paths.get(file).isAbsolute())
                 return file.equals(cc.file);
             else

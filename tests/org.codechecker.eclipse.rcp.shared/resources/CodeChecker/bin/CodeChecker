@@ -6,6 +6,7 @@ CodeChecker Stub used to emulate some CodeChecker commands for the tests.
 """
 
 import argparse
+import errno
 import os
 import shutil
 import sys
@@ -15,7 +16,8 @@ from tempfile import mkstemp
 
 def preparePlist(path):
     fileHandle, absPath = mkstemp()
-    substitutePath = path[0:path.find('.codechecker')]
+    print(path)
+    substitutePath = path[0:path.rfind('.codechecker')]
     with os.fdopen(fileHandle, 'w') as newFile:
         with open(path) as old_file:
             for line in old_file:
@@ -36,11 +38,14 @@ def analyze(args):
         div = 1
 
     cores = 1/div #this will be the wait time.
-#    try:
-#        print('Making output folder.')
-    os.mkdir(args.o)
-#   except FileExistsError:
-#      print('Output folder already exists.')
+    try:
+        print('Making output folder.')
+        os.mkdir(args.o)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            print('Output folder already exists.')
+        else:
+            raise
 
     for i in range(4):
         time.sleep(cores)
@@ -122,6 +127,7 @@ def main(args):
     analysis_parser.add_argument("-d", action='append', help='Explicitly disabled checkers')
     analysis_parser.add_argument("-n", help='Name')
     analysis_parser.add_argument("-o", help='Output folder')
+    analysis_parser.add_argument("--skip", help='Files to be skipped')
     analysis_parser.add_argument("logFile", type=argparse.FileType('r'),  help='Compilation commands')
 
 

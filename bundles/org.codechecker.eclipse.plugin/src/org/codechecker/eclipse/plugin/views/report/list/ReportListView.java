@@ -106,12 +106,10 @@ public class ReportListView extends ViewPart {
                     return;
                 Path file = null;
                 IProject proj = null;
-                try {
-                    file = ((FileEditorInput) input).getPath().toFile().toPath();
-                    proj = ((FileEditorInput) input).getFile().getProject();
-                } catch (Exception ex) {
-                    return;
-                }
+
+                file = ((FileEditorInput) input).getPath().toFile().toPath();
+                proj = ((FileEditorInput) input).getFile().getProject();
+
                 if (file == null)
                     return;
                 AnalyzeJob analyzeJob = new AnalyzeJob(proj, file);
@@ -132,12 +130,12 @@ public class ReportListView extends ViewPart {
 
             @Override
             public void mouseDown(MouseEvent e) {
-                ; // noop
+                Logger.log(IStatus.INFO, "Mouse Down is not implemented");
             }
 
             @Override
             public void mouseDoubleClick(MouseEvent e) {
-                ; // noop
+                Logger.log(IStatus.INFO, "Mouse Double Click is not implemented");
             }
         });
 

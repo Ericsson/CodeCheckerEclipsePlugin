@@ -47,6 +47,8 @@ public interface ICodeChecker {
      *            http://clang.llvm.org/docs/JSONCompilationDatabase.html .
      * @param config
      *            The configuration being used.
+     * @param skipFile
+     *            Skipfile to be used.
      * @return The analyze command as String.
      */
     public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile, @Nullable Path skipFile);
