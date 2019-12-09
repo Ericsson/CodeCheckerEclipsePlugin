@@ -124,6 +124,7 @@ public class AnalyzeJob extends Job {
         sb.append("+").append("*.hh").append(System.lineSeparator());
         sb.append("+").append("*.hxx").append(System.lineSeparator());
         sb.append("-").append(project.getLocationPrefix()).append("*").append(System.lineSeparator());
+        sb.append("-").append("/*");
         try {
             skipFile = Files.createTempFile("skipFile", null);
             Files.write(skipFile, sb.toString().getBytes(), StandardOpenOption.CREATE);

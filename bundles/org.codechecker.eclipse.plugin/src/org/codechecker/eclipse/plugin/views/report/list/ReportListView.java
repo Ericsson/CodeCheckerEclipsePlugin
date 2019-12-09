@@ -1,8 +1,12 @@
 package org.codechecker.eclipse.plugin.views.report.list;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.codechecker.eclipse.plugin.Activator;
 import org.codechecker.eclipse.plugin.Logger;
@@ -23,6 +27,7 @@ import org.codechecker.eclipse.plugin.views.report.list.provider.label.BasicView
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -52,8 +57,10 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -107,7 +114,7 @@ public class ReportListView extends ViewPart {
                 Path file = null;
                 IProject proj = null;
                 try {
-                    file = ((FileEditorInput) input).getPath().toFile().toPath();
+                    file = ((FileEditorInput) input).getFile().getLocation().toFile().toPath();
                     proj = ((FileEditorInput) input).getFile().getProject();
                 } catch (Exception ex) {
                     return;
@@ -269,10 +276,35 @@ public class ReportListView extends ViewPart {
     private void jumpToBugPosition(BugPathItem bpi) {
         String relName = CodeCheckerContext.getInstance().getCcProject(currentProject)
                 .stripProjectPathFromFilePath(bpi.getFile());
-        IFile fileinfo = currentProject.getFile(relName);
+        Logger.log(IStatus.INFO, "relname: " + relName);
 
-        if (fileinfo != null && fileinfo.exists()) {
-            if(!fileinfo.getName().equals(currentFilename)) {
+        IFile fileinfo = currentProject.getFile(relName);
+        
+        List<IEditorReference> openEditors = Arrays
+                .asList(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+                .getEditorReferences());
+
+        for (IEditorReference e : openEditors) {
+            Logger.log(IStatus.INFO, e.toString());
+            try {
+                IFile i = ((FileEditorInput) e.getEditorInput()).getFile();
+                for (IFile f : ResourcesPlugin.getWorkspace().getRoot()
+                        .findFilesForLocationURI(new URI("file:" + bpi.getFile()))) {
+                    if (i.equals(f))
+                        fileinfo = f;
+                }
+            } catch (PartInitException | URISyntaxException e1) {
+            }
+        }
+        
+        // try {
+        // fileinfo = ResourcesPlugin.getWorkspace().getRoot()
+        // .findFilesForLocationURI(new URI("file:" + bpi.getFile()))[0];
+        // } catch (URISyntaxException e1) {
+        // }
+
+        if (fileinfo != null /* && fileinfo.exists() */) {
+            if (!fileinfo.getName().equals(currentFilename)) {
                 this.setViewerRefresh(false);
             } else {
                 this.setViewerRefresh(true);
@@ -285,6 +317,7 @@ public class ReportListView extends ViewPart {
             map.put(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
             IMarker marker;
             try {
+                Logger.log(IStatus.INFO, "Should jump now");
                 marker = fileinfo.createMarker(IMarker.TEXT);
                 marker.setAttributes(map);
                 IDE.openEditor(page, fileinfo);
@@ -292,7 +325,7 @@ public class ReportListView extends ViewPart {
                 marker.delete();
             } catch (CoreException e) {
                 Logger.log(IStatus.ERROR, " " + e);
-                Logger.log(IStatus.INFO, " " + e.getStackTrace());
+                Logger.log(IStatus.INFO, " " + e.getStackTrace().toString());
             }
         }
     }
