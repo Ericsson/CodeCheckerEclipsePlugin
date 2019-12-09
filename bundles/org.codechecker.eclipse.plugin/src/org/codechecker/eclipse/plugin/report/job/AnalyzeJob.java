@@ -129,6 +129,7 @@ public class AnalyzeJob extends Job {
         sb.append(SKIP_ENABLE).append("*.hh").append(System.lineSeparator());
         sb.append(SKIP_ENABLE).append("*.hxx").append(System.lineSeparator());
         sb.append(SKIP_DISABLE).append(project.getLocationPrefix()).append("*").append(System.lineSeparator());
+        sb.append(SKIP_DISABLE).append("/*");
         try {
             skipFile = Files.createTempFile("skipFile", null);
             Files.write(skipFile, sb.toString().getBytes(), StandardOpenOption.CREATE);
