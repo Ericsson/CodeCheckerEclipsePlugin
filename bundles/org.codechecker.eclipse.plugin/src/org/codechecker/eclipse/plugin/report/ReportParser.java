@@ -6,7 +6,6 @@ import java.util.List;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 /**
  * This class is for filtering the reports in memory.
@@ -42,11 +41,12 @@ public class ReportParser implements Runnable {
             SearchList filteredReoports = new SearchList();
             for (String checker : reports.getCheckers()) 
                 for (ReportInfo rep : reports.getReportsFor(checker))
-                    if (Iterables.getLast(rep.getChildren().orNull().getItems()).getFile().equals(currentFileName)){
-                        filteredReoports.addReports(ImmutableList.of(rep));
-                        for (SearchListener listener : listeners){
-                            listener.onPartsArrived(filteredReoports);
-                        }
+                    for (BugPathItem bp : rep.getChildren().orNull().getItems())
+                        if (bp.getFile().equals(currentFileName)) {
+                            filteredReoports.addReports(ImmutableList.of(rep));
+                            for (SearchListener listener : listeners) {
+                                listener.onPartsArrived(filteredReoports);
+                            }
                     }
             for (SearchListener listener : listeners){
                 listener.onTotalCountAvailable(filteredReoports, 1);

@@ -11,8 +11,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * Test Suite for running the gui tests. Add your class to the Suite class list.
  */
 @RunWith(Suite.class)
-@SuiteClasses({ PluginTest.class, IndicatorTest.class, ParameterPassThroughTest.class,
-    ConfigurationTest.class, AnalysisTest.class })
+@SuiteClasses({ PluginTest.class, IndicatorTest.class, ParameterPassThroughTest.class, ConfigurationTest.class,
+        AnalysisTest.class })
 public class AllTests {
     
     private static SWTWorkbenchBot bot;

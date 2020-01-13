@@ -1,5 +1,6 @@
 package org.codechecker.eclipse.plugin.init;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +15,11 @@ import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
 import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
 import org.codechecker.eclipse.plugin.runtime.SLogger;
 import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.IExecutionListener;
+import org.eclipse.core.commands.NotHandledException;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -31,8 +37,12 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.ide.ResourceUtil;
 
 /**
  * This eclipse job is responsible for registering the Build listener.
@@ -83,9 +93,12 @@ public class StartupJob extends Job {
 
         Logger.log(IStatus.INFO, "adding addResourceChangeListener ");
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener(),
-                IResourceChangeEvent.POST_BUILD | IResourceChangeEvent.POST_CHANGE |
+                IResourceChangeEvent.POST_BUILD |
                 IResourceDelta.OPEN | IResourceChangeEvent.PRE_DELETE);
         
+        ICommandService commandService = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+        commandService.addExecutionListener(new ISaveCommandExecutionListener());
+
         // check all open projects
         for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
             projectOpened(project);
@@ -150,6 +163,7 @@ public class StartupJob extends Job {
     private final class ResourceChangeListener implements IResourceChangeListener {
         @Override
         public void resourceChanged(final IResourceChangeEvent event) {
+            Logger.log(IStatus.INFO, Integer.toString(event.getType()));
             switch (event.getType()) {
                 // before delete unregister project.
                 case IResourceChangeEvent.PRE_DELETE: {
@@ -173,44 +187,37 @@ public class StartupJob extends Job {
                     break;
                 }
                 case IResourceChangeEvent.POST_BUILD: {
-                    // On Eclipse FULL_BUILD and INCREMENTAL build, recheck the
-                    // project
-                    // on clean build drop the checker database
                     try {
-                        if (event.getBuildKind() != IncrementalProjectBuilder.AUTO_BUILD) {
-                            Logger.log(IStatus.INFO, "Build called. type:" + event.getBuildKind());
-                            final Set<IProject> builtProjects = new HashSet<>();
-                            final Set<IProject> cleanedProjects = new HashSet<>();
-                            event.getDelta().accept(new IResourceDeltaVisitor() {
-                                public boolean visit(final IResourceDelta delta) throws CoreException {
-                                    IProject project = delta.getResource().getProject();
-                                    if (project != null && project.hasNature(CodeCheckerNature.NATURE_ID)) {
-                                        if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
-                                                || event.getBuildKind() == IncrementalProjectBuilder.INCREMENTAL_BUILD) {
-                                            builtProjects.add(project);
-                                        } else if (event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
-                                            cleanedProjects.add(project);
-                                        }
+                        final Set<IProject> builtProjects = new HashSet<>();
+                        final Set<IProject> cleanedProjects = new HashSet<>();
+                        event.getDelta().accept(new IResourceDeltaVisitor() {
+                            public boolean visit(final IResourceDelta delta) throws CoreException {
+                                IProject project = delta.getResource().getProject();
+                                if (project != null && project.hasNature(CodeCheckerNature.NATURE_ID)) {
+                                    if (event.getBuildKind() == IncrementalProjectBuilder.FULL_BUILD
+                                            || event.getBuildKind() == IncrementalProjectBuilder.INCREMENTAL_BUILD) {
+                                        builtProjects.add(project);
+                                    } else if (event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
+                                        Logger.log(IStatus.INFO, "Clean was called");
+                                        cleanedProjects.add(project);
                                     }
-                                    return true;
                                 }
-                            });
-                            // re-analyze built projects
-                            for (IProject p : builtProjects) {
-                                onProjectBuilt(p);
+                                return true;
                             }
-                            // drop cleaned projects
-                            for (IProject p : cleanedProjects) {
-                                onProjectCleaned(p);
-                            }
-                        } else if (event.getBuildKind() == IncrementalProjectBuilder.CLEAN_BUILD) {
-                            Logger.log(IStatus.INFO, "CLEAN_BUILD called. Resetting bug database");
-    
+                        });
+                        for (IProject p : builtProjects) {
+                            Logger.log(IStatus.INFO, "build callback was called");
+                            onProjectBuilt(p);
+                        }
+                        for (IProject p : cleanedProjects) {
+                            Logger.log(IStatus.INFO, "clean callback was called");
+                            onProjectCleaned(p);
                         }
                     } catch (CoreException e) {
-                        // TODO Auto-generated catch block
+                        // The project was deleted recently. There could be resource events on deleted
+                        // projects.
                         Logger.log(IStatus.ERROR, e.getMessage());
-                        Logger.log(IStatus.INFO, Logger.getStackTrace(e));
+                        // Logger.log(IStatus.INFO, Logger.getStackTrace(e));
                     }
                     break;
                 }
@@ -241,28 +248,19 @@ public class StartupJob extends Job {
         }
         
         /**
-         *
-         * @param project The project that got built.
+         * @param project
+         *            The project built. We can't be sure whether the build is
+         *            full or incremental.
          */
         private void onProjectBuilt(final IProject project) {
-            // resources like IProject can act as ISchedulingRule,
-            // or in this case a mutex for  stopping the parse job
-            // running until the analisis finished.
-            // https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Fguide%2FresAdv_batching.htm
-            AnalyzeJob analyzeJob = new AnalyzeJob(project);
-            PlistParseJob plistParseJob = new PlistParseJob(project);
-            analyzeJob.setRule(project);
-            plistParseJob.setRule(project);
-            plistParseJob.addJobChangeListener(new JobDoneChangeListener() {
-                
-                @Override
-                public void done(IJobChangeEvent event) {
-                    CodeCheckerContext.getInstance().refresAsync(project);
-                }
-            });
-    
-            analyzeJob.schedule();
-            plistParseJob.schedule();
+            CodeCheckerProject cCProject = CodeCheckerContext.getInstance().getCcProject(project);
+            try {
+                cCProject.copyLogFile();
+                cCProject.mergeCompilationLog();
+            } catch (IOException e) {
+                Logger.log(IStatus.ERROR, "Couldn't copy logfile!");
+            }
+
         }
 
         /**
@@ -279,11 +277,64 @@ public class StartupJob extends Job {
                     return;
                 }
             } catch (CoreException e) {
-                // TODO Auto-generated catch block
                 Logger.log(IStatus.ERROR, "" + e);
                 Logger.log(IStatus.INFO, "" + e.getStackTrace());
             }        
-            //TODO UPLIFT Clean REPORTS??? 
+            // Delete the old logfile
+            CodeCheckerContext.getInstance().getCcProject(project).deleteMasterLogFile();
+        }
+    }
+
+    private static class ISaveCommandExecutionListener implements IExecutionListener {
+        private static AnalyzeJob analyzeJob;
+        private static PlistParseJob plistParseJob;
+        
+        @Override
+        public void notHandled(String commandId, NotHandledException exception) {
+            Logger.log(IStatus.INFO, "notHandled not Implemented");
+        }
+
+        @Override
+        public void postExecuteFailure(String commandId, ExecutionException exception) {
+            Logger.log(IStatus.INFO, "postExecuteFailure not Implemented");
+        }
+
+        @Override
+        public void postExecuteSuccess(String commandId, Object returnValue) {
+            if (IWorkbenchCommandConstants.FILE_SAVE.equals(commandId)) {
+                Logger.log(IStatus.INFO, "There was a save event!");
+                analyzeJob.schedule();
+                plistParseJob.schedule();
+            }
+        }
+
+        @Override
+        public void preExecute(String commandId, ExecutionEvent event) {
+            if (IWorkbenchCommandConstants.FILE_SAVE.equals(commandId)) {
+                Logger.log(IStatus.INFO, "There will be a save event!");
+                Logger.log(IStatus.INFO, ResourceUtil.getFile(HandlerUtil.getActiveEditorInput(event)).getLocation()
+                        .toFile().toPath().toAbsolutePath().toString());
+
+                IFile savedFile = ResourceUtil.getFile(HandlerUtil.getActiveEditorInput(event));
+                IProject project = savedFile.getProject();
+                try {
+                    if (project == null || !project.hasNature(CodeCheckerNature.NATURE_ID))
+                        return;
+                } catch (CoreException e) {
+                    e.printStackTrace();
+                }
+
+                analyzeJob = new AnalyzeJob(project, savedFile.getLocation().toFile().toPath());
+                plistParseJob = new PlistParseJob(project);
+                analyzeJob.setRule(project);
+                plistParseJob.setRule(project);
+                plistParseJob.addJobChangeListener(new JobDoneChangeListener() {
+                    @Override
+                    public void done(IJobChangeEvent event) {
+                        CodeCheckerContext.getInstance().refresAsync(project);
+                    }
+                });
+            }
         }
     }
 }

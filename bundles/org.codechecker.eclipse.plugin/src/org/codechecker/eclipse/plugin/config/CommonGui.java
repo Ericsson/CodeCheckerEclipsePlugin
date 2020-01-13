@@ -482,7 +482,7 @@ public class CommonGui {
             originalLogFile = cCProject.getLogFileLocation();
         }
         if (codeChecker != null)
-            analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile));
+            analysisCmdDisplay.setText(codeChecker.getAnalyzeString(config, originalLogFile, null));
         checkerConfigSection.layout();
         checkerConfigSection.getParent().layout();
         if (comp != null) {

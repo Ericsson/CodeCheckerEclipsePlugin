@@ -47,9 +47,11 @@ public interface ICodeChecker {
      *            http://clang.llvm.org/docs/JSONCompilationDatabase.html .
      * @param config
      *            The configuration being used.
+     * @param skipFile
+     *            Skipfile to be used.
      * @return The analyze command as String.
      */
-    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile);
+    public String getAnalyzeString(CcConfigurationBase config, @Nullable Path logFile, @Nullable Path skipFile);
 
     /**
      * Executes CodeChecker check command on the build log received in the logFile
@@ -66,10 +68,11 @@ public interface ICodeChecker {
      *            How many analyze step to be taken.
      * @param config
      *            The configuration being used.
+     * @param FileToBeAnalyzed Filesystem path of the analysis target.
      * @return CodeChecker The full analyze command output.
      */
     public String analyze(Path logFile, boolean logToConsole, IProgressMonitor monitor, int taskCount,
-            CcConfigurationBase config);
+            CcConfigurationBase config, Path FileToBeAnalyzed);
 
     public void cancelAnalyze();
 }

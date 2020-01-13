@@ -1,14 +1,23 @@
 package org.codechecker.eclipse.plugin.config.global;
 
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codechecker.eclipse.plugin.CodeCheckerNature;
 import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.codechecker.CodeCheckerFactory;
+import org.codechecker.eclipse.plugin.codechecker.ICodeChecker;
+import org.codechecker.eclipse.plugin.codechecker.locator.CodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.EnvCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.InvalidCodeCheckerException;
+import org.codechecker.eclipse.plugin.codechecker.locator.PreBuiltCodeCheckerLocatorService;
+import org.codechecker.eclipse.plugin.codechecker.locator.ResolutionMethodTypes;
 import org.codechecker.eclipse.plugin.config.CcConfigurationBase;
 import org.codechecker.eclipse.plugin.config.Config.ConfigLogger;
 import org.codechecker.eclipse.plugin.config.Config.ConfigTypes;
+import org.codechecker.eclipse.plugin.runtime.ShellExecutorHelperFactory;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.osgi.service.prefs.BackingStoreException;
@@ -36,6 +45,27 @@ public class CcGlobalConfiguration extends CcConfigurationBase {
         if (instance == null) {
             instance = new CcGlobalConfiguration();
             instance.load();
+
+            CodeCheckerLocatorService serv = null;
+            switch (ResolutionMethodTypes.valueOf(instance.config.get(ConfigTypes.RES_METHOD))) {
+                case PATH:
+                    serv = new EnvCodeCheckerLocatorService();
+                    break;
+                case PRE:
+                    serv = new PreBuiltCodeCheckerLocatorService();
+                    break;
+                default:
+                    break;
+            }
+            ICodeChecker cc = null;
+            try {
+                cc = serv.findCodeChecker(Paths.get(instance.config.get(ConfigTypes.CHECKER_PATH)),
+                        new CodeCheckerFactory(),
+                        new ShellExecutorHelperFactory());
+            } catch (InvalidCodeCheckerException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+                //TODO inform user to set a valid codeChecker.
+            }
+            instance.codeChecker = cc;
         }
         return instance;
 
