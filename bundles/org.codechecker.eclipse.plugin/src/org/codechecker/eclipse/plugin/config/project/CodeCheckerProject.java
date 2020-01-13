@@ -172,7 +172,7 @@ public class CodeCheckerProject implements ConfigurationChangedListener {
     public void mergeCompilationLog() {
         if (!Files.exists(masterCompCmd, LinkOption.NOFOLLOW_LINKS))
             try {
-                Files.copy(tempCompCmd, masterCompCmd, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(tempCompCmd, masterCompCmd);
                 return;
             } catch (IOException e1) {
                 Logger.log(IStatus.ERROR, "Couldn't copy master log file.");

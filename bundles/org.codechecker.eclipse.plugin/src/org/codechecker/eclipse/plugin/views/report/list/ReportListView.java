@@ -95,8 +95,6 @@ public class ReportListView extends ViewPart {
 
             @Override
             public void mouseUp(MouseEvent e) {
-                // if (currentFilename == null || currentProject == null)
-                // return;
                 IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
                         .getActiveEditor();
                 if (editor == null)

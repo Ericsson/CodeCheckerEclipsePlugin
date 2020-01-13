@@ -68,7 +68,7 @@ public interface ICodeChecker {
      *            How many analyze step to be taken.
      * @param config
      *            The configuration being used.
-     * @param FileToBeAnalyzed TODO
+     * @param FileToBeAnalyzed Filesystem path of the analysis target.
      * @return CodeChecker The full analyze command output.
      */
     public String analyze(Path logFile, boolean logToConsole, IProgressMonitor monitor, int taskCount,

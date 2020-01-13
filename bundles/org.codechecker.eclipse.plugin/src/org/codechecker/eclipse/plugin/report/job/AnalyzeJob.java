@@ -53,7 +53,7 @@ public class AnalyzeJob extends Job {
     }
 
     /**
-     * Constructor for making an analyze job, for one file.
+     * Constructor for making an analyze job for one file.
      * 
      * @param project
      *            The eclipse project that's will be analyzed.

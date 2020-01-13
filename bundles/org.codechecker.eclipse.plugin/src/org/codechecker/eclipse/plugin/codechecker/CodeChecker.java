@@ -124,14 +124,30 @@ public class CodeChecker implements ICodeChecker {
 
     private String getSubstituteAnalyzeString(CcConfigurationBase config) {
         StringBuilder sb = new StringBuilder();
-        sb.append(LOCATION_SUB).append(OPTION_SEPARATOR).append("analyze").append(OPTION_SEPARATOR).append("-j");
-        sb.append(OPTION_SEPARATOR).append(config.get(ConfigTypes.ANAL_THREADS)).append(OPTION_SEPARATOR);
-        if (subMap.get(SKIPFILE_KEY) != null)
-            sb.append("--skip").append(OPTION_SEPARATOR).append(SKIPFILE_SUB).append(OPTION_SEPARATOR);
-        sb.append("-o").append(OPTION_SEPARATOR).append(RESULTS_SUB).append(OPTION_SEPARATOR).append(LOGFILE_SUB);
-        sb.append(OPTION_SEPARATOR).append(config.get(ConfigTypes.ANAL_OPTIONS));
 
-        // Logger.log(IStatus.INFO, sb.toString());
+        sb.append(LOCATION_SUB)
+            .append(OPTION_SEPARATOR)
+            .append("analyze")
+            .append(OPTION_SEPARATOR)
+            .append("-j")
+            .append(OPTION_SEPARATOR)
+            .append(config.get(ConfigTypes.ANAL_THREADS))
+            .append(OPTION_SEPARATOR);
+
+        if (subMap.get(SKIPFILE_KEY) != null)
+            sb.append("--skip")
+                .append(OPTION_SEPARATOR)
+                .append(SKIPFILE_SUB)
+                .append(OPTION_SEPARATOR);
+
+        sb.append("-o")
+            .append(OPTION_SEPARATOR)
+            .append(RESULTS_SUB)
+            .append(OPTION_SEPARATOR)
+            .append(LOGFILE_SUB);
+
+        sb.append(OPTION_SEPARATOR)
+            .append(config.get(ConfigTypes.ANAL_OPTIONS));
 
         return sb.toString();
     }

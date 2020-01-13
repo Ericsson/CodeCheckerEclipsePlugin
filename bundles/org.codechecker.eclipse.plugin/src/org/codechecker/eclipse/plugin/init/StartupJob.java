@@ -249,8 +249,8 @@ public class StartupJob extends Job {
         
         /**
          * @param project
-         *            The project that got built. we can't be sure if its a full build
-         *            or an incremental.
+         *            The project built. We can't be sure whether the build is
+         *            full or incremental.
          */
         private void onProjectBuilt(final IProject project) {
             CodeCheckerProject cCProject = CodeCheckerContext.getInstance().getCcProject(project);

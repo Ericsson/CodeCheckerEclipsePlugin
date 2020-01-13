@@ -43,9 +43,6 @@ public class ReportParser implements Runnable {
                 for (ReportInfo rep : reports.getReportsFor(checker))
                     for (BugPathItem bp : rep.getChildren().orNull().getItems())
                         if (bp.getFile().equals(currentFileName)) {
-                            // if
-                            // (Iterables.getLast(rep.getChildren().orNull().getItems()).getFile().equals(currentFileName))
-                            // {
                             filteredReoports.addReports(ImmutableList.of(rep));
                             for (SearchListener listener : listeners) {
                                 listener.onPartsArrived(filteredReoports);
