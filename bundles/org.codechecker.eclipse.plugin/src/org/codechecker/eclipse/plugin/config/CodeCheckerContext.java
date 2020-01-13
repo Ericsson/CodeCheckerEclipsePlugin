@@ -23,6 +23,7 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 /**
  * The Class CodeCheckerContext.
  */
@@ -258,7 +259,8 @@ public class CodeCheckerContext {
             CodeCheckerProject ccProj = projects.get(project);
             String filename = "";
             if (ccProj != null)
-                filename = ccProj.getAsProjectRelativePath(file.getProjectRelativePath().toString());
+                filename = ((FileEditorInput) partRef.getEditorInput()).getFile().getLocation().toFile().toPath()
+                        .toString();
 
             IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
             if (activeWindow == null) {
@@ -343,12 +345,13 @@ public class CodeCheckerContext {
             return;
         }
 
-        Logger.log(IStatus.INFO, "Started Filtering Reports for project: "+project.getName());
+        Logger.log(IStatus.INFO, "Started Filtering Reports for project: " + project.getName() + " " + currentFileName);
 
         ReportParser parser = new ReportParser(reports.get(project), currentFileName);
         // add listeners to it.
         parser.addListener(new ReportListViewListener(target));
         Display.getDefault().asyncExec(parser);
-        Logger.log(IStatus.INFO, "Finished Filtering Reports for project: "+project.getName());
+        Logger.log(IStatus.INFO,
+                "Finished Filtering Reports for project: " + project.getName() + " " + currentFileName);
     }
 }
