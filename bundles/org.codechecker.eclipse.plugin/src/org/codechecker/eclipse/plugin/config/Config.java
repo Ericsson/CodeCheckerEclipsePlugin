@@ -23,7 +23,7 @@ public class Config {
         // Common configuration values
         CHECKER_PATH("codechecker_path"),
         RES_METHOD("PATH"),
-        COMPILERS("gcc:g++:clang:clang++"),
+        COMPILERS("gcc:g++:clang:clang++:c++:cc"),
         ANAL_THREADS("4"),
         ANAL_OPTIONS(""),
         // Project configuration values
