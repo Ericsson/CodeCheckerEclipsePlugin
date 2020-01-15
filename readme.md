@@ -26,6 +26,7 @@ Run `mvn -f mavendeps/pom.xml p2:site && mvn clean verify` in the root of the pr
 ### Install
 
 * Add the generated update site thats located under `path/to/cloned/project/releng/org.codechecker.eclipse.update/target/repository/` to `Help -> Install New Software...` in Eclipse
+  * Alternatively, extract the release downloaded from Releases page, and use that as an update site.
 * Select the newly added repository if not already selected
 * Mark CodeChecker Eclipse Plugin then hit next.
 * If an alert box comes up with unsigned content. Just accept it.
@@ -50,23 +51,23 @@ The plugin is activated on a per project basis, first you have to add the __Code
 ![CodeChecker Nature Add](docs/nature.png)
 
 #### 3. Configure CodeChecker and checkers
-After that, the settings can be customized in the project preferences window under the CodeChecker panel. For the plugin to work correctly, it is mandatory to add the correct path to the root of the CodeChecker package. You can download and compile CodeChecker from [here](https://github.com/Ericsson/codechecker).
+
+After the __CodeChecker Nature__  is added to the the project, the plugin can be configured globally in `Window -> Preferences -> CodeChecker` panel. Or for the individual project, from the `right click context menu -> Properties -> CodeChecker` page.
+In the first section, you select how and which CodeChecker will be used. After that set some analysis related settings. You should build CodeChecker in a __standalone package__ configuration, and add it to the PATH environment variable, and use the Search in PATH option. Alternatively you can specify a different instance with the Pre built package option. But be aware that the plugin not supports virtual environment, that CodeChecker needs in the default configuration. You can download and compile CodeChecker from [here](https://github.com/Ericsson/codechecker).
+
+To specify checkers or profiles, please add them to the Extra analysis options field.
+
+At the bottom the command that is similar to that to be executed is displayed, for easier commandline reproduction.
 
 ![CodeChecker Configure](docs/config.png)
-![CodeChecker Checkers Configure](docs/checkershow.png)
 
 After the plugin is successfully configured for a project, it'll listen to build events, and automatically rechecks the project with CodeChecker when needed.
 
-#### 4. Set up eclipse C/C++ build environment
+#### 4. Analyze C/C++ project and view results
 
-The code analysis runs only if your project can be built by Eclipse (as it intercepts gcc build commands).
-Please check that your builder is set up correctly in properties/C/C++ Build settings.
-If all goes well, you should be able to build your project from Eclipse using the Project/Build Project menu item.
+By default the plugin displays the problems related to the currently selected file on the current file reports view. Here the viewer can decide to check the individual reports selected from the reports tree, and view the related bug-path. Double clicking on a bug-path item will jump and set the cursor to that line in the editor.
 
-#### 5. Analyze C/C++ project and view results
-By default the plugin displays the problems related to the currently selected file on the current file reports view. Here the viewer can decide to check the individual reports selected from the reports tree, and view the related bugpath. Double clicking on a bugpath item will jump and set the cursor to that line in the editor.
-
-*Please note that codechecker will only show analysis results for files that you built. This means that if you want to see all bugs for your project you will need to do a full (clean) build. After you update a source file, analysis results will be updated when you rebuild your project.*
+The analysis is triggered when opening a file, or on a file save event, for that particular file. Currently there is no full project analysis. *Please note that codechecker will only show analysis results for files that you built. in the Current project View*
 
 ![CodeChecker Runtime Example](docs/example.png)
 
