@@ -26,7 +26,7 @@ Run `mvn -f mavendeps/pom.xml p2:site && mvn clean verify` in the root of the pr
 ### Install
 
 * Add the generated update site thats located under `path/to/cloned/project/releng/org.codechecker.eclipse.update/target/repository/` to `Help -> Install New Software...` in Eclipse
-  * Alternatively, extract the release downloaded from Releases page, and use that as an update site.
+  * Alternatively, use the archive from the Releases page, as an update site.
 * Select the newly added repository if not already selected
 * Mark CodeChecker Eclipse Plugin then hit next.
 * If an alert box comes up with unsigned content. Just accept it.
@@ -52,8 +52,16 @@ The plugin is activated on a per project basis, first you have to add the __Code
 
 #### 3. Configure CodeChecker and checkers
 
-After the __CodeChecker Nature__  is added to the the project, the plugin can be configured globally in `Window -> Preferences -> CodeChecker` panel. Or for the individual project, from the `right click context menu -> Properties -> CodeChecker` page.
-In the first section, you select how and which CodeChecker will be used. After that set some analysis related settings. You should build CodeChecker in a __standalone package__ configuration, and add it to the PATH environment variable, and use the Search in PATH option. Alternatively you can specify a different instance with the Pre built package option. But be aware that the plugin not supports virtual environment, that CodeChecker needs in the default configuration. You can download and compile CodeChecker from [here](https://github.com/Ericsson/codechecker).
+After the __CodeChecker Nature__  is added to the the project, the plugin can be configured globally in `Window -> Preferences -> CodeChecker` panel, or for the individual project, from the `right click context menu -> Properties -> CodeChecker` page.
+In the first section, you select how and which CodeChecker will be used. After that set some analysis related settings. You should build CodeChecker in a __standalone package__ configuration.
+
+``` bash
+cd codechecker
+make standalone_package
+export PATH=$PWD/build/CodeChecker/bin:$PATH
+```
+
+Then add it to the PATH environment variable, and use the Search in PATH option. Alternatively you can specify a different instance with the Pre built package option. But be aware that the plugin not supports virtual environment, that CodeChecker needs in the default configuration. You can download and compile CodeChecker from [here](https://github.com/Ericsson/codechecker).
 
 To specify checkers or profiles, please add them to the Extra analysis options field.
 
