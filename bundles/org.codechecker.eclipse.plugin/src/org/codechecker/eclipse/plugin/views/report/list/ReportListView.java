@@ -10,10 +10,13 @@ import java.util.List;
 
 import org.codechecker.eclipse.plugin.Activator;
 import org.codechecker.eclipse.plugin.Logger;
+import org.codechecker.eclipse.plugin.command.OpenDocsAction;
+import org.codechecker.eclipse.plugin.command.OpenDocsAction.DocTypes;
 import org.codechecker.eclipse.plugin.config.CodeCheckerContext;
 import org.codechecker.eclipse.plugin.config.filter.Filter;
 import org.codechecker.eclipse.plugin.config.filter.FilterConfiguration;
 import org.codechecker.eclipse.plugin.report.BugPathItem;
+import org.codechecker.eclipse.plugin.report.ReportInfo;
 import org.codechecker.eclipse.plugin.report.SearchList;
 import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
 import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
@@ -43,7 +46,9 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
@@ -223,7 +228,26 @@ public class ReportListView extends ViewPart {
     }
 
     private void fillContextMenu(IMenuManager manager) {
-        //manager.add(new RerunSelectedAction(this));
+        IStructuredSelection sel = viewer.getStructuredSelection();
+        Object selection = sel.getFirstElement();
+        TreePath tp = ((ITreeSelection) sel).getPaths()[0];
+        for (int i = 0; i < tp.getSegmentCount(); i++) {
+            Object segment = tp.getSegment(i);
+            // We are simply relying on string contain,
+            // * Can't go from BugPathItem to ReportInfo
+            // * ReportInfo on the gui wont show the checker
+            if (selection instanceof ReportInfo || selection instanceof BugPathItem)
+                break;
+            if (segment instanceof String) {
+                if (((String) segment).contains(".")) {
+                    manager.add(new OpenDocsAction(DocTypes.SA));
+                    break;
+                } else if (((String) segment).contains("-")) {
+                    manager.add(new OpenDocsAction(DocTypes.TIDY));
+                    break;
+                }
+            }
+        }
         manager.add(new NewInstanceAction(new ReportListViewCustom()));
         manager.add(new Separator());
         // Other plug-ins can contribute there actions here
