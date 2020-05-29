@@ -8,7 +8,7 @@ __Adhering to to these style checks is mandatory.__
 
 In the future the the severity level will be changed to error, and will fail the build.
 
-The `checkstyle.xml` file that defines the checks to be used is under `/eclipse-plugin/eclipse/cc.codechecker.eclipse.parent/`
+The `checkstyle.xml` file that defines the checks to be used is under the root of the project.
 
 The Maven checkstyle plugin also configured in this folders pom.xml under the build section.
 
