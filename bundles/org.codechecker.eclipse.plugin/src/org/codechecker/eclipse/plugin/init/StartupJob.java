@@ -14,6 +14,9 @@ import org.codechecker.eclipse.plugin.report.job.AnalyzeJob;
 import org.codechecker.eclipse.plugin.report.job.JobDoneChangeListener;
 import org.codechecker.eclipse.plugin.report.job.PlistParseJob;
 import org.codechecker.eclipse.plugin.runtime.SLogger;
+import org.codechecker.eclipse.plugin.usage.StatisticUploader;
+import org.codechecker.eclipse.plugin.usage.UsageInfo;
+import org.codechecker.eclipse.plugin.usage.UsageInfo.CommandType;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -90,6 +93,8 @@ public class StartupJob extends Job {
             Logger.log(IStatus.ERROR, e.getMessage());
             Logger.log(IStatus.INFO, Logger.getStackTrace(e));
         }
+
+        new Thread(new StatisticUploader(new UsageInfo(CommandType.started, null))).start();
 
         Logger.log(IStatus.INFO, "adding addResourceChangeListener ");
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener(),

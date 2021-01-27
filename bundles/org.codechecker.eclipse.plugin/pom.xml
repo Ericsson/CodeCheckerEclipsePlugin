@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.codechecker.eclipse</groupId>
+        <artifactId>org.codechecker.eclipse.bundles</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>org.codechecker.eclipse.plugin</artifactId>
+    <version>0.0.6-SNAPSHOT</version>
+    <packaging>eclipse-plugin</packaging>
+
+    <properties>
+        <host.log>empty</host.log>
+        <port.log>0</port.log>
+        <plugin.version>${project.version}</plugin.version>
+    </properties>
+
+    <build>
+		<resources>
+			<resource>
+				<directory>resources</directory>
+				<targetPath>resources</targetPath>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
+    </build>
+
+</project>

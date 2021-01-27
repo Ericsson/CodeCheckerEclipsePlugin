@@ -80,7 +80,7 @@ public class CodeCheckerTest {
 
         try {
             String version = codeChecker.getVersion();
-            assertThat("Missing Version String", version.startsWith("CodeChecker analyzer version:"));
+            assertThat("Missing Version String", "1.2.3".equals(version));
         } catch (InvalidCodeCheckerException e) {
             fail("An exception was thrown after a successful initialization!");
         }
